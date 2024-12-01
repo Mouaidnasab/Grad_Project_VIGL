@@ -6,3 +6,4 @@ sqlmodel
 uvicorn
 pymysql
 passlib[bcrypt]
+python-multipart

@@ -1,3 +1,6 @@
+#dont use this its test and will not work with the new database
+
+
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, Annotated

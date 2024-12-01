@@ -28,12 +28,16 @@ app.add_middleware(
 
 
 app.include_router(user.router)
-app.include_router(info.router)
-app.include_router(assign.router)
-app.include_router(exists.router)
+
+# in test routers folder
+# app.include_router(info.router)
+# app.include_router(assign.router)
+# app.include_router(exists.router)
 
 
 
 # if __name__ == "__main__":
 #     create_db_and_tables()
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# to run the server (cd supermarket_backend) and then use (uvicorn main:app --reload)

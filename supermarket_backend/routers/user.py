@@ -1,15 +1,12 @@
-print("edxdce")
 from typing import Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-print("edxdce")
 
 from dependencies.auth import (
     get_current_active_user, Token, authenticate_user, create_access_token,
     create_refresh_token, verify_refresh_token, User
 )
 from pydantic import BaseModel
-print("edxdce")
 
 from datetime import timedelta
 from sqlmodel import Session, select
@@ -17,7 +14,6 @@ from db.database import engine
 from db.models import RefreshToken
 
 router = APIRouter()
-print("edxdce")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
