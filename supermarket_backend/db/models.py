@@ -1,3 +1,5 @@
+# edit this to work with the new dataase
+
 from typing import List, Optional # allows you to optionaly specify a type ex. Optional[int]
 
 from sqlmodel import Field, SQLModel, Relationship

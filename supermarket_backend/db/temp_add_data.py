@@ -1,3 +1,5 @@
+# edit this to work with the new dataase
+
 from sqlmodel import SQLModel, Field, Session, create_engine
 from datetime import datetime
 
