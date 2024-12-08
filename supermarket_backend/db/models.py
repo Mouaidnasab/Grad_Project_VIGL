@@ -1,58 +1,155 @@
-# edit this to work with the new dataase
+# db/models.py
 
-from typing import List, Optional # allows you to optionaly specify a type ex. Optional[int]
+from typing import Optional, List
+from datetime import datetime
+from sqlmodel import SQLModel, Field, Relationship, Index
+from enum import Enum
 
-from sqlmodel import Field, SQLModel, Relationship
-from datetime import datetime, timezone
+class RoleEnum(str, Enum):
+    owner = "owner"
+    manager = "manager"
+    staff = "staff"
 
-class Product(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field()
-    category: str = Field()
-    shelf_id: int = Field()
-    price: float = Field()
-    status: str = Field()
-    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class Categories(SQLModel, table=True):
+    __tablename__ = "categories"
 
-class Screen(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field()
-    shelf_id: int = Field()
-    status: str = Field()
-    current_display: str = Field()
-    last_synced: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    CategoryID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    CategoryName: Optional[str] = Field(default=None, max_length=100)
+    Description: Optional[str] = Field(default=None, max_length=255)
 
-class Shelf(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    unique_name: str = Field()
-    location: str = Field()
-    capacity: int = Field()
-    
+    # Relationships
+    products: List["Products"] = Relationship(back_populates="category")
+
+
+class Products(SQLModel, table=True):
+    __tablename__ = "products"
+
+    ProductID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    ProductName: Optional[str] = Field(default=None, max_length=100)
+    CategoryID: Optional[int] = Field(default=None, foreign_key="categories.CategoryID", index=True)
+    Description: Optional[str] = Field(default=None, max_length=255)
+
+    # Relationships
+    category: Optional[Categories] = Relationship(back_populates="products")
+    product_screens: List["ProductScreen"] = Relationship(back_populates="product")
+    price_histories: List["PriceHistory"] = Relationship(back_populates="product")
+    promotions: List["Promotions"] = Relationship(back_populates="product")
+
+
+class Screens(SQLModel, table=True):
+    __tablename__ = "screens"
+
+    ScreenID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    Status: Optional[str] = Field(default=None, max_length=50)
+
+    # Relationships
+    product_screens: List["ProductScreen"] = Relationship(back_populates="screen")
+
+
+class Shelfs(SQLModel, table=True):
+    __tablename__ = "shelfs"
+
+    ShelfID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    Isle: Optional[str] = Field(default=None, max_length=50)
+    Shelf: Optional[str] = Field(default=None, max_length=50)
+
+    # Relationships
+    product_screens: List["ProductScreen"] = Relationship(back_populates="shelf")
+
+
+class ProductScreen(SQLModel, table=True):
+    __tablename__ = "product_screens"
+
+    ProductScreenID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    ProductID: Optional[int] = Field(default=None, foreign_key="products.ProductID", index=True)
+    ScreenID: Optional[int] = Field(default=None, foreign_key="screens.ScreenID", index=True)
+    ShelfID: Optional[int] = Field(default=None, foreign_key="shelfs.ShelfID", index=True)
+    Isle: Optional[str] = Field(default=None, max_length=50)
+
+    # Relationships
+    product: Optional[Products] = Relationship(back_populates="product_screens")
+    screen: Optional[Screens] = Relationship(back_populates="product_screens")
+    shelf: Optional[Shelfs] = Relationship(back_populates="product_screens")
+
 
 class RefreshToken(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    token: str = Field(index=True, unique=True)  # The JWT refresh token string
-    user_id: int = Field(foreign_key="staff.id")  # Reference to the user
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # When the token was issued
-    expires_at: datetime  # When the token expires
-    revoked: bool = Field(default=False)  # If the token has been invalidated (rotation or manual logout)
+    __tablename__ = "refresh_tokens"
 
-    # Relationship to the User table, assuming the primary user table is `Staff`
-    user: Optional["Staff"] = Relationship(back_populates="refresh_tokens")
+    TokenID: Optional[int] = Field(default=None, primary_key=True)
+    Token: str = Field(index=True, unique=True)
+    UserID: int = Field(foreign_key="users.UserID")
+    CreatedAt: Optional[datetime] = Field(default=None)
+    ExpiresAt: datetime
+    Revoked: bool = Field(default=False)
 
-    
-class Staff(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field()
-    username: str = Field(unique=True, index=True)
-    email: str = Field(unique=True, index=True)
-    hashed_password: str = Field()  # Renamed for clarity
-    role: str = Field()
-    disabled: bool = Field(default=False)  # New field for account status
-    last_login: Optional[datetime] = Field(default=None)  # Timestamp for last login
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Account creation timestamp
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # Last update timestamp
+    # Relationships
+    user: Optional["Users"] = Relationship(back_populates="refresh_tokens")
 
+
+class Users(SQLModel, table=True):
+    __tablename__ = "users"
+
+    UserID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    Username: Optional[str] = Field(default=None, max_length=50)
+    FirstName: Optional[str] = Field(default=None, max_length=50)
+    LastName: Optional[str] = Field(default=None, max_length=50)
+    Password: Optional[str] = Field(default=None, max_length=255)
+    Role: Optional[RoleEnum] = Field(default=None, max_length=50)
+    Email: Optional[str] = Field(default=None, max_length=100)
+    Disabled: bool = Field(default=False)
+    LastUsed: Optional[datetime] = Field(default=None)
+
+    # Relationships
+    price_histories_changed: List["PriceHistory"] = Relationship(back_populates="changed_by_user")
+    promotions_created: List["Promotions"] = Relationship(back_populates="created_by_user")
     refresh_tokens: List[RefreshToken] = Relationship(back_populates="user")
 
 
+class PriceHistory(SQLModel, table=True):
+    __tablename__ = "price_histories"
+    __table_args__ = (
+        Index("idx_pricehistory_changedby", "ChangedBy"),
+        Index("idx_pricehistory_productid", "ProductID"),
+    )
+
+    HistoryID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    ProductID: Optional[int] = Field(default=None, foreign_key="products.ProductID", index=True)
+    Price: Optional[float] = Field(default=None)
+    StartDate: Optional[datetime] = Field(default=None)
+    EndDate: Optional[datetime] = Field(default=None)
+    ChangedBy: Optional[int] = Field(default=None, foreign_key="users.UserID", index=True)
+
+    # Relationships
+    product: Optional[Products] = Relationship(back_populates="price_histories")
+    changed_by_user: Optional[Users] = Relationship(back_populates="price_histories_changed")
+
+
+class Promotions(SQLModel, table=True):
+    __tablename__ = "promotions"
+    __table_args__ = (
+        Index("idx_promotions_createdby", "CreatedBy"),
+        Index("idx_promotions_productid", "ProductID"),
+    )
+
+    PromotionID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    ProductID: Optional[int] = Field(default=None, foreign_key="products.ProductID", index=True)
+    PromotionName: Optional[str] = Field(default=None, max_length=100)
+    Discount: Optional[float] = Field(default=None)
+    StartDate: Optional[datetime] = Field(default=None)
+    EndDate: Optional[datetime] = Field(default=None)
+    CreatedBy: Optional[int] = Field(default=None, foreign_key="users.UserID", index=True)
+
+    # Relationships
+    product: Optional[Products] = Relationship(back_populates="promotions")
+    created_by_user: Optional[Users] = Relationship(back_populates="promotions_created")
+
+class Supermarkets(SQLModel, table=True):
+    __tablename__ = "supermarkets"
+
+    RegisteredID: Optional[int] = Field(default=None, primary_key=True)
+    RegisteredDate: datetime = Field(default_factory=datetime.now, nullable=False)
+    RegisteredName: str = Field(index=True, max_length=255)
+    Address: Optional[str] = Field(default=None, max_length=500)
+    ContactPersonFullName: Optional[str] = Field(default=None, max_length=100)
+
+    ContactPersonUserID: Optional[int] = Field(default=None, foreign_key="users.UserID")

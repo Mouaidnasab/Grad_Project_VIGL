@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import user, assign, info, exists
+from routers import current_user, user_managament, supermarket_management
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,6 +11,7 @@ from db.database import create_db_and_tables
 import logging
 logging.getLogger('passlib').setLevel(logging.ERROR)
 ###
+
 
 
 app = FastAPI()
@@ -27,7 +28,9 @@ app.add_middleware(
 )
 
 
-app.include_router(user.router)
+app.include_router(current_user.router)
+app.include_router(user_managament.router)
+app.include_router(supermarket_management.router)
 
 # in test routers folder
 # app.include_router(info.router)
