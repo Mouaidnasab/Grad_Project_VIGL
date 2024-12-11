@@ -99,6 +99,11 @@ const AdminRegistrationPage = () => {
             <label htmlFor="password">Password</label>
           </div>
 
+          <div class="login-section">
+            <span>Already have an account? </span>
+            <button type="button" onClick={handlelogin} class="login-link1">Login</button>
+          </div>
+
           <div className="button-wrapper">
             <button type="submit" className="submit-btn">Next</button>
           </div>
