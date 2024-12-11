@@ -1,0 +1,166 @@
+.page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    background-color: transparent;
+    width: 100%;
+  }
+  
+  .image-container {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .header-image {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    background-color: transparent;
+    width: 100%;
+  }
+  
+  .registration-form {
+    background-color: transparent;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: -30px;
+  }
+  
+  .input-group {
+    position: relative;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  
+  input {
+    width: 100%;
+    padding: 14px 12px; 
+    font-size: 1.1rem; 
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    margin-top: 10px; 
+  }
+  
+  input::placeholder {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+  
+  input:focus::placeholder {
+    opacity: 0; 
+  }
+  
+  /* Label styling */
+  label {
+    font-size: 1rem;
+    color: #333;
+    position: absolute;
+    left: 10px;
+    top: 40%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    opacity: 0;
+  }
+  
+  /* Show label when input is focused or not empty */
+  input:focus + label,
+  input:not(:empty):not(:focus) + label {
+    top: -10px; 
+    font-size: 0.8rem; 
+    color: #A5BB77; 
+    opacity: 1; 
+  }
+  
+  input:focus + label {
+    top: 2px; 
+    left: 10px; 
+    transform: translateY(-100%);
+  }
+  
+  input:not(:empty):not(:focus) + label {
+    top: -12px; 
+    transform: translateY(-100%); 
+  }
+  
+  .input-group-name {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .input-group-name .input-group {
+    width: 48%;
+  }
+  
+  .input-group-name .input-group:first-child {
+    margin-right: 4%; 
+  }
+  
+  .input-group-name .input-group:last-child {
+    margin-left: 4%; 
+  }
+  
+  .button-wrapper {
+    display: flex;
+    justify-content: space-between; 
+    width: 100%;
+    margin-top: 15px;
+  }
+  
+  button.back-btn, button.next-btn, button.submit-btn {
+    background-color: #738844;
+    color: white;
+    padding: 14px;
+    width: 30%;
+    font-size: 1.3rem;
+    border: none;
+    cursor: pointer;
+    border-radius: 18px;
+    transition: background-color 0.3s;
+  }
+  
+  button.back-btn:hover, button.next-btn:hover, button.submit-btn:hover {
+    background-color: #A5BB77;
+  }
+  
+    .carousel-container {
+    margin-bottom: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: -50px;
+  }
+  
+  footer {
+    width: 100%;
+    background-color: #f1f1f1;
+    padding: 20px 0;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    margin-top: auto;
+  }
+  
+  
