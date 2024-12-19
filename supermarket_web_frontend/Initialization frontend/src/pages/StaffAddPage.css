@@ -1,0 +1,441 @@
+/*Whole Page Styles */
+.page-wrapper1 {
+  display: flex;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background-color: transparent;
+  width: 100%;
+  padding: 20px;
+  gap: 20px;
+}
+/* End of Whole Page Styles */
+
+
+/*Form Section Styles*/
+.form-container2 {
+  flex: 1;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 100px;
+  max-width: 100%;
+  padding-top: 7%;
+}
+
+.form-container2 h2 {
+  text-align: center;
+  margin-bottom: 0px;
+  color: #333;
+}
+
+.form-container2 form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding-top: 0px !important;
+  padding-left: 10px;
+}
+
+.form-container2 input,
+.form-container2 select,
+.form-container2 textarea,
+.form-container2 button {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.form-container2 input[type="text"],
+.form-container2 input[type="number"] {
+  width: 100%;
+}
+
+.form-container2 textarea {
+  resize: vertical;
+  height: 100px;
+}
+
+.form-container2 button {
+  background-color: #738844;
+  color: white;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.form-container2 button:hover {
+  background-color: #5e6936;
+}
+
+.h1-container {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+}
+
+.h1form {
+  font-size: 1.5rem; 
+  text-align: center; 
+}
+/* End of Form Section Styles */
+
+
+/* Table Section Styles*/
+.table-container1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 2;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 100px;
+}
+
+.table-container1 h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #333;
+}
+
+table th,
+table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+table th {
+  background-color: #738844;
+  color: white;
+}
+
+table tbody tr:hover {
+  background-color: #f2f2f2;
+}
+/* End of Table Section Styles */
+
+
+/*Text Alignment Utilities*/
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+/* End of Text Alignment Utilities */
+
+
+/*Input Group Styles */
+.input-group1 {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.input1 {
+  width: 100% !important;
+  padding: 14px 12px !important;
+  font-size: 1.1rem !important;
+  border-radius: 10px !important;
+  border: 1px solid #ccc !important;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  margin-top: 10px; 
+}
+
+.input1::placeholder {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.input1:focus::placeholder {
+  opacity: 0;
+}
+
+label {
+  font-size: 1rem;
+  color: #333;
+  position: absolute;
+  left: 10px;
+  top: 40%;
+  transform: translateY(-50%);
+  transition: all 0.3s ease;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.input1:focus + label,
+.input1:not(:empty):not(:focus) + label {
+  top: -10px;
+  font-size: 0.8rem;
+  color: #A5BB77;
+  opacity: 1;
+}
+
+.input1:focus + label {
+  top: 2px;
+  left: 10px;
+  transform: translateY(-100%);
+}
+
+.input1:not(:empty):not(:focus) + label {
+  top: -12px;
+  transform: translateY(-100%);
+}
+/* End of Input Group Styles */
+
+
+/* Input Group Layout Styles */
+.input1-group-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.input1-group-name .input-group1 {
+  width: 48%;
+}
+
+.input1-group-name .input-group1:first-child {
+  margin-right: 4%;
+}
+
+.input1-group-name .input-group1:last-child {
+  margin-left: 4%;
+}
+/* End of Input Group Layout Styles */
+
+
+/* Registration Form Styles */
+.registration-form {
+  background-color: transparent;
+  padding: 2rem;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 400px;
+}
+/* End of Registration Form Styles */
+
+
+/* Custom Dropdown Styles*/
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  width: 100%; 
+}
+
+.custom-select {
+  appearance: none; 
+  width: 100% !important;
+  padding: 14px 12px !important;
+  font-size: 1.1rem !important; 
+  border: 1px solid #ccc !important; 
+  border-radius: 10px;
+  background-color: #fff; 
+  color: #333; 
+  box-sizing: border-box; 
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23666"%3E%3Cpath d="M7 10l5 5 5-5H7z"/%3E%3C/svg%3E');
+  background-repeat: no-repeat; 
+  background-position: right 12px center; 
+  background-size: 24px; 
+  cursor: pointer; 
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: #4CAF50; 
+}
+
+.custom-select:disabled {
+  background-color: #f5f5f5;
+  color: #aaa;
+  cursor: not-allowed;
+}
+/* End of Custom Dropdown Styles */
+
+
+/* Table Header and Body Styles */
+thead th {
+  background-color: #738844;
+  color: white;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+tbody tr {
+  height: 44px;
+  border: 1px solid #ddd;
+}
+
+tbody td {
+  padding: 10px;
+  text-align: left;
+}
+
+tbody tr.empty-row td {
+  background-color: #f9f9f9;
+}
+/* End of Table Header and Body Styles */
+
+
+/*  General Button Styles*/
+.button-wrapper {
+  display: flex;
+  justify-content: space-between; 
+  width: 100%;
+  margin-top: 15px;
+}
+
+button.back-btn, button.next-btn, button.submit-btn {
+  background-color: #738844;
+  color: white;
+  padding: 14px;
+  width: 30%;
+  font-size: 1.3rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 18px;
+  transition: background-color 0.3s;
+}
+
+button.back-btn:hover, button.next-btn:hover, button.submit-btn:hover {
+  background-color: #A5BB77;
+}
+/* End of General Button Styles */
+
+
+/*Delete Button Styles*/
+.delete-btn {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.delete-btn:hover {
+  background-color: darkred;
+}
+
+.table-wrapper td {
+  text-align: center;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  padding: 10px;
+}
+/* End of Delete Button Styles */
+
+
+/* Table Wrapper Styles */
+.table-wrapper {
+  width: calc(100% - 40px);
+  border: 1px solid #738844;
+  max-height: 450px;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin-bottom: 10px;
+}
+
+table {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+table tbody tr:hover {
+  background-color: #f2f2f2;
+}
+
+body {
+  overflow-x: hidden;
+}
+/* End of Table Wrapper Styles */
+
+
+/* Media Query Styles*/
+@media (max-width: 1500px) {
+  .page-wrapper1 {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .form-container2 {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .table-container1 {
+    margin-top: -150px;
+    margin-right: 20px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .table-wrapper {
+    max-width: 90%;
+    overflow-x: auto;
+    overflow-y: auto;
+    border: 1px solid #738844;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+
+  .table-buttons {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 90% !important;
+
+  }
+
+  button.backk-btn,
+  button.finish-btn {
+    font-size: 0.9rem !important; 
+    padding: 10px;
+    flex: 0 0 120px; 
+  }
+}
+
+
+
+
+.table-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 95%; 
+  margin-top: 20px;
+}
+
+button.backk-btn,
+button.finish-btn {
+  background-color: #738844;
+  color: white;
+  padding: 12px;
+  font-size: 1.1rem !important; 
+  border: none;
+  cursor: pointer;
+  border-radius: 18px;
+  transition: background-color 0.3s;
+  flex: 0 0 150px;
+}
+
+.table-buttons button:hover {
+  background-color: #5e6936;
+}
