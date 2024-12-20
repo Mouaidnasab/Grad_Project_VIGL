@@ -41,6 +41,7 @@ class Screens(SQLModel, table=True):
 
     ScreenID: Optional[int] = Field(default=None, primary_key=True, index=True)
     Status: Optional[str] = Field(default=None, max_length=50)
+    IP: Optional[str] = Field(default=None, max_length=50)
 
     # Relationships
     product_screens: List["ProductScreen"] = Relationship(back_populates="screen")
