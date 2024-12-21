@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './AdminRegistrationPage.css';
-import welcomeImage from '../images/welcomewithoutbg.png';
+import welcomeImage from '../images/welcome.png';
 import Footer from '../components/footerInit';
 
 const LoginPage = () => {
