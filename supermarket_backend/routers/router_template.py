@@ -5,7 +5,7 @@ from sqlmodel import Session
 
 from db.database import engine
 from db.models import Products
-from dependencies.auth import get_current_active_user, User  # Ensure correct import
+from dependencies.auth import get_current_active_user, User 
 
 router = APIRouter(
     prefix="/template",
