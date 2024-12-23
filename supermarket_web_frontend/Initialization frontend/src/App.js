@@ -4,6 +4,8 @@ import AdminRegistrationPage from './pages/AdminRegistrationPage';
 import SupermarketAddPage from './pages/SupermarketAddPage';
 import StaffAddPage from './pages/StaffAddPage';
 import LoginPage from './pages/Login';
+import ManagePage from './pages/manage';
+
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/staff-registration" element={<StaffAddPage />} />
         <Route path="/staff-add" element={<StaffAddPage />} /> 
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/manage" element={<ManagePage />} /> 
+
 
       </Routes>
     </BrowserRouter>

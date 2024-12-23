@@ -1,0 +1,333 @@
+.manage-container {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+/* Header Section Styling */
+.manage-header {
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 60px;
+  width: 100%;
+  background-color: #738844;
+  color: white;
+}
+
+.borderh1 {
+  padding-top: 25px;
+  padding-bottom: 25px;
+}
+
+/* Tabs Section Styling */
+.manage-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-bottom: 2px solid #ccc; 
+  margin-bottom: 20px;
+}
+
+/* Styling individual tabs */
+.tab {
+  background: transparent;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #000;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+/* Active tab styling */
+.tab.active {
+  color: #4caf50; /* Green font for active tab */
+}
+
+/* Underline styling for active tab */
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #4caf50; 
+  transform: scaleX(1);
+  transition: transform 0.3s ease;
+}
+
+/* Inactive tab styling */
+.tab:not(.active)::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: transparent;
+}
+
+.manage-content {
+  display: flex;
+  justify-content: space-around;
+}
+
+.section {
+  width: 40%;
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.section h2 {
+  font-size: 20px;
+  color: #4c6f4c;
+  margin-bottom: 10px;
+}
+
+form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+form input,
+form textarea,
+form button {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+form button {
+  background-color: #738844;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+form button:hover {
+  background-color: #3b5c3b;
+}
+
+.qr-code-preview {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.qr-code-preview img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.qr-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.qr-code-container input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.qr-code-preview {
+  width: 100px;
+  height: 100px;
+  border: 1px dashed #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.qr-code-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-code-container input[type="file"] {
+  padding: 5px;
+}
+
+@media screen and (max-width: 750px) {
+  .manage-content {
+    flex-direction: column; 
+    align-items: center; 
+  }
+
+  .section {
+    width: 80%; 
+    margin-bottom: 100px; 
+  }
+}
+
+/* Custom Textarea Styling */
+.custom-textarea {
+  width: 100%; 
+  height: 80px; 
+  padding: 10px; 
+  font-size: 16px; 
+  line-height: 1.5; 
+  resize: none; 
+  border: 1px solid #ccc; 
+  border-radius: 5px; 
+  box-sizing: border-box; 
+  overflow: hidden; 
+}
+
+/* Custom Dropdown Styling */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 40px;
+  margin-top: 10px;
+}
+
+/* Styling for the selected option display */
+.dropdown-selected {
+  padding: 10px;
+  background-color: white;
+  color: black;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.dropdown-selected::after {
+  content: "▼"; 
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+}
+
+
+/* Hidden dropdown options */
+.dropdown-options {
+  display: none;
+  position: absolute;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 10;
+}
+
+/* Styling for each option in the dropdown */
+.dropdown-option {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effect for options */
+.dropdown-option:hover {
+  background-color: #738844;  
+  color: white;
+}
+
+.custom-dropdown:hover .dropdown-options {
+  display: block;
+}
+
+/* Common Styles for Buttons (Edit/Delete) */
+.edit-button,
+.delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #fff;
+  padding: 0;
+  margin: 0 4px;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Edit Button Styling */
+.edit-button {
+  background-color: #738844; 
+}
+
+.edit-button:hover {
+  background-color: #4f5c33; 
+}
+
+/* Delete Button Styling */
+.delete-button {
+  background-color: #dc3545; 
+}
+
+.delete-button:hover {
+  background-color: #a71d2a;
+}
+
+/* Delete Confirmation Modal Styling */
+.delete-confirmation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 300px;
+}
+
+.modal-actions {
+  margin-top: 20px;
+}
+
+.cancel-button,
+.confirm-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.confirm-button {
+  background-color: #4caf50;
+  color: white;
+}
