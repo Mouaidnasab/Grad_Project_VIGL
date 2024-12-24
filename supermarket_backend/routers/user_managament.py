@@ -6,13 +6,9 @@ from pydantic import BaseModel, EmailStr, constr
 from sqlmodel import Session, select, update, delete
 from dependencies.auth import (
     get_current_active_user,
-    Token,
-    authenticate_user,
-    create_access_token,
-    create_refresh_token,
-    verify_refresh_token,
     User,
     get_password_hash,
+    require_Role,
 )
 from db.database import engine
 from db.models import Users, RefreshToken
@@ -61,7 +57,6 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 # Security for Initialize Owner Endpoint
-
 # Define an API key header for initialization
 INITIALIZE_OWNER_API_KEY = os.getenv("INITIALIZE_OWNER_API_KEY", "owner_key")
 api_key_header = APIKeyHeader(name="X-Initialize-Owner-Token", auto_error=False)
@@ -75,17 +70,7 @@ def verify_initialize_owner_token(api_key: str = Security(api_key_header)):
         )
     return api_key
 
-# Dependency for Role-Based Access Control
 
-def require_Role(required_Roles: List[str]):
-    def Role_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.Role not in required_Roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
-            )
-        return current_user
-    return Role_checker
 
 # Endpoint to Add a New User
 @router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -302,11 +287,7 @@ def list_users(
     dependencies=[Depends(verify_initialize_owner_token)],
 )
 def initialize_owner(user: UserCreate):
-    """
-    Initialize the first owner of the system.
-    This endpoint can only be used if no owner exists.
-    It is protected by an initialization token.
-    """
+
     with Session(engine) as session:
         # Check if any owner exists
         statement = select(Users).where(Users.Role == "owner")

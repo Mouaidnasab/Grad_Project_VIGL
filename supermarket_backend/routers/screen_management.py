@@ -5,7 +5,7 @@ from sqlmodel import Session, select, desc
 from pydantic import BaseModel
 from db.database import engine
 from db.models import Products, Categories, Screens, ProductScreen, PriceHistory, Promotions
-from dependencies.auth import get_current_active_user, User  
+from dependencies.auth import get_current_active_user, User, require_Role  
 import json
 import os
 from fastapi.responses import JSONResponse
@@ -234,7 +234,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
 
     
 
-@router.post("/add_screen_template", response_model=ScreenTemplate)
+@router.post("/add_template", response_model=ScreenTemplate)
 def add_screen_template(
     screen_template: ScreenTemplate,
     # current_user: User = Depends(get_current_active_user)
@@ -262,8 +262,8 @@ def add_screen_template(
         json.dump(existing_data, json_file, indent=4)
 
     return screen_template
-@router.post("/update_screen", response_model=UpdateResponse)
-def update_screen(
+@router.post("/update_display", response_model=UpdateResponse)
+def update_screen_display(
     update_request: UpdateRequest,
     session: Session = Depends(get_session),
     # current_user: User = Depends(get_current_active_user)  
@@ -294,7 +294,7 @@ def update_screen(
 
 
 
-        if result.Discount and result.EndDate > datetime.now() and result.Discount > 0:
+        if result and result.EndDate > datetime.now() and result.Discount > 0:
             template_name = "Promotion"
         else:
             template_name = "Standard"
@@ -322,3 +322,17 @@ def update_screen(
         screen=screen
     )
 
+
+
+
+@router.post("/add", response_model=Screens)
+def add_screen(
+    screen_add: Screens,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"]))  
+):
+    new_screen = Screens(**screen_add.model_dump())
+    session.add(new_screen)
+    session.commit()
+    session.refresh(new_screen)
+    return new_screen
