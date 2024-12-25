@@ -1,21 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../api'; 
 import './StaffAddPage.css';
 import Footer from '../components/footerInit.js'; 
 import NavInit from '../components/NavInit.js';
 import { useNavigate } from 'react-router-dom';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; // Ensure this is set in your .env file
+
 const StaffAddPage = () => {
   const navigate = useNavigate(); 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    username: '',
-    email: '',
-    password: '',
-    role: '',
+    FirstName: '',
+    LastName: '',
+    Username: '',
+    Email: '',
+    Password: '',
+    Role: '',
   });
 
   const [staffList, setStaffList] = useState([]);
+
+  useEffect(() => {
+    fetchStaffList();
+  }, []);
+
+  const fetchStaffList = async () => {
+    try {
+      const response = await api.get('/users/list');
+
+      setStaffList(response.data);
+    } catch (error) {
+      console.error('Error fetching staff list:', error);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -24,27 +41,36 @@ const StaffAddPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Staff Form Submitted', formData);
-    setStaffList([...staffList, formData]);
-    setFormData({
-      firstName: '',
-      lastName: '',
-      username: '',
-      email: '',
-      password: '',
-      role: '',
-    });
+    try {
+      const response = await api.post('/users/create', {
+        Username: formData.Username,
+        Email: formData.Email,
+        FirstName: formData.FirstName,
+        LastName: formData.LastName,
+        Password: formData.Password,
+        Role: formData.Role,
+        Disabled: false, // You can adjust this as needed
+      });
+      console.log('User created:', response.data);
+      fetchStaffList(); // Refresh the user list
+      setFormData({
+        FirstName: '',
+        LastName: '',
+        Username: '',
+        Email: '',
+        Password: '',
+        Role: '',
+      });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      // Optionally, handle errors (e.g., display a message to the user)
+    }
   };
 
-  const handleDelete = (index) => {
-    const updatedStaffList = staffList.filter((_, i) => i !== index);
-    setStaffList(updatedStaffList);
-  };
-
-  const handleBack = () => {
-    navigate('/supermarket-registration'); 
+  const handleFinish = () => {
+    navigate('/login'); // Ensure this route exists in your React Router setup
   };
 
   return (
@@ -62,82 +88,81 @@ const StaffAddPage = () => {
                 <div className="input-group1">
                   <input
                     type="text"
-                    name="firstName"
-                    value={formData.firstName}
+                    name="FirstName"
+                    value={formData.FirstName}
                     onChange={handleChange}
                     placeholder="First Name"
                     required
                     className='input1'
                   />
-                  <label htmlFor="firstName">First Name</label>
+                  <label htmlFor="FirstName">First Name</label>
                 </div>
                 <div className="input-group1">
                   <input
                     type="text"
-                    name="lastName"
-                    value={formData.lastName}
+                    name="LastName"
+                    value={formData.LastName}
                     onChange={handleChange}
                     placeholder="Last Name"
                     required
                     className='input1'
                   />
-                  <label htmlFor="lastName">Last Name</label>
+                  <label htmlFor="LastName">Last Name</label>
                 </div>
               </div>
-
               <div className="input-group1 input-group-username">
                 <input
                   type="text"
-                  name="username"
-                  value={formData.username}
+                  name="Username"
+                  value={formData.Username}
                   onChange={handleChange}
                   placeholder="Username"
                   required
                   className='input1'
                 />
-                <label htmlFor="username">Username</label>
+                <label htmlFor="Username">Username</label>
               </div>
 
               <div className="input-group1">
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
+                  name="Email"
+                  value={formData.Email}
                   onChange={handleChange}
                   placeholder="Email"
                   required
                   className='input1'
                 />
-                <label htmlFor="email">Email</label>
+                <label htmlFor="Email">Email</label>
               </div>
 
               <div className="input-group1">
                 <input
                   type="password"
-                  name="password"
-                  value={formData.password}
+                  name="Password"
+                  value={formData.Password}
                   onChange={handleChange}
                   placeholder="Password"
                   required
                   className='input1'
                 />
-                <label htmlFor="password">Password</label>
+                <label htmlFor="Password">Password</label>
               </div>
 
               <div className="input-group1 custom-dropdown">
                 <select
                   className="custom-select"
-                  name="role"
-                  value={formData.role}
+                  name="Role"
+                  value={formData.Role}
                   onChange={handleChange}
                   required
                 >
                   <option value="" disabled>
                     Select Role
                   </option>
-                  <option value="Admin">Admin</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Staff">Staff</option>
+                  {/* <option value="admin">Admin</option> */}
+                  <option value="manager">Manager</option>
+                  <option value="staff">Staff</option>
                 </select>
               </div>
 
@@ -158,18 +183,18 @@ const StaffAddPage = () => {
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th>Actions</th>
+                    {/* <th>Actions</th> */}
                   </tr>
                 </thead>
                 <tbody>
-                  {staffList.map((staff, index) => (
-                    <tr key={index}>
-                      <td>{staff.firstName}</td>
-                      <td>{staff.lastName}</td>
-                      <td>{staff.username}</td>
-                      <td>{staff.email}</td>
-                      <td>{staff.role}</td>
-                      <td>
+                  {staffList.map((staff) => (
+                    <tr key={staff.UserID}>
+                      <td>{staff.FirstName}</td>
+                      <td>{staff.LastName}</td>
+                      <td>{staff.Username}</td>
+                      <td>{staff.Email}</td>
+                      <td>{staff.Role}</td>
+                      {/* <td>
                         <button
                           type="button"
                           className="delete-btn"
@@ -177,20 +202,20 @@ const StaffAddPage = () => {
                         >
                           Delete
                         </button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                   {Array.from({ length: Math.max(11 - staffList.length, 0) }).map((_, index) => (
                     <tr key={`empty-${index}`} className="empty-row">
-                      <td colSpan="6"></td>
+                      <td colSpan="5"></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <div className="table-buttons">
-              <button type="button" onClick={handleBack} className="backk-btn">Back</button>
-              <button type="button" className="finish-btn">Finish</button>
+              {/* <button type="button" onClick={handleBack} className="backk-btn">Back</button> */}
+              <button type="button" onClick={handleFinish} className="finish-btn">Finish</button>
             </div>
           </div>
         </div>

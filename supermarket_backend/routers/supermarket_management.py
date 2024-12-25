@@ -22,7 +22,7 @@ def get_session():
 def create_supermarket(
     supermarket: Supermarkets,
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_Role(["owner"]))  # Secure endpoint
+    current_user: User = Depends(require_Role(["owner"]))  
 ):
 
     # Check if a supermarket already exists
@@ -133,7 +133,7 @@ def update_supermarket(
         existing_supermarket.ContactPersonUserID = user.UserID
     
     # Update other fields (excluding ContactPersonUserID and RegisteredID)
-    update_data = supermarket_update.dict(exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True)
+    update_data = supermarket_update.model_dump(exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True)
     for key, value in update_data.items():
         setattr(existing_supermarket, key, value)
     

@@ -279,6 +279,13 @@ def list_users(
             for user in users
         ]
     
+@router.get("/is_owner", response_model=bool)
+def is_owner():
+    with Session(engine) as session:
+        statement = select(Users).where(Users.Role == "owner")
+        owner = session.exec(statement).first()
+        return owner is not None
+    
 # Endpoint to Initialize Owner (Only if no owner exists)
 @router.post(
     "/initialize_owner",

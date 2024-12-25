@@ -8,6 +8,8 @@ from .models import *
 
 mysql_file_name = "database.db"
 mysql_url = f"mysql+pymysql://root:secretpass@100.92.172.33:4324/temp"
+# mysql_url = f"mysql+pymysql://root:secretpass@grad_mysql:3306/temp" # for docker
+
 
 
 engine = create_engine(mysql_url)

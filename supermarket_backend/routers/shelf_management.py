@@ -126,3 +126,15 @@ def get_relations(
     current_user: User = Depends(require_Role(["owner", "manager"])) 
 ):
     return session.exec(select(ProductScreen)).all()  
+
+
+
+@router.get("/get", response_model=List[Shelfs])
+def get_shelves(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"]))
+):
+    # Query for shelves that are not linked in ProductScreen
+    linked_shelf_ids = session.exec(select(ProductScreen.ShelfID)).all()
+    shelves = session.exec(select(Shelfs).where(Shelfs.ShelfID.not_in(linked_shelf_ids))).all()
+    return shelves

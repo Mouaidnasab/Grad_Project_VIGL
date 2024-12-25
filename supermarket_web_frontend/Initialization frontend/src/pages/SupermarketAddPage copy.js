@@ -4,11 +4,12 @@ import welcomeImage from '../images/welcome.png';
 import LogoCarousel from '../components/LogoCarousel.js';
 import Footer from '../components/footerInit.js'; 
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
+import axios from 'axios'; // Ensure axios is installed: npm install axios
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; // Using environment variable
 
 const SupermarketAddPage = () => {
+  // Corrected formData keys to match input names
   const [formData, setFormData] = useState({
     registeredID: '', 
     registeredDate: '',
@@ -17,8 +18,9 @@ const SupermarketAddPage = () => {
     contactPersonFullName: '',
   });
 
-  const [status, setStatus] = useState('idle'); 
-  const [error, setError] = useState(null); 
+  // State to manage form submission status
+  const [status, setStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
+  const [error, setError] = useState(null); // To store error messages
 
   const navigate = useNavigate(); 
 
@@ -29,31 +31,46 @@ const SupermarketAddPage = () => {
       [name]: value,
     });
   };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
     setError(null);
 
+    // Prepare the payload
     const payload = {
-      RegisteredID: formData.registeredID,
-      RegisteredDate: formData.registeredDate, 
+      RegisteredID: formData.registeredID, // Set to 0; backend should handle actual ID
+      RegisteredDate: new Date(formData.registeredDate).toISOString(), // Ensure ISO format
       RegisteredName: formData.registeredName,
       Address: formData.address,
       ContactPersonFullName: formData.contactPersonFullName,
     };
-    
+
     try {
+      // Retrieve the access token from localStorage
+      const token = localStorage.getItem('access_token');
 
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in.');
+      }
 
-      const response = await api.post('/supermarket/create', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-                },
-      });
+      // Make the POST request to the backend
+      const response = await axios.post(
+        `${BACKEND_URL}/supermarket/create`, // Using environment variable
+        payload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`, // Include token for authentication
+          },
+        }
+      );
 
       console.log('Supermarket created successfully:', response.data);
       setStatus('success');
 
+      // Optionally, you can pass some data to the next page
       navigate('/staff-add'); 
     } catch (err) {
       console.error('Error creating supermarket:', err);
@@ -66,6 +83,7 @@ const SupermarketAddPage = () => {
     }
   };
 
+  // Determine the button label based on status
   const getButtonLabel = () => {
     switch(status) {
       case 'submitting':
@@ -103,7 +121,7 @@ const SupermarketAddPage = () => {
             </div>
             <div className="input-group">
               <input
-                type="date" 
+                type="date" // Changed to date input for user to select date
                 name="registeredDate"
                 value={formData.registeredDate}
                 onChange={handleChange}
@@ -150,6 +168,7 @@ const SupermarketAddPage = () => {
             <label htmlFor="contactPersonFullName">Contact Person Full Name</label>
           </div>
 
+          {/* Display error message if any */}
           {status === 'error' && error && (
             <div className="error-message">{error}</div>
           )}
