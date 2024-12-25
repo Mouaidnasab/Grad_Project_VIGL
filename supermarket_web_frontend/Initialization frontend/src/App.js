@@ -4,6 +4,7 @@ import AdminRegistrationPage from './pages/AdminRegistrationPage';
 import SupermarketAddPage from './pages/SupermarketAddPage';
 import StaffAddPage from './pages/StaffAddPage';
 import LoginPage from './pages/Login';
+import ManageProductPrices from './pages/ManageProductPrices';
 
 function App() {
   return (
@@ -14,9 +15,9 @@ function App() {
         <Route path="/admin-registration" element={<AdminRegistrationPage />} />
         <Route path="/supermarket-registration" element={<SupermarketAddPage />} />
         <Route path="/staff-registration" element={<StaffAddPage />} />
-        <Route path="/staff-add" element={<StaffAddPage />} /> 
+        <Route path="/staff-add" element={<StaffAddPage />} />
         <Route path="/login" element={<LoginPage />} />
-
+        <Route path="/manage-product-prices" element={<ManageProductPrices />} />
       </Routes>
     </BrowserRouter>
   );
