@@ -13,3 +13,5 @@ requests
 sqlmodel
 pydantic
 sqlalchemy
+cryptography
+

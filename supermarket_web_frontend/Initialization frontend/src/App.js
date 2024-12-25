@@ -5,6 +5,7 @@ import SupermarketAddPage from './pages/SupermarketAddPage';
 import StaffAddPage from './pages/StaffAddPage';
 import LoginPage from './pages/Login';
 import ManagePage from './pages/manage';
+import OverviewDashboard from './pages/OverviewDashboard';
 
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Default route to redirect to admin registration */}
-        <Route path="/" element={<Navigate to="/admin-registration" />} />
+        <Route path="/" element={<Navigate to="/manage" />} />
+        <Route path="/overview_dashboard" element={<OverviewDashboard />} />
         <Route path="/admin-registration" element={<AdminRegistrationPage />} />
         <Route path="/supermarket-registration" element={<SupermarketAddPage />} />
         <Route path="/staff-registration" element={<StaffAddPage />} />

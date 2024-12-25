@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+from typing import List
 
 
 
@@ -336,3 +337,14 @@ def add_screen(
     session.commit()
     session.refresh(new_screen)
     return new_screen
+
+
+@router.get("/get", response_model=List[Screens])
+def get_screens(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"]))
+):
+    # Query for screens that are not linked in ProductScreen
+    linked_screen_ids = session.exec(select(ProductScreen.ScreenID)).all()
+    screens = session.exec(select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))).all()
+    return screens

@@ -190,7 +190,7 @@ def verify_refresh_token(token: str) -> Optional[str]:
             if not refresh_token:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="InvalID refresh token",
+                    detail="Invalid refresh token",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             if refresh_token.ExpiresAt.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):

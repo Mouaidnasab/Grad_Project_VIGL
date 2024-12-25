@@ -65,7 +65,8 @@ class Shelfs(SQLModel, table=True):
         default=None
     )
     Isle: Optional[str] = Field(default=None, max_length=50)
-    Shelf: Optional[str] = Field(default=None, max_length=50)
+    Floor: Optional[str] = Field(default=None, max_length=50)
+    Section: Optional[str] = Field(default=None, max_length=50)
     Description: Optional[str] = Field(default=None, max_length=255)
 
 
@@ -170,7 +171,7 @@ class Supermarkets(SQLModel, table=True):
     __tablename__ = "supermarkets"
 
     RegisteredID: Optional[int] = Field(default=None, primary_key=True)
-    RegisteredDate: datetime = Field(default_factory=datetime.now, nullable=False)
+    RegisteredDate: Optional[date] = Field(default=None, nullable=False)
     RegisteredName: str = Field(index=True, max_length=255)
     Address: Optional[str] = Field(default=None, max_length=500)
     ContactPersonFullName: Optional[str] = Field(default=None, max_length=100)
