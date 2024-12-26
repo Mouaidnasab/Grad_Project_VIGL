@@ -1,8 +1,7 @@
 // AdminRegistrationPage.js
 
-import React, { useState,useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; // Import the Axios instance
 import './AdminRegistrationPage.css';
 import welcomeImage from '../images/welcome.png';
 import LogoCarousel from '../components/LogoCarousel.js';
@@ -24,7 +23,7 @@ const AdminRegistrationPage = () => {
   const navigate = useNavigate();
 
   // Retrieve environment variables
-  // Removed BACKEND_URL as api already has baseURL
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const INITIALIZE_OWNER_API_KEY = process.env.REACT_APP_INITIALIZE_OWNER_API_KEY;
 
   // Handle input changes
@@ -42,72 +41,66 @@ const AdminRegistrationPage = () => {
     setSuccess('');
     setIsLoading(true);
 
-    const payload = {
-      Username: formData.username,
-      Email: formData.email,
-      FirstName: formData.firstName,
-      LastName: formData.lastName,
-      Password: formData.password,
-      Disabled: false, // Default value
-    };
-
     try {
       // Step 1: Initialize Owner
-      const initResponse = await api.post('/users/initialize_owner', payload, {
+      const initResponse = await fetch(`${BACKEND_URL}/users/initialize_owner`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Initialize-Owner-Token': INITIALIZE_OWNER_API_KEY,
         },
+        body: JSON.stringify({
+          Username: formData.username,
+          Email: formData.email,
+          FirstName: formData.firstName,
+          LastName: formData.lastName,
+          Password: formData.password,
+          Disabled: false, // Default value
+        }),
       });
 
-      console.log('Owner initialized successfully:', initResponse.data);
+      if (!initResponse.ok) {
+        const errorData = await initResponse.json();
+        throw new Error(errorData.detail || 'Failed to initialize owner');
+      }
+
+      const initData = await initResponse.json();
+      console.log('Owner initialized successfully:', initData);
       setSuccess('Owner account created successfully! Logging in...');
 
       // Step 2: Login to obtain tokens
-      const loginPayload = new URLSearchParams({
-        username: formData.username,
-        password: formData.password,
-      });
-
-      const loginResponse = await api.post('/user_auth/token', loginPayload, {
+      const loginResponse = await fetch(`${BACKEND_URL}/user_auth/token`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        body: new URLSearchParams({
+          username: formData.username,
+          password: formData.password,
+        }),
       });
 
-      console.log('Login successful:', loginResponse.data);
+      if (!loginResponse.ok) {
+        const errorData = await loginResponse.json();
+        throw new Error(errorData.detail || 'Failed to login after registration');
+      }
+
+      const tokenData = await loginResponse.json();
+      console.log('Login successful:', tokenData);
 
       // Save tokens to localStorage (consider more secure storage in production)
-      localStorage.setItem('access_token', loginResponse.data.access_token);
-      localStorage.setItem('refresh_token', loginResponse.data.refresh_token);
+      localStorage.setItem('access_token', tokenData.access_token);
+      localStorage.setItem('refresh_token', tokenData.refresh_token);
 
       setSuccess('Owner account created and logged in successfully!');
       navigate('/supermarket-registration'); // Navigate to the next page
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.detail || err.message || 'An unexpected error occurred. Please try again.');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
-
-
-    // Check authentication status and owner existence on component mount
-    useEffect(() => {
-      const checkOwnerAndAuthentication = async () => {
-        try {
-          const response = await api.get('/users/is_owner');
-          if (response.data) {
-            navigate('/login');
-          }
-        } catch (err) {
-          console.error('Error checking owner existence:', err);
-          setError('An unexpected error occurred while checking owner status.');
-        }
-      };
-  
-      checkOwnerAndAuthentication();
-    }, [navigate]);
 
   return (
     <div className="page-container">
@@ -178,11 +171,11 @@ const AdminRegistrationPage = () => {
             />
             <label htmlFor="password">Password</label>
           </div>
-          {/*
+          {/* 
             <div className="login-section">
               <span>Already have an account? </span>
               <button type="button" onClick={handleLogin} className="login-link1">Login</button>
-            </div>
+            </div> 
           */}
 
           {error && <div className="error-message">{error}</div>}

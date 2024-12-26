@@ -1,7 +1,7 @@
 # dependencies/auth.py
 
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Optional
+from typing import Annotated, Optional, List
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -34,7 +34,7 @@ class TokenData(BaseModel):
 class User(BaseModel):
     Username: str
     Email: Optional[str] = None
-    ID: Optional[int] = None
+    UserID: Optional[int] = None
     FirstName: Optional[str] = None
     LastName: Optional[str] = None
     Role: Optional[str] = None
@@ -70,7 +70,7 @@ def get_user_from_db(Username: str) -> Optional[UserInDB]:
             return UserInDB(
                 Username=user.Username,
                 Email=user.Email,
-                ID=user.UserID,
+                UserID=user.UserID,
                 FirstName=user.FirstName,
                 LastName=user.LastName,
                 Role=user.Role,
@@ -190,7 +190,7 @@ def verify_refresh_token(token: str) -> Optional[str]:
             if not refresh_token:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="InvalID refresh token",
+                    detail="Invalid refresh token",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             if refresh_token.ExpiresAt.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
@@ -212,6 +212,18 @@ def verify_refresh_token(token: str) -> Optional[str]:
             detail="InvalID token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+
+# Dependency for Role-Based Access Control
+def require_Role(required_Roles: List[str]):
+    def Role_checker(current_user: User = Depends(get_current_active_user)):
+        if current_user.Role not in required_Roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+    return Role_checker
 
 # Dependency to get the current user based on token
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:

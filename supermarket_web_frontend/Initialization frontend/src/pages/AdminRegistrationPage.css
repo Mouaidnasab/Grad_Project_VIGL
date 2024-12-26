@@ -189,7 +189,8 @@
 }
   
 .login-page {
-  background-image: url('../images/welcome.png'); 
+  /* background-image: url('../images/loginimage.png');  */
+
   background-size: cover; 
   background-position: center; 
   background-repeat: no-repeat; 

@@ -8,3 +8,10 @@ pymysql
 passlib[bcrypt]
 python-multipart
 email-validator
+pillow
+requests
+sqlmodel
+pydantic
+sqlalchemy
+cryptography
+

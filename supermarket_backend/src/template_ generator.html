@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Designer</title>
+    <style>
+        body {
+            font-family: 'Futura', sans-serif;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f9f9f9;
+        }
+        #canvas {
+            position: relative;
+            width: 296px; /* Screen width */
+            height: 128px; /* Screen height */
+            border: 1px solid #ccc;
+            background: white;
+            overflow: hidden;
+        }
+        .element {
+            position: absolute;
+            border: 1px dashed #000;
+            resize: both;
+            overflow: auto;
+            display: flex;
+            align-items: center; /* Vertical alignment */
+            justify-content: center; /* Horizontal alignment */
+            text-align: center;
+            user-select: none;
+        }
+        .element.text {
+            background-color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+        .element.rectangle {
+            background-color: black;
+        }
+        #context-menu {
+            position: absolute;
+            display: none;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        #context-menu button {
+            display: block;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+        }
+        #context-menu button:hover {
+            background-color: #f0f0f0;
+        }
+        #color-picker-container, #fill-picker-container {
+            display: flex;
+            gap: 5px;
+            padding: 5px 0;
+        }
+
+        #dynamic-content {
+        font-family:'Futura';
+        line-height: 1.6;
+        padding: 20px;
+        max-width: 400px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    button {
+        margin-left: 10px;
+        padding: 5px 10px;
+        font-size: 0.9em;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+    }
+    button:hover {
+        background-color: #e0e0e0;
+    }
+    </style>
+</head>
+<body>
+    <h1>Template Designer</h1>
+    <input type="text" id="template-name" placeholder="Template Name">
+    <div id="canvas-container">
+        <div id="canvas"></div>
+    </div>
+    <button id="add-text">Add Text</button>
+    <button id="generate">Generate Image</button>
+    <div id="dynamic-content">
+        <div class="section-title">You can use one of these to have dynamic content</div>
+        <div class="item">
+            <span>Product Name</span>
+        </div>
+        <div class="item">
+            <span>dynamic:ProductName</span>
+            <button onclick="copyToClipboard('dynamic:ProductName')">Copy</button>
+        </div>
+        <div class="item">
+            <span>Category</span>
+        </div>
+        <div class="item">
+            <span>dynamic:CatagoryName</span>
+            <button onclick="copyToClipboard('dynamic:CatagoryName')">Copy</button>
+        </div>
+        <div class="item">
+            <span>Price without promotion</span>
+        </div>
+        <div class="item">
+            <span>dynamic:Price</span>
+            <button onclick="copyToClipboard('dynamic:Price')">Copy</button>
+        </div>
+        <div class="item">
+            <span>Promotion Percentage</span>
+        </div>
+        <div class="item">
+            <span>dynamic:Discount</span>
+            <button onclick="copyToClipboard('dynamic:Discount')">Copy</button>
+        </div>
+        <div class="item">
+            <span>Final price</span>
+        </div>
+        <div class="item">
+            <span>dynamic:FinalPrice</span>
+            <button onclick="copyToClipboard('dynamic:FinalPrice')">Copy</button>
+        </div>
+    </div>
+
+
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <button id="delete-element">Delete</button>
+        <button id="rotate-element">Rotate</button>
+        <label>Align Horizontal:</label>
+        <button id="align-left">Align Left</button>
+        <button id="align-center">Align Center</button>
+        <button id="align-right">Align Right</button>
+        <label>Align Vertical:</label>
+        <button id="align-top">Align Top</button>
+        <button id="align-middle">Align Middle</button>
+        <button id="align-bottom">Align Bottom</button>
+        <div id="color-picker-container">
+            <label>Text Color:</label>
+            <button id="text-color-black" style="background-color: black; color: white;">T</button>
+            <button id="text-color-white" style="background-color: white; border: 1px solid black;">T</button>
+            <button id="text-color-red" style="background-color: red; color: white;">T</button>
+        </div>
+        <div id="fill-picker-container">
+            <label>Fill Color:</label>
+            <button id="fill-color-black" style="background-color: black;"></button>
+            <button id="fill-color-white" style="background-color: white; border: 1px solid black;"></button>
+            <button id="fill-color-red" style="background-color: red;"></button>
+        </div>
+        <button id="font-size">Change Font Size</button>
+    </div>
+
+    <script>
+        const canvasContainer = document.getElementById('canvas');
+        const addTextButton = document.getElementById('add-text');
+        const generateButton = document.getElementById('generate');
+        const contextMenu = document.getElementById('context-menu');
+        const templateNameInput = document.getElementById('template-name');
+
+        let selectedElement = null;
+
+        const createElement = (type) => {
+            const element = document.createElement('div');
+            element.className = `element ${type}`;
+            element.style.left = "50px";
+            element.style.top = "50px";
+            element.style.width = "100px";
+            element.style.height = "50px";
+            element.style.textAlign = "center";
+            element.style.justifyContent = "center";
+            element.style.alignItems = "center";
+
+            if (type === 'text') {
+                element.contentEditable = "true";
+                element.innerText = "Edit Me";
+            }
+
+            let isDragging = false, offsetX = 0, offsetY = 0;
+
+            // Dragging functionality
+            element.addEventListener('mousedown', (e) => {
+                if (e.button === 2) return; // Ignore right-click for dragging
+                isDragging = true;
+                offsetX = e.offsetX;
+                offsetY = e.offsetY;
+                element.style.cursor = "grabbing";
+            });
+
+            document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const canvasRect = canvasContainer.getBoundingClientRect();
+                const elementWidth = element.offsetWidth;
+                const elementHeight = element.offsetHeight;
+
+                // Calculate new positions while ensuring boundaries
+                let newX = e.pageX - canvasRect.left - offsetX;
+                let newY = e.pageY - canvasRect.top - offsetY;
+
+                // Apply boundaries
+                newX = Math.max(0, Math.min(newX, canvasRect.width - elementWidth));
+                newY = Math.max(0, Math.min(newY, canvasRect.height - elementHeight));
+
+                element.style.left = `${newX}px`;
+                element.style.top = `${newY}px`;
+            }
+        });
+
+
+
+        document.addEventListener('mouseup', () => {
+    isDragging = false;
+    element.style.cursor = "default";
+
+    // Ensure element stays within canvas width
+    if (parseInt(element.style.left) + element.offsetWidth > canvasContainer.offsetWidth) {
+        element.style.width = `${canvasContainer.offsetWidth - parseInt(element.style.left)}px`;
+    }
+
+    // Ensure element stays within canvas height
+    if (parseInt(element.style.top) + element.offsetHeight > canvasContainer.offsetHeight) {
+        element.style.height = `${canvasContainer.offsetHeight - parseInt(element.style.top)}px`;
+    }
+});
+
+
+            // Right-click context menu
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                selectedElement = element;
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+                contextMenu.style.display = 'block';
+            });
+
+            canvasContainer.appendChild(element);
+        };
+
+        // Add Text Box
+        addTextButton.addEventListener('click', () => createElement('text'));
+
+
+        // Generate Image
+generateButton.addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent the page reload
+    const elements = [...document.getElementsByClassName('element')].map(element => {
+        const rect = element.getBoundingClientRect();
+        const canvasRect = canvasContainer.getBoundingClientRect();
+
+        return {
+            type: element.classList.contains('text') ? 'text' : 'rectangle',
+            x: rect.left - canvasRect.left - 1,
+            y: rect.top - canvasRect.top,
+            width: rect.width,
+            height: rect.height,
+            text: element.classList.contains('text') ? element.innerText : null,
+            color: element.style.color || 'black',
+            fill_color: element.style.backgroundColor || 'transparent',
+            rotation: parseInt(element.style.transform.replace(/[^0-9]/g, '')) || 0,
+            horizontal_alignment: element.style.justifyContent,
+            vertical_alignment: element.style.alignItems,
+            font_size: element.classList.contains('text') ? parseInt(getComputedStyle(element).fontSize) : null
+        };
+    });
+
+    fetch('http://127.0.0.1:8000/screen/add_screen_template', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ template_name: templateNameInput.value, elements })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Response:', data);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+
+        // Context Menu Actions
+        document.getElementById('delete-element').addEventListener('click', () => {
+            if (selectedElement) {
+                canvasContainer.removeChild(selectedElement);
+                selectedElement = null;
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        document.getElementById('rotate-element').addEventListener('click', () => {
+            if (selectedElement) {
+                const rotation = prompt("Enter rotation angle (degrees):", "0");
+                if (rotation) selectedElement.style.transform = `rotate(${rotation}deg)`;
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Horizontal Alignment
+        document.getElementById('align-left').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.justifyContent = 'flex-start';
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('align-center').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.justifyContent = 'center';
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('align-right').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.justifyContent = 'flex-end';
+            contextMenu.style.display = 'none';
+        });
+
+        // Vertical Alignment
+        document.getElementById('align-top').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.alignItems = 'flex-start';
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('align-middle').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.alignItems = 'center';
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('align-bottom').addEventListener('click', () => {
+            if (selectedElement) selectedElement.style.alignItems = 'flex-end';
+            contextMenu.style.display = 'none';
+        });
+
+        // Text Color
+        document.querySelectorAll('#color-picker-container button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (selectedElement) selectedElement.style.color = button.style.backgroundColor;
+                contextMenu.style.display = 'none';
+            });
+        });
+
+        // Fill Color
+        document.querySelectorAll('#fill-picker-container button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (selectedElement) selectedElement.style.backgroundColor = button.style.backgroundColor;
+                contextMenu.style.display = 'none';
+            });
+        });
+
+        // Font Size
+        document.getElementById('font-size').addEventListener('click', () => {
+            if (selectedElement) {
+                const fontSize = prompt("Enter font size (px):", "16");
+                if (fontSize) selectedElement.style.fontSize = `${fontSize}px`;
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+
+        function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+    </script>
+</body>
+</html>

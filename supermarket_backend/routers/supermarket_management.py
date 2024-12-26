@@ -6,7 +6,7 @@ from typing import Optional
 
 from db.database import engine
 from db.models import Supermarkets, Users
-from dependencies.auth import get_current_active_user, User  # Ensure correct import
+from dependencies.auth import get_current_active_user, User, require_Role
 
 router = APIRouter(
     prefix="/supermarket",
@@ -22,20 +22,9 @@ def get_session():
 def create_supermarket(
     supermarket: Supermarkets,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)  # Secure endpoint
+    current_user: User = Depends(require_Role(["owner"]))  
 ):
-    """
-    Create a new supermarket.
-    Only users with the role 'owner' can perform this action.
-    The contact person must have the role 'manager' or 'owner'.
-    """
-    # **Constraint 1: Only owners can create supermarkets**
-    if current_user.Role != "owner":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owners can create supermarkets.",
-        )
-    
+
     # Check if a supermarket already exists
     existing_supermarket = session.exec(select(Supermarkets)).first()
     if existing_supermarket:
@@ -97,19 +86,9 @@ def create_supermarket(
 def update_supermarket(
     supermarket_update: Supermarkets,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user)  # Secure endpoint
+    current_user: User = Depends(require_Role(["owner"]))
 ):
-    """
-    Update the existing supermarket.
-    Only users with the role 'owner' can perform this action.
-    The contact person must have the role 'manager' or 'owner'.
-    """
-    # **Constraint 1: Only owners can edit supermarkets**
-    if current_user.Role != "owner":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only owners can edit supermarkets.",
-        )
+
     
     # Retrieve the existing supermarket (first row)
     existing_supermarket = session.exec(select(Supermarkets)).first()
@@ -154,7 +133,7 @@ def update_supermarket(
         existing_supermarket.ContactPersonUserID = user.UserID
     
     # Update other fields (excluding ContactPersonUserID and RegisteredID)
-    update_data = supermarket_update.dict(exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True)
+    update_data = supermarket_update.model_dump(exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True)
     for key, value in update_data.items():
         setattr(existing_supermarket, key, value)
     
@@ -168,10 +147,7 @@ def get_supermarket(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user)  # Secure endpoint
 ):
-    """
-    Retrieve the existing supermarket information.
-    Accessible by any authenticated user.
-    """
+
     supermarket = session.exec(select(Supermarkets)).first()
     if not supermarket:
         raise HTTPException(

@@ -21,7 +21,14 @@ class UserProfile(BaseModel):
     Username: Optional[str] = None
     Email: Optional[str] = None
     FullName: Optional[str] = None
-    Role: Optional[str] = None  # Adding role for detailed information
+    Role: Optional[str] = None  
+
+
+class ValidateTokenRequest(BaseModel):
+    token: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 @router.post("/user_auth/token", response_model=Token, tags=["User Authentication"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -34,11 +41,14 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.Username}, expires_delta=access_token_expires)
-    refresh_token = create_refresh_token(data={"sub": user.Username}, UserID=user.ID)
+    refresh_token = create_refresh_token(data={"sub": user.Username}, UserID=user.UserID)
     return Token(access_token=access_token, refresh_token=refresh_token)
 
+
+
 @router.post("/user_auth/refresh-token", response_model=Token, tags=["User Authentication"])
-async def refresh_access_token(refresh_token: str):
+async def refresh_access_token(request: RefreshTokenRequest):
+    refresh_token = request.refresh_token
     Username = verify_refresh_token(refresh_token)
     if not Username:
         raise HTTPException(
@@ -88,10 +98,40 @@ async def read_users_me(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid detail level. Please specify 1, 2, or 3."
         )
-    
 
+@router.post("/user_auth/validate-token", tags=["User Authentication"])
+async def validate_token(token_request: ValidateTokenRequest):
+    token = token_request.token
 
-#test
-# @router.get("/me/items/")
-# async def read_own_items(current_user: Annotated[User, Depends(get_current_active_user)]):
-#     return [{"item_id": "Foo", "owner": current_user.Username}]
+    try:
+        # Verify token and decode it to get the username
+        decoded_data = verify_refresh_token(token)
+
+        if not decoded_data:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token is invalid or expired."
+            )
+
+        # If token is a valid refresh token, check if it's revoked
+        with Session(engine) as session:
+            statement = select(RefreshToken).where(RefreshToken.Token == token)
+            token_record = session.exec(statement).first()
+
+            if token_record and token_record.Revoked:
+                return {
+                    "valid": False,
+                    "reason": "Token is revoked."
+                }
+
+        # If the token is valid and not revoked
+        return {
+            "valid": True,
+            "reason": "Token is valid and active."
+        }
+
+    except Exception as e:
+        return {
+            "valid": False,
+            "reason": "Token is invalid or expired."
+        }
