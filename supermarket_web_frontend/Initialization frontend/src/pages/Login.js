@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; // Import the Axios instance
 import './AdminRegistrationPage.css';
-import welcomeImage from '../images/welcomewithoutbg.png';
+import welcomeImage from '../images/welcome.png';
 import Footer from '../components/footerInit';
 
 const LoginPage = () => {

@@ -1,0 +1,30 @@
+.footer-tabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #738844; /* Same as the original */
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+}
+
+.nav-links {
+  margin-bottom: 5px; /* Adds space between links and copyright */
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none; /* Removes underlines from links */
+  margin: 0 10px; /* Adds spacing between links */
+}
+
+.nav-links a:hover {
+  text-decoration: underline; /* Underline on hover for better UX */
+}
+
+.nav-links span {
+  color: white; /* Color for the separators */
+}

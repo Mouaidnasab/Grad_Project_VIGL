@@ -4,6 +4,8 @@ import AdminRegistrationPage from './pages/AdminRegistrationPage';
 import SupermarketAddPage from './pages/SupermarketAddPage';
 import StaffAddPage from './pages/StaffAddPage';
 import LoginPage from './pages/Login';
+
+import SettingsPage from './pages/SettingsPage';
 import ManagePage from './pages/manage';
 import OverviewDashboard from './pages/OverviewDashboard';
 
@@ -21,11 +23,10 @@ function App() {
         <Route path="/staff-add" element={<StaffAddPage />} /> 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/manage" element={<ManagePage />} /> 
-
-
-      </Routes>
-    </BrowserRouter>
-  );
+        <Route path="/settings" element={<SettingsPage />} /> {/* New Route */}
+        </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;
