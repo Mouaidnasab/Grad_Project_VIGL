@@ -9,7 +9,7 @@ const FooterWithTabs = () => {
         <span>|</span>
         <a href="/settings">Settings</a>
         <span>|</span>
-        <a href="/settings">Settings</a>
+        <a href="/manage-products">products management</a>
       </div>
       <p>&copy; All rights reserved, developed by VIGL Team</p>
     </footer>
