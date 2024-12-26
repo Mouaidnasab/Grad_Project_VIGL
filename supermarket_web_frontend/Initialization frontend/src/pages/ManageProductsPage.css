@@ -1,0 +1,48 @@
+/* Container */
+.container {
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    padding-bottom: 70px; /* Matches footer height + some spacing */
+}
+
+/* Navigation */
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.nav-item {
+    margin-right: 15px;
+    cursor: pointer;
+    color: blue;
+}
+
+    .nav-item.active {
+        font-weight: bold;
+    }
+
+/* Table */
+.table-cell {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+    .table-cell.clickable {
+        color: green;
+        cursor: pointer;
+    }
+
+/* Placeholder Message */
+.placeholder {
+    font-style: italic;
+    color: gray;
+}
+
+.table-title {
+    text-align: center;
+    color: green;
+    font-weight: bold;
+}
