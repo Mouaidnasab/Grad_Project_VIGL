@@ -13,6 +13,66 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from typing import List
+from sqlalchemy.event import listens_for
+from fastapi.background import BackgroundTasks
+from threading import Thread, Event
+import time
+
+# Event for thread-safe signaling
+producti_updated = Event()
+producti_value = None
+
+
+def producti_monitor():
+    global producti_value
+    while True:
+        producti_updated.wait()  # Wait until the event is set
+        print("producti_value:", producti_value)
+        if producti_value:
+            print("producti_dsdsvalue:", producti_value)
+            update_request = UpdateRequest(
+                product_id=producti_value,
+                template_name=""
+            )
+            try:
+                time.sleep(1)
+                print("Updating screen display")
+                with Session(engine) as session:
+                    update_screen_display(update_request=update_request, session=session)
+            except Exception as e:
+                print(f"Error updating screen display: {e}")
+        producti_value = None  # Reset the producti_value
+        producti_updated.clear()  # Clear the event to wait for the next update
+
+
+# Start the monitoring thread
+monitor_thread = Thread(target=producti_monitor, daemon=True)
+monitor_thread.start()
+
+
+@listens_for(ProductScreen, 'after_update')
+@listens_for(ProductScreen, 'after_insert')
+def on_product_screen_update(mapper, connection, target):
+    print("ProductScreen updated:", target)
+    global producti_value
+    producti_value = target.ProductID
+    producti_updated.set()  # Signal the monitor thread
+
+
+@listens_for(PriceHistory, 'after_update')
+@listens_for(PriceHistory, 'after_insert')
+def on_price_history_update(mapper, connection, target):
+    global producti_value
+    producti_value = target.ProductID
+    producti_updated.set()  # Signal the monitor thread
+
+
+@listens_for(Promotions, 'after_update')
+@listens_for(Promotions, 'after_insert')
+def on_promotion_update(mapper, connection, target):
+    global producti_value
+    producti_value = target.ProductID
+    producti_updated.set()  # Signal the monitor thread
 
 
 
@@ -50,7 +110,7 @@ class ScreenTemplate(BaseModel):
 
 
 class UpdateRequest(BaseModel):
-    screen_id: int
+    product_id: int
     template_name: str
 
 class UpdateResponse(BaseModel):
@@ -116,8 +176,11 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                         
                         case 'CategoryName':
                             category = session.exec(
-                                select(Categories.CategoryName).where(Categories.CategoryID == ProductID)
+                                select(Categories.CategoryName)
+                                .join(Products, Products.CategoryID == Categories.CategoryID)
+                                .where(Products.ProductID == ProductID)
                             ).first()
+
                             text = category if category else "Category not found"
 
                         case 'Price':
@@ -139,11 +202,13 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                                 .where(PriceHistory.ProductID == ProductID, PriceHistory.EndDate == None)
                             ).first()
                             discount = session.exec(
-                                select(Promotions.Discount).where(Promotions.ProductID == ProductID)
+                                select(Promotions.Discount)
+                                .where(Promotions.ProductID == ProductID)
+                                .order_by(desc(Promotions.EndDate)) 
                             ).first()
                             if price:
                                 final_price = price - (price * (discount / 100)) if discount else price
-                                text = f"{final_price}TL"
+                                text = f"{final_price:.1f}TL"
                             else:
                                 text = "Price not available"
 
@@ -156,7 +221,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                     font = default_font
 
                 text_w, text_h = font.getbbox(text)[2:]
-                print(horizontal_alignment, vertical_alignment)
+                # print(horizontal_alignment, vertical_alignment)
 
                 if horizontal_alignment == 'center':
                     text_x = x + (w - text_w) / 2
@@ -170,7 +235,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                     text_y = y + h - text_h
                 else:
                     text_y = y
-                print(text_x, text_y)
+                # print(text_x, text_y)
 
                 
 
@@ -202,7 +267,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
         red_img = Image.new("1", (width, height))    # Red (1-bit) image
 
         pixels = img.load() # Load pixel data
-        print(f"Image size: {width}x{height}")
+        # print(f"Image size: {width}x{height}")
         # Loop through all pixels and separate black and red data
         for y in range(height):
             for x in range(width):
@@ -270,10 +335,25 @@ def update_screen_display(
     # current_user: User = Depends(get_current_active_user)  
 ):
     
-    current_screen_id = update_request.screen_id
+    product_id = update_request.product_id
     template_name = update_request.template_name
 
+
+    product_screen = session.exec(
+        select(ProductScreen).where(ProductScreen.ProductID == product_id)
+    ).first()
+
+
+    if not product_screen:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No screen found for Product ID {product_id}."
+        )
+
+    current_screen_id = product_screen.ScreenID
+
     json_path = os.path.join(src_directory, 'screen_templates.json')
+
 
     if os.path.exists(json_path):
         with open(json_path, 'r') as json_file:
@@ -295,7 +375,7 @@ def update_screen_display(
 
 
 
-        if result and result.EndDate > datetime.now() and result.Discount > 0:
+        if result and result.EndDate >= datetime.now().date() and result.Discount > 0:
             template_name = "Promotion"
         else:
             template_name = "Standard"
@@ -348,3 +428,4 @@ def get_screens(
     linked_screen_ids = session.exec(select(ProductScreen.ScreenID)).all()
     screens = session.exec(select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))).all()
     return screens
+

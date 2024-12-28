@@ -1,17 +1,17 @@
 import React from 'react';
-import FooterWithTabs from '../components/FooterWithTabs';
+import Footer from '../components/footerInit';
 import SettingsBlocks from '../components/SettingsBlocks';
-import NavInit from '../components/NavInit.js';
+import Navbar from "../components/Navbar";
 
 const SettingsPage = () => {
     console.log("SettingsPage is rendering"); // Debug message
     return (
         <>
-               <NavInit />
+               <Navbar />
                <div>
 
                     <SettingsBlocks />
-                    <FooterWithTabs />	
+                    <Footer />	
 
                 </div>
       </>

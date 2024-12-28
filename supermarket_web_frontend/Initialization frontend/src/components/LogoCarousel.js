@@ -24,7 +24,6 @@ const LogoCarousel = () => {
   return (
     <div className="logo-carousel-container">
       <div className="logo-carousel" ref={carouselRef}>
-        {/* Duplicate the images to create an infinite loop effect */}
         {[...Array(100)].map((_, index) => (
           <img
             key={index}

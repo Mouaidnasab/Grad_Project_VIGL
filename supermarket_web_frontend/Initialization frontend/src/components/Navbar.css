@@ -7,18 +7,23 @@
   top: 0;
   right: 0;
   background-color: #738844; 
-  padding: 0.5rem 1rem;
   color: white;
   z-index: 10; 
 }
 
 .logo {
+  list-style-type: none;
+}
+
+.logo a{
   font-size: 1.8rem;
   font-weight: bold;
-  margin-top: 2px;
-  margin-bottom: 2px;
-  margin-left: 10px;
+  text-decoration: none;
+  color: white;
+
 }
+
+
 
 .navbar-center {
   display: flex;

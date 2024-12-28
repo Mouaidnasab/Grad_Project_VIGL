@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar"; // Import the Navbar component
+import Navbar from "../components/Navbar"; 
 import "./Manage.css";
 import Footer from "../components/footerInit";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import api from '../api'; // Assuming api is set up in ../api
+import api from '../api';
 
 const Manage = () => {
   const [shelfQRCode, setShelfQRCode] = useState(null);
@@ -139,20 +139,7 @@ const Manage = () => {
     }
   };
 
-  const handleQRCodeUpload = (event, type) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (type === "shelf") {
-          setShelfQRCode(reader.result);
-        } else {
-          setScreenQRCode(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSelectShelf = (shelf) => {
     setSelectedShelf(shelf);

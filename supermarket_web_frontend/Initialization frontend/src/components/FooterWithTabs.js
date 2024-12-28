@@ -1,6 +1,5 @@
 import React from 'react';
-import './FooterWithTabs.css';  // New CSS file for the updated styling
-
+import './FooterWithTabs.css'; 
 const FooterWithTabs = () => {
   return (
     <footer className="footer-tabs">

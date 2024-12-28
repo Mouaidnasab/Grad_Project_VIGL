@@ -2,7 +2,7 @@
 
 import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; // Import the Axios instance
+import api from '../api.js'; 
 import './AdminRegistrationPage.css';
 import welcomeImage from '../images/welcome.png';
 import LogoCarousel from '../components/LogoCarousel.js';
@@ -23,11 +23,8 @@ const AdminRegistrationPage = () => {
 
   const navigate = useNavigate();
 
-  // Retrieve environment variables
-  // Removed BACKEND_URL as api already has baseURL
   const INITIALIZE_OWNER_API_KEY = process.env.REACT_APP_INITIALIZE_OWNER_API_KEY;
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -35,7 +32,6 @@ const AdminRegistrationPage = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -48,11 +44,10 @@ const AdminRegistrationPage = () => {
       FirstName: formData.firstName,
       LastName: formData.lastName,
       Password: formData.password,
-      Disabled: false, // Default value
+      Disabled: false, 
     };
 
     try {
-      // Step 1: Initialize Owner
       const initResponse = await api.post('/users/initialize_owner', payload, {
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +58,6 @@ const AdminRegistrationPage = () => {
       console.log('Owner initialized successfully:', initResponse.data);
       setSuccess('Owner account created successfully! Logging in...');
 
-      // Step 2: Login to obtain tokens
       const loginPayload = new URLSearchParams({
         username: formData.username,
         password: formData.password,
@@ -77,12 +71,11 @@ const AdminRegistrationPage = () => {
 
       console.log('Login successful:', loginResponse.data);
 
-      // Save tokens to localStorage (consider more secure storage in production)
       localStorage.setItem('access_token', loginResponse.data.access_token);
       localStorage.setItem('refresh_token', loginResponse.data.refresh_token);
 
       setSuccess('Owner account created and logged in successfully!');
-      navigate('/supermarket-registration'); // Navigate to the next page
+      navigate('/supermarket-registration');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.detail || err.message || 'An unexpected error occurred. Please try again.');
@@ -92,7 +85,6 @@ const AdminRegistrationPage = () => {
   };
 
 
-    // Check authentication status and owner existence on component mount
     useEffect(() => {
       const checkOwnerAndAuthentication = async () => {
         try {

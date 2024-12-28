@@ -13,7 +13,6 @@ router = APIRouter(
     tags=["Supermarket Management"],
 )
 
-# Dependency to get a database session
 def get_session():
     with Session(engine) as session:
         yield session
@@ -25,7 +24,6 @@ def create_supermarket(
     current_user: User = Depends(require_Role(["owner"]))  
 ):
 
-    # Check if a supermarket already exists
     existing_supermarket = session.exec(select(Supermarkets)).first()
     if existing_supermarket:
         raise HTTPException(
@@ -33,9 +31,7 @@ def create_supermarket(
             detail="A supermarket already exists. Edit the existing supermarket instead.",
         )
     
-    # Validate ContactPersonFullName if provided
     if supermarket.ContactPersonFullName:
-        # Split the full name into first and last names
         names = supermarket.ContactPersonFullName.strip().split()
         if len(names) < 2:
             raise HTTPException(
@@ -45,7 +41,6 @@ def create_supermarket(
         first_name = names[0]
         last_name = ' '.join(names[1:])
         
-        # Check if a user with matching first and last name exists
         user = session.exec(
             select(Users).where(
                 Users.FirstName == first_name,
@@ -58,14 +53,12 @@ def create_supermarket(
                 detail="Contact person must exist in the Users table.",
             )
         
-        # **Constraint 2: Contact person must be a manager or owner**
         if user.Role not in ["manager", "owner"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Contact person must have the role 'manager' or 'owner'.",
             )
         
-        # Set ContactPersonUserID to the user's UserID
         supermarket.ContactPersonUserID = user.UserID
     else:
         raise HTTPException(
@@ -73,10 +66,8 @@ def create_supermarket(
             detail="ContactPersonFullName is required.",
         )
     
-    # Remove RegisteredID if it's set (let the database handle it)
     supermarket.RegisteredID = None
     
-    # Create the supermarket entry
     session.add(supermarket)
     session.commit()
     session.refresh(supermarket)
@@ -90,7 +81,6 @@ def update_supermarket(
 ):
 
     
-    # Retrieve the existing supermarket (first row)
     existing_supermarket = session.exec(select(Supermarkets)).first()
     if not existing_supermarket:
         raise HTTPException(
@@ -98,7 +88,6 @@ def update_supermarket(
             detail="No supermarket found to update.",
         )
     
-    # If ContactPersonFullName is being updated, validate it
     if supermarket_update.ContactPersonFullName:
         names = supermarket_update.ContactPersonFullName.strip().split()
         if len(names) < 2:
@@ -109,7 +98,6 @@ def update_supermarket(
         first_name = names[0]
         last_name = ' '.join(names[1:])
         
-        # Check if a user with matching first and last name exists
         user = session.exec(
             select(Users).where(
                 Users.FirstName == first_name,
@@ -122,17 +110,14 @@ def update_supermarket(
                 detail="Contact person must exist in the Users table.",
             )
         
-        # **Constraint 2: Contact person must be a manager or owner**
         if user.Role not in ["manager", "owner"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Contact person must have the role 'manager' or 'owner'.",
             )
         
-        # Set ContactPersonUserID to the user's UserID
         existing_supermarket.ContactPersonUserID = user.UserID
     
-    # Update other fields (excluding ContactPersonUserID and RegisteredID)
     update_data = supermarket_update.model_dump(exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True)
     for key, value in update_data.items():
         setattr(existing_supermarket, key, value)

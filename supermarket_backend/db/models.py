@@ -4,7 +4,7 @@ from typing import Optional, List
 from datetime import datetime, date
 from sqlmodel import SQLModel, Field, Relationship, Index
 from enum import Enum
-from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey
+from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey, UniqueConstraint
 
 class RoleEnum(str, Enum):
     owner = "owner"
@@ -79,7 +79,8 @@ class ProductScreen(SQLModel, table=True):
     ProductScreenID: Optional[int] = Field(default=None, primary_key=True, index=True)
     ShelfID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("shelfs.ShelfID")))
     ScreenID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("screens.ScreenID")))
-    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID")))
+    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID"), nullable=True))
+    ChangedAt: datetime = Field(default_factory=datetime.now)
 
     # Relationships
     product: Optional["Products"] = Relationship(back_populates="product_screens")
@@ -89,6 +90,9 @@ class ProductScreen(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
 
+    __table_args__ = (
+        UniqueConstraint("ShelfID", "ScreenID", "ProductID", name="uq_shelf_screen_product"),
+    )
 
 class RefreshToken(SQLModel, table=True):
     __tablename__ = "refresh_tokens"

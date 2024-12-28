@@ -124,7 +124,6 @@ async def validate_token(token_request: ValidateTokenRequest):
                     "reason": "Token is revoked."
                 }
 
-        # If the token is valid and not revoked
         return {
             "valid": True,
             "reason": "Token is valid and active."

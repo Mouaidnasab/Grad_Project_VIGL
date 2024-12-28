@@ -5,7 +5,7 @@ import Footer from '../components/footerInit.js';
 import NavInit from '../components/NavInit.js';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; // Ensure this is set in your .env file
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
 
 const StaffAddPage = () => {
   const navigate = useNavigate(); 
@@ -51,10 +51,10 @@ const StaffAddPage = () => {
         LastName: formData.LastName,
         Password: formData.Password,
         Role: formData.Role,
-        Disabled: false, // You can adjust this as needed
+        Disabled: false,
       });
       console.log('User created:', response.data);
-      fetchStaffList(); // Refresh the user list
+      fetchStaffList(); 
       setFormData({
         FirstName: '',
         LastName: '',
@@ -65,12 +65,11 @@ const StaffAddPage = () => {
       });
     } catch (error) {
       console.error('Error creating user:', error);
-      // Optionally, handle errors (e.g., display a message to the user)
     }
   };
 
   const handleFinish = () => {
-    navigate('/login'); // Ensure this route exists in your React Router setup
+    navigate('/'); 
   };
 
   return (

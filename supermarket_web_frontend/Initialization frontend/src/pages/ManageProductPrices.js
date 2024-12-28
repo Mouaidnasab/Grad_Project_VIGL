@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import './ManageProductPrices.css';
 import Footer from '../components/footerInit.js';
-import NavInit from '../components/NavInit.js';
+import Navbar from "../components/Navbar";
+
+
 
 const ManageProductPrices = () => {
   const [productList, setProductList] = useState([]);
@@ -57,7 +59,6 @@ const ManageProductPrices = () => {
 
     try {
       await api.put(`/product/update_price/${parseInt(productId)}?new_price=${newPrice}`);
-      alert('Price updated successfully!');
       fetchProductList();
       clearFormData();
     } catch (error) {
@@ -84,7 +85,6 @@ const ManageProductPrices = () => {
         Discount: newPromotion,
         EndDate: discountEndDate,
       });
-      alert('Promotion updated successfully!');
       fetchProductList();
       clearFormData();
     } catch (error) {
@@ -114,8 +114,8 @@ const ManageProductPrices = () => {
   };
 
   return (
-    <>
-      <NavInit />
+      <>
+      <Navbar/>
       <div className="outer-container">
         <div className="page-wrapper">
           <h1>Manage Product Prices</h1>
@@ -158,6 +158,7 @@ const ManageProductPrices = () => {
                       <td>
                         <input
                           type="number"
+                          className='price-input'
                           placeholder="New Price"
                           value={formData[product.ProductID]?.newPrice || ''}
                           onChange={(e) =>
@@ -168,6 +169,8 @@ const ManageProductPrices = () => {
                       <td>
                         <input
                           type="number"
+                          className='price-input'
+
                           placeholder="New Discount"
                           value={formData[product.ProductID]?.newDiscount || ''}
                           onChange={(e) =>
@@ -178,6 +181,8 @@ const ManageProductPrices = () => {
                       <td>
                         <input
                           type="date"
+                          className='price-input'
+
                           placeholder="End Date"
                           value={formData[product.ProductID]?.discountEndDate || ''}
                           onChange={(e) =>

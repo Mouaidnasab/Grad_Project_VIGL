@@ -1,24 +1,43 @@
 // LoginPage.js
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { redirect, useNavigate } from 'react-router-dom';
 import api from '../api'; // Import the Axios instance
 import './AdminRegistrationPage.css';
 import welcomeImage from '../images/welcome.png';
 import Footer from '../components/footerInit';
 
+
+
 const LoginPage = () => {
+
+
+// Temp solution to redirect this will be replaced
+useEffect(() => {
+  fetchProductList();
+}, []);
+
+const fetchProductList = async () => {
+  try {
+    const response = await api.get('/product/get');
+    navigate('/overview-dashboard');
+  } catch (error) {
+    console.error('Error fetching product list:', error);
+  }
+};
+
+
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
 
-  const [status, setStatus] = useState(null); // 'submitting', 'success', 'error'
+  const [status, setStatus] = useState(null); 
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -26,7 +45,6 @@ const LoginPage = () => {
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('submitting');
@@ -46,14 +64,12 @@ const LoginPage = () => {
 
       console.log('Login successful:', response.data);
 
-      // Save tokens to localStorage (consider more secure storage in production)
       localStorage.setItem('access_token', response.data.access_token);
       localStorage.setItem('refresh_token', response.data.refresh_token);
 
       setStatus('success');
 
-      // Redirect to the desired page after successful login
-      navigate('/manage'); 
+      navigate('/overview-dashboard'); 
     } catch (err) {
       console.error('Error during login:', err);
       setStatus('error');
@@ -65,18 +81,21 @@ const LoginPage = () => {
     }
   };
 
-  // Check authentication status and owner existence on component mount
   useEffect(() => {
     const checkOwnerAndAuthentication = async () => {
       try {
         const response = await api.get('/users/is_owner');
         if (!response.data) {
-          // No owner found, redirect to admin registration
           navigate('/admin-registration');
         }
       } catch (err) {
-        console.error('Error checking owner existence:', err);
-        setError('An unexpected error occurred while checking owner status.');
+        if (!err.response) {
+          console.error('Server is down or unreachable:', err);
+          setError('The server is currently down. Please try again later.');
+        } else {
+          console.error('Error checking owner existence:', err);
+          setError('An unexpected error occurred while checking owner status.');
+        }
       }
     };
 

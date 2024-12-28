@@ -1,12 +1,10 @@
-/* Container */
 .container {
     font-family: Arial, sans-serif;
     overflow-x: hidden;
     overflow-y: scroll;
-    padding-bottom: 70px; /* Matches footer height + some spacing */
+    padding-bottom: 70px; 
 }
 
-/* Navigation */
 .nav-list {
     display: flex;
     list-style: none;
@@ -24,7 +22,6 @@
         font-weight: bold;
     }
 
-/* Table */
 .table-cell {
     border: 1px solid #ddd;
     padding: 8px;
@@ -35,7 +32,6 @@
         cursor: pointer;
     }
 
-/* Placeholder Message */
 .placeholder {
     font-style: italic;
     color: gray;

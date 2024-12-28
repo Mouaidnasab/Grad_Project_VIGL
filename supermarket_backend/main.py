@@ -28,7 +28,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "*"       # Match Flutter origin on 127.0.0.1
+        "*"       
     ],
     allow_credentials=True,
     allow_methods=["*"],

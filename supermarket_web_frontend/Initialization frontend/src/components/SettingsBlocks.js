@@ -15,15 +15,18 @@ const SettingsBlocks = () => {
             <div className="settings-main">
                 <div className="settings-block">
                     <h2 className="block-title">MANAGE USERS</h2>
-                    <a href="/owner">
+                    <a href="/owner-settings">
                         <button className="block-button">Owner</button>
                     </a>
-                    <button className="block-button">Staff</button>
+                    <a href="/staff-add">
+                    <button className="block-button">Staff</button></a>
                 </div>
                 <div className="settings-block">
                     <h2 className="block-title">MANAGE STORE</h2>
-                    <button className="block-button">Products</button>
-                    <button className="block-button">Shelves and Screens</button>
+                    <a href="/manage-products">
+                    <button className="block-button">Products</button></a>
+                    <a href="/manage-shelves">
+                    <button className="block-button">Shelves and Screens</button></a>
                 </div>
             </div>
         </div>

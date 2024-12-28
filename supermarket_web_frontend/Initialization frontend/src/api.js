@@ -1,20 +1,15 @@
 import axios from 'axios';
 
-// Define your backend URL
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; // Ensure this is set in your .env file
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
 
-// Create an Axios instance
 const api = axios.create({
   baseURL: BACKEND_URL,
 });
 
-// Flag to indicate if a token refresh is already in progress
 let isRefreshing = false;
 
-// Array to hold pending requests while token is being refreshed
 let failedQueue = [];
 
-// Function to process the queue after token refresh
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -26,7 +21,6 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request interceptor to attach the access token to headers
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -40,7 +34,28 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle 401 errors and token refreshing
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    const isLoginPage = window.location.pathname === '/login'; 
+
+    if (!error.response) {
+      console.error('Network error or server is down:', error);
+
+      if (!isLoginPage) {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -48,7 +63,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Prevent infinite loops
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -56,12 +70,10 @@ api.interceptors.response.use(
       const accessToken = localStorage.getItem('access_token');
 
       if (!refreshToken) {
-        // No refresh token available, redirect to login
-        window.location.href = '/login'; // Adjust the path as needed
+        window.location.href = '/login'; 
         return Promise.reject(error);
       }
 
-      // If a token refresh is already in progress, queue the request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -76,13 +88,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Validate the access token before attempting refresh
         const validateResponse = await axios.post(`${BACKEND_URL}/user_auth/validate-token`, {
           token: accessToken,
         });
 
         if (validateResponse.data.valid) {
-          // If the token is valid, resolve the original request without refreshing
         
           return api(originalRequest);
         }
@@ -90,7 +100,6 @@ api.interceptors.response.use(
         console.warn('Token validation failed:', validationError);
       }
 
-      // Refresh the token
       return new Promise((resolve, reject) => {
         axios
           .post(`${BACKEND_URL}/user_auth/refresh-token`, { refresh_token: refreshToken })
@@ -104,7 +113,6 @@ api.interceptors.response.use(
           })
           .catch((err) => {
             processQueue(err, null);
-            // Redirect to login if token refresh fails
             window.location.href = '/login';
             reject(err);
           })

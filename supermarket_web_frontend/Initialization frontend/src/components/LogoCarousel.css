@@ -20,10 +20,10 @@
   
   @keyframes logoScroll {
     0% {
-      transform: translateX(0); /* Start at the first image */
+      transform: translateX(0); 
     }
     100% {
-      transform: translateX(-100%); /* Move all images to the left */
+      transform: translateX(-100%);
     }
   }
   

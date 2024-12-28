@@ -102,21 +102,29 @@ def update_relation_product(
     shelf = session.exec(select(Shelfs).where(Shelfs.ShelfID == request.shelf_id)).first()
     if not shelf:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found.")
-    product = session.exec(select(Products).where(Products.ProductID == request.product_id)).first()
-    product_in_relation = session.exec(select(ProductScreen).where(ProductScreen.ProductID == request.product_id)).first()
-    if not product and product_in_relation.ShelfID != request.shelf_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found or in different relation.")
 
-    product_screen = session.exec(select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)).first()
+    product_screen = session.exec(
+        select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)
+    ).first()
     if not product_screen:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Relation with the specified shelf not found.")
 
-    product_screen.ProductID = request.product_id
+    if request.product_id == 0:
+        product_screen.ProductID = None
+    else:
+        product = session.exec(select(Products).where(Products.ProductID == request.product_id)).first()
+        if not product:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
+
+
+        product_screen.ProductID = request.product_id
+
     session.add(product_screen)
     session.commit()
     session.refresh(product_screen)
 
     return RelationResponse(message="Relation updated successfully")
+
 
 
 
@@ -134,7 +142,6 @@ def get_shelves(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"]))
 ):
-    # Query for shelves that are not linked in ProductScreen
     linked_shelf_ids = session.exec(select(ProductScreen.ShelfID)).all()
     shelves = session.exec(select(Shelfs).where(Shelfs.ShelfID.not_in(linked_shelf_ids))).all()
     return shelves

@@ -57,7 +57,6 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 # Security for Initialize Owner Endpoint
-# Define an API key header for initialization
 INITIALIZE_OWNER_API_KEY = os.getenv("INITIALIZE_OWNER_API_KEY", "owner_key")
 api_key_header = APIKeyHeader(name="X-Initialize-Owner-Token", auto_error=False)
 
@@ -72,14 +71,12 @@ def verify_initialize_owner_token(api_key: str = Security(api_key_header)):
 
 
 
-# Endpoint to Add a New User
 @router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(
     user: UserCreate,
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
     with Session(engine) as session:
-        # Check if Username or Email already exists
         statement = select(Users).where(
             (Users.Username == user.Username) | (Users.Email == user.Email)
         )
@@ -90,29 +87,24 @@ def create_user(
                 detail="Username or Email already registered",
             )
 
-        # Determine the role based on current user's role
         if current_user.Role == "manager":
-            # Managers can only create staff
             if user.Role and user.Role != "staff":
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Managers can only create staff users",
                 )
-            user.Role = "staff"  # Override to ensure staff role
+            user.Role = "staff" 
         elif current_user.Role == "owner":
-            # Owners can create managers and staff
             if user.Role not in ["manager", "staff", None]:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid role. Only 'manager' or 'staff' can be assigned",
                 )
             if not user.Role:
-                user.Role = "staff"  # Default role
+                user.Role = "staff" 
 
-        # Hash the Password
         hashed_Password = get_password_hash(user.Password)
 
-        # Create new user instance
         new_user = Users(
             Username=user.Username,
             Email=user.Email,
@@ -137,7 +129,6 @@ def create_user(
             LastUsed=new_user.LastUsed,
         )
 
-# Endpoint to Edit an Existing User
 @router.put("/edit/{UserID}", response_model=UserResponse)
 def update_user(
     UserID: int,
@@ -153,7 +144,6 @@ def update_user(
                 detail="User not found",
             )
 
-        # Prevent managers from modifying owners or managers
         if current_user.Role == "manager":
             if user.Role != "staff":
                 raise HTTPException(
@@ -161,14 +151,12 @@ def update_user(
                     detail="Managers can only modify staff users",
                 )
 
-        # If current user is manager, prevent changing role
         if current_user.Role == "manager" and user_update.Role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Managers cannot change user roles",
             )
 
-        # If current user is owner, validate role changes
         if current_user.Role == "owner" and user_update.Role:
             if user_update.Role not in ["manager", "staff"]:
                 raise HTTPException(
@@ -176,9 +164,7 @@ def update_user(
                     detail="Invalid role. Only 'manager' or 'staff' can be assigned",
                 )
 
-        # Update fields if provided
         if user_update.Email:
-            # Check if the new Email is already in use
             Email_check = session.exec(
                 select(Users).where(Users.Email == user_update.Email, Users.UserID != UserID)
             ).first()
@@ -195,7 +181,6 @@ def update_user(
         if user_update.Password:
             user.Password = get_password_hash(user_update.Password)
         if user_update.Role:
-            # Only owners can change Roles
             user.Role = user_update.Role
         if user_update.Disabled is not None:
             user.Disabled = user_update.Disabled
@@ -215,7 +200,6 @@ def update_user(
             LastUsed=user.LastUsed,
         )
 
-# Endpoint to Delete a User
 @router.delete("/delete/{UserID}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     UserID: int,
@@ -230,32 +214,27 @@ def delete_user(
                 detail="User not found",
             )
 
-        # Prevent deletion of the owner
         if user.Role == "owner":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Cannot delete the owner",
             )
 
-        # If current user is manager, ensure they are deleting a staff member
         if current_user.Role == "manager" and user.Role != "staff":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Managers can only delete staff users",
             )
 
-        # Delete associated refresh tokens
         gettokens = select(RefreshToken).where(RefreshToken.UserID == UserID)
         delettokens = session.exec(gettokens).all()
         for token in delettokens:
             session.delete(token)
 
-        # Delete the user
         session.delete(user)
         session.commit()
         return
 
-# Endpoint to List Users
 @router.get("/list", response_model=List[UserResponse])
 def list_users(
     # skip: int = 0,
@@ -286,7 +265,6 @@ def is_owner():
         owner = session.exec(statement).first()
         return owner is not None
     
-# Endpoint to Initialize Owner (Only if no owner exists)
 @router.post(
     "/initialize_owner",
     response_model=UserResponse,
@@ -296,7 +274,6 @@ def is_owner():
 def initialize_owner(user: UserCreate):
 
     with Session(engine) as session:
-        # Check if any owner exists
         statement = select(Users).where(Users.Role == "owner")
         existing_owner = session.exec(statement).first()
         if existing_owner:
@@ -305,13 +282,11 @@ def initialize_owner(user: UserCreate):
                 detail="Owner already exists",
             )
 
-        # Enforce role as 'owner'
         user.Role = "owner"
 
         # Hash the Password
         hashed_Password = get_password_hash(user.Password)
 
-        # Create new owner instance
         new_owner = Users(
             Username=user.Username,
             Email=user.Email,
