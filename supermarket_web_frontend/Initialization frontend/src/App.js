@@ -8,13 +8,12 @@ import Dashboard from './pages/Dashboard';
 import SettingsPage from './pages/SettingsPage';
 import ManagePage from './pages/manage';
 import OverviewDashboard from './pages/OverviewDashboard';
-
+import ManageProductPrices from './pages/ManageProductPrices'; 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default route to redirect to admin registration */}
           <Route path="/" element={<Navigate to="/manage" />} />
           <Route path="/overview_dashboard" element={<OverviewDashboard />} />
           <Route path="/admin-registration" element={<AdminRegistrationPage />} />
