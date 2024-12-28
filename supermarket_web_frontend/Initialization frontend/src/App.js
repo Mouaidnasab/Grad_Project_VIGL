@@ -6,7 +6,7 @@ import StaffAddPage from './pages/StaffAddPage';
 import LoginPage from './pages/Login';
 import ManagePage from './pages/manage';
 import OverviewDashboard from './pages/OverviewDashboard';
-
+import ManageProductPrices from './pages/ManageProductPrices'; 
 
 function App() {
   return (
@@ -21,6 +21,7 @@ function App() {
         <Route path="/staff-add" element={<StaffAddPage />} /> 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/manage" element={<ManagePage />} /> 
+        <Route path="/manage-product-prices" element={<ManageProductPrices />} />       
 
 
       </Routes>
