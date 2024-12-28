@@ -26,6 +26,12 @@ class ProductResponse(BaseModel):
     message: str
     product: Products
     price: PriceHistory
+
+class DiscountResponse(BaseModel):
+    message: str
+    product: Products
+    promotion: Promotions
+
 class AddRequest(BaseModel):
     Barcode: str
     Name: str
@@ -177,7 +183,7 @@ def update_product(
     )
 
 
-@router.put("/update_discount/{product_id}", response_model=ProductResponse)
+@router.put("/update_discount/{product_id}", response_model=DiscountResponse)
 def update_discount(
     product_id: int,
     new_discount: DiscountRequest,
@@ -210,13 +216,16 @@ def update_discount(
     session.commit()
     
     promotion = Promotions(
+            PromotionName="Discount",
             ProductID=product_id,
             Discount= new_discount.Discount,
             StartDate=datetime.now(),
             EndDate= new_discount.EndDate,
-            ChangedBy=current_user.UserID
+            CreatedBy=current_user.UserID
         )
+
+
     session.add(promotion)
     session.commit()
     session.refresh(promotion)
-    return ProductResponse(message="Discount updated successfully", product=product_print, price=promotion)
+    return DiscountResponse(message="Discount updated successfully", product=product_print, promotion=promotion)
