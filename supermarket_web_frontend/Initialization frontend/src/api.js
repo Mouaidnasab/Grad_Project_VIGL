@@ -70,7 +70,9 @@ api.interceptors.response.use(
       const accessToken = localStorage.getItem('access_token');
 
       if (!refreshToken) {
-        window.location.href = '/login'; 
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(error);
       }
 
@@ -113,14 +115,16 @@ api.interceptors.response.use(
           })
           .catch((err) => {
             processQueue(err, null);
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
             reject(err);
           })
           .finally(() => {
             isRefreshing = false;
           });
-      });
-    }
+        });
+      }
 
     return Promise.reject(error);
   }
