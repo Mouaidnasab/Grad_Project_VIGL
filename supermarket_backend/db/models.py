@@ -91,7 +91,7 @@ class ProductScreen(SQLModel, table=True):
         arbitrary_types_allowed = True
 
     __table_args__ = (
-        UniqueConstraint("ShelfID", "ScreenID", "ProductID", name="uq_shelf_screen_product"),
+        UniqueConstraint("ShelfID", "ScreenID", name="uq_shelf_screen"),
     )
 
 class RefreshToken(SQLModel, table=True):
