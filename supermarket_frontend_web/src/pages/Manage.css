@@ -24,7 +24,7 @@
   justify-content: center;
   align-items: center;
   position: relative;
-  border-bottom: 2px solid #ccc; 
+  border-bottom: 2px solid #ccc;
   margin-bottom: 20px;
 }
 
@@ -54,7 +54,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #4caf50; 
+  background: #4caf50;
   transform: scaleX(1);
   transition: transform 0.3s ease;
 }
@@ -164,28 +164,28 @@ form button:hover {
 
 @media screen and (max-width: 750px) {
   .manage-content {
-    flex-direction: column; 
-    align-items: center; 
+    flex-direction: column;
+    align-items: center;
   }
 
   .section {
-    width: 80%; 
-    margin-bottom: 100px; 
+    width: 80%;
+    margin-bottom: 100px;
   }
 }
 
 /* Custom Textarea Styling */
 .custom-textarea {
-  width: 100%; 
-  height: 80px; 
-  padding: 10px; 
-  font-size: 16px; 
-  line-height: 1.5; 
-  resize: none; 
-  border: 1px solid #ccc; 
-  border-radius: 5px; 
-  box-sizing: border-box; 
-  overflow: hidden; 
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Custom Dropdown Styling */
@@ -209,18 +209,17 @@ form button:hover {
   font-size: 16px;
   cursor: pointer;
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   align-items: center;
 }
 
 .dropdown-selected::after {
-  content: "▼"; 
+  content: "▼";
   font-size: 12px;
   color: #666;
   margin-left: 8px;
   transition: transform 0.3s ease;
 }
-
 
 /* Hidden dropdown options */
 .dropdown-options {
@@ -242,7 +241,7 @@ form button:hover {
 
 /* Hover effect for options */
 .dropdown-option:hover {
-  background-color: #738844;  
+  background-color: #738844;
   color: white;
 }
 
@@ -271,16 +270,16 @@ form button:hover {
 
 /* Edit Button Styling */
 .edit-button {
-  background-color: #738844; 
+  background-color: #738844;
 }
 
 .edit-button:hover {
-  background-color: #4f5c33; 
+  background-color: #4f5c33;
 }
 
 /* Delete Button Styling */
 .delete-button {
-  background-color: #dc3545; 
+  background-color: #dc3545;
 }
 
 .delete-button:hover {

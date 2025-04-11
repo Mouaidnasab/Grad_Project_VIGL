@@ -13,12 +13,12 @@ const ManageProducts = () => {
   const [unshelvedProducts, setUnshelvedProducts] = useState([]);
 
   // ------------------------------
-  // State for GOV products and selection
+  // States for GOV products and selection
   // ------------------------------
   const [govProducts, setGovProducts] = useState([]);
-  // We'll store the selected product IDs as strings (from the select element)
+  // Store selected product IDs as strings
   const [selectedGovProductIDs, setSelectedGovProductIDs] = useState([]);
-  // This object will hold the custom price for each selected product (key: product id, value: price)
+  // Custom price for each selected product (key: product id, value: price)
   const [selectedPrices, setSelectedPrices] = useState({});
 
   // ------------------------------------------------
@@ -50,21 +50,17 @@ const ManageProducts = () => {
   };
 
   // ------------------------------------------------
-  //                FETCH GOV PRODUCTS via fetch
+  //                FETCH GOV PRODUCTS (WITHOUT AUTH)
   // ------------------------------------------------
   const fetchGovProducts = async () => {
     const GOV_BACKEND_URL = process.env.REACT_APP_GOV_BACKEND_URL;
     try {
-      const res = await fetch(`${GOV_BACKEND_URL}/product/get`, {
-        method: "GET",
-      });
-
+      const res = await fetch(`${GOV_BACKEND_URL}/product/get`);
       if (!res.ok) {
         throw new Error("Failed to fetch GOV products");
       }
-
       const data = await res.json();
-      // Data schema: [{ Product: {ProductID, ProductName, ...}, Category: {CategoryID, CategoryName, ...} }, ...]
+      // Data schema: [{ Product: { ProductID, ProductName, ... }, Category: { CategoryID, CategoryName, ... }}, ...]
       setGovProducts(data);
     } catch (error) {
       console.error("Error fetching GOV products:", error);
@@ -72,7 +68,7 @@ const ManageProducts = () => {
   };
 
   // ------------------------------------------------
-  //     Update display shelves and unshelved products
+  //    Update displayed shelves and unshelved products
   // ------------------------------------------------
   useEffect(() => {
     const mappedShelves = relations.map((rel) => {
@@ -90,7 +86,6 @@ const ManageProducts = () => {
         lastEditDate,
       };
     });
-
     setDisplayShelves(mappedShelves);
 
     const shelvedProductIDs = new Set(relations.map((rel) => rel.ProductID));
@@ -99,7 +94,6 @@ const ManageProducts = () => {
       .map((prod) => ({
         name: prod.ProductName,
       }));
-
     setUnshelvedProducts(unlinked);
   }, [products, relations]);
 
@@ -113,7 +107,22 @@ const ManageProducts = () => {
   }, []);
 
   // ------------------------------------------------
-  //    Handle adding selected GOV products locally (with price)
+  // COMPUTED: Only display GOV products not already in store
+  // ------------------------------------------------
+  const availableGovProducts = govProducts.filter(
+    (item) =>
+      !products.some((prod) => prod.ProductID === item.Product.ProductID)
+  );
+
+  // ------------------------------------------------
+  // Derived array: Selected GOV Products details
+  // ------------------------------------------------
+  const selectedGovProducts = availableGovProducts.filter((item) =>
+    selectedGovProductIDs.includes(String(item.Product.ProductID))
+  );
+
+  // ------------------------------------------------
+  //    Handle adding selected GOV products locally (with custom price)
   // ------------------------------------------------
   const handleAddSelectedProducts = async () => {
     if (selectedGovProductIDs.length === 0) {
@@ -127,16 +136,14 @@ const ManageProducts = () => {
         return;
       }
     }
-
     try {
-      // Loop through selected products to POST each one with its price.
       for (const productId of selectedGovProductIDs) {
         await api.post("/product/add", {
-          Barcode: productId, // send ProductID as barcode
+          Barcode: productId, // ProductID is sent as the barcode
           Price: parseFloat(selectedPrices[productId]),
         });
       }
-      // Refresh local products, then clear the selections.
+      // Refresh local products then clear the selections.
       fetchProducts();
       setSelectedGovProductIDs([]);
       setSelectedPrices({});
@@ -237,13 +244,6 @@ const ManageProducts = () => {
   );
 
   // ------------------------------------------------
-  //    Derived array: Selected GOV Products details
-  // ------------------------------------------------
-  const selectedGovProducts = govProducts.filter((item) =>
-    selectedGovProductIDs.includes(String(item.Product.ProductID))
-  );
-
-  // ------------------------------------------------
   //               MAIN COMPONENT RENDER
   // ------------------------------------------------
   return (
@@ -270,12 +270,11 @@ const ManageProducts = () => {
         </div>
 
         <div className="manage-content">
-          {/* --------------------------------- */}
-          {/*         STORE PRODUCTS TAB        */}
-          {/* --------------------------------- */}
+          {/* ------------------------ */}
+          {/*      STORE PRODUCTS      */}
+          {/* ------------------------ */}
           {activeTab === "storeProducts" && (
             <>
-              {/* Local store products table */}
               <table
                 className="relations-table"
                 style={{
@@ -318,10 +317,22 @@ const ManageProducts = () => {
                 </tbody>
               </table>
 
-              {/* --------------------------------------------- */}
-              {/*    Section to add GOV products with custom price */}
-              {/* --------------------------------------------- */}
-              <div className="section" style={{ margin: "0 20px" }}>
+              {/* ------------------------------------------------------- */}
+              {/*   Section to add GOV products with checkbox selection    */}
+              {/* ------------------------------------------------------- */}
+
+              <div
+                className="gov-add-wrapper"
+                style={{
+                  maxHeight: "500px", // adjust as needed
+                  overflowY: "auto",
+                  padding: "20px",
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  backgroundColor: "#fafafa",
+                  margin: "0 20px 40px", // bottom margin for spacing
+                }}
+              >
                 <h2>Add Products from GOV Backend</h2>
                 <p>
                   Select one or more products below to add them to your store.
@@ -329,116 +340,139 @@ const ManageProducts = () => {
                   you can assign a custom price to each.
                 </p>
 
-                {/* Multi-select control for GOV products */}
-                <select
-                  multiple
+                {/* Scrollable checkbox list */}
+                <div
                   style={{
-                    width: "100%",
-                    height: "200px",
-                    borderRadius: "10px",
-                    padding: "5px",
-                    fontSize: "14px",
-                    background: "white",
-                    cursor: "pointer",
-                  }}
-                  value={selectedGovProductIDs}
-                  onChange={(e) => {
-                    const selectedOptions = Array.from(
-                      e.target.selectedOptions
-                    ).map((option) => option.value);
-                    setSelectedGovProductIDs(selectedOptions);
-                    // Remove prices for any deselected items:
-                    setSelectedPrices((prev) => {
-                      const updated = { ...prev };
-                      Object.keys(updated).forEach((key) => {
-                        if (!selectedOptions.includes(key)) {
-                          delete updated[key];
-                        }
-                      });
-                      return updated;
-                    });
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                    border: "1px solid #ddd",
+                    borderRadius: "6px",
+                    padding: "10px",
+                    backgroundColor: "#fff",
+                    marginBottom: "20px",
                   }}
                 >
-                  {govProducts && govProducts.length > 0 ? (
-                    govProducts.map((item, idx) => {
+                  {availableGovProducts.length > 0 ? (
+                    availableGovProducts.map((item) => {
                       const { Product, Category } = item;
+                      const idStr = String(Product.ProductID);
                       return (
-                        <option key={idx} value={Product.ProductID}>
-                          {Product.ProductName} —{" "}
-                          {Category?.CategoryName || "No Category"}
-                        </option>
+                        <div
+                          key={idStr}
+                          style={{
+                            display: "flex",
+                            cursor: "pointer",
+                            padding: "8px 0",
+                            borderBottom: "1px solid #eee",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedGovProductIDs.includes(idStr)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedGovProductIDs((prev) => [
+                                  ...prev,
+                                  idStr,
+                                ]);
+                              } else {
+                                setSelectedGovProductIDs((prev) =>
+                                  prev.filter((id) => id !== idStr)
+                                );
+                                setSelectedPrices((prev) => {
+                                  const upd = { ...prev };
+                                  delete upd[idStr];
+                                  return upd;
+                                });
+                              }
+                            }}
+                            style={{
+                              marginLeft: "20px",
+                              width: "30%",
+                              textAlign: "left",
+                            }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 500 }}>
+                              {Product.ProductName}
+                            </div>
+                            <div style={{ fontSize: "13px", color: "#666" }}>
+                              {Category?.CategoryName || "No Category"}
+                            </div>
+                          </div>
+                        </div>
                       );
                     })
                   ) : (
-                    <option disabled>No GOV products found.</option>
+                    <p style={{ textAlign: "center", color: "#888" }}>
+                      No GOV products available.
+                    </p>
                   )}
-                </select>
+                </div>
 
-                {/* Display selected products as circles with price input */}
-                {selectedGovProducts.length > 0 && (
-                  <div style={{ marginTop: "20px" }}>
+                {/* Selected items display */}
+                {selectedGovProductIDs.length > 0 && (
+                  <div style={{ marginBottom: "20px" }}>
                     <h3>Selected Products</h3>
                     <div
-                      className="selected-items"
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "15px",
-                      }}
+                      style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}
                     >
                       {selectedGovProducts.map((item) => {
                         const { Product } = item;
+                        const idStr = String(Product.ProductID);
                         return (
                           <div
-                            key={Product.ProductID}
-                            className="selected-item"
+                            key={idStr}
                             style={{
                               display: "flex",
                               alignItems: "center",
                               border: "1px solid #ddd",
-                              borderRadius: "10px",
+                              borderRadius: "8px",
                               padding: "10px",
-                              minWidth: "200px",
+                              minWidth: "220px",
+                              backgroundColor: "#fff",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                             }}
                           >
-                            {/* Circle showing the first letter of the product */}
                             <div
                               style={{
                                 width: "40px",
                                 height: "40px",
                                 borderRadius: "50%",
                                 backgroundColor: "#007bff",
-                                color: "white",
+                                color: "#fff",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                fontWeight: "bold",
-                                marginRight: "10px",
+                                fontWeight: "600",
+                                marginRight: "12px",
                               }}
                             >
                               {Product.ProductName.charAt(0)}
                             </div>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: "bold" }}>
+                              <div
+                                style={{ marginBottom: "6px", fontWeight: 500 }}
+                              >
                                 {Product.ProductName}
                               </div>
                               <input
                                 type="number"
                                 step="0.01"
                                 placeholder="Enter Price"
-                                value={selectedPrices[Product.ProductID] || ""}
+                                value={selectedPrices[idStr] || ""}
                                 onChange={(e) =>
-                                  setSelectedPrices({
-                                    ...selectedPrices,
-                                    [Product.ProductID]: e.target.value,
-                                  })
+                                  setSelectedPrices((prev) => ({
+                                    ...prev,
+                                    [idStr]: e.target.value,
+                                  }))
                                 }
                                 style={{
                                   width: "100%",
-                                  padding: "5px",
-                                  marginTop: "5px",
-                                  borderRadius: "5px",
+                                  padding: "6px 8px",
+                                  borderRadius: "4px",
                                   border: "1px solid #ccc",
+                                  fontSize: "14px",
                                 }}
                               />
                             </div>
@@ -450,17 +484,19 @@ const ManageProducts = () => {
                 )}
 
                 <button
-                  style={{
-                    marginTop: "20px",
-                    backgroundColor: "#4caf50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "10px",
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                  }}
                   onClick={handleAddSelectedProducts}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    padding: "12px 0",
+                    backgroundColor: "#28a745",
+                    color: "#fff",
+                    fontSize: "16px",
+                    fontWeight: 500,
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
                 >
                   Add Selected Products
                 </button>
@@ -468,9 +504,9 @@ const ManageProducts = () => {
             </>
           )}
 
-          {/* --------------------------------- */}
-          {/*        MANAGE SHELVES TAB         */}
-          {/* --------------------------------- */}
+          {/* ------------------------ */}
+          {/*      MANAGE SHELVES      */}
+          {/* ------------------------ */}
           {activeTab === "shelfProducts" && (
             <div>
               <h3 className="table-title">Manage Products on Shelves</h3>
@@ -520,7 +556,6 @@ const ManageProducts = () => {
             </div>
           )}
         </div>
-
         <Footer />
       </div>
     </>
