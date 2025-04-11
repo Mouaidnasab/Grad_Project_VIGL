@@ -14,4 +14,5 @@ sqlmodel
 pydantic
 sqlalchemy
 cryptography
-
+python-barcode  
+qrcode   

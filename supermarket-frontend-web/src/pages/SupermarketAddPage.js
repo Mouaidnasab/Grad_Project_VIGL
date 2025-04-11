@@ -1,26 +1,26 @@
-import React, { useState } from 'react';
-import './AdminRegistrationPage.css'; 
-import welcomeImage from '../images/welcome.png';
-import LogoCarousel from '../components/LogoCarousel.js';
-import Footer from '../components/footerInit.js'; 
-import { useNavigate } from 'react-router-dom';
-import api from '../api';
+import React, { useState } from "react";
+import "./AdminRegistrationPage.css";
+import welcomeImage from "../images/welcome.png";
+import LogoCarousel from "../components/LogoCarousel.js";
+import Footer from "../components/footerInit.js";
+import { useNavigate } from "react-router-dom";
+import api from "../api.js";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const SupermarketAddPage = () => {
   const [formData, setFormData] = useState({
-    registeredID: '', 
-    registeredDate: '',
-    registeredName: '',
-    address: '',
-    contactPersonFullName: '',
+    registeredID: "",
+    registeredDate: "",
+    registeredName: "",
+    address: "",
+    contactPersonFullName: "",
   });
 
-  const [status, setStatus] = useState('idle'); 
-  const [error, setError] = useState(null); 
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,51 +31,51 @@ const SupermarketAddPage = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('submitting');
+    setStatus("submitting");
     setError(null);
 
     const payload = {
       RegisteredID: formData.registeredID,
-      RegisteredDate: formData.registeredDate, 
+      RegisteredDate: formData.registeredDate,
       RegisteredName: formData.registeredName,
       Address: formData.address,
       ContactPersonFullName: formData.contactPersonFullName,
     };
-    
+
     try {
-
-
-      const response = await api.post('/supermarket/create', payload, {
+      const response = await api.post("/supermarket/create", payload, {
         headers: {
-          'Content-Type': 'application/json',
-                },
+          "Content-Type": "application/json",
+        },
       });
 
-      console.log('Supermarket created successfully:', response.data);
-      setStatus('success');
+      console.log("Supermarket created successfully:", response.data);
+      setStatus("success");
 
-      navigate('/staff-add'); 
+      navigate("/staff-add");
     } catch (err) {
-      console.error('Error creating supermarket:', err);
-      setStatus('error');
+      console.error("Error creating supermarket:", err);
+      setStatus("error");
       if (err.response && err.response.data && err.response.data.detail) {
         setError(err.response.data.detail);
       } else {
-        setError(err.message || 'An unexpected error occurred. Please try again.');
+        setError(
+          err.message || "An unexpected error occurred. Please try again."
+        );
       }
     }
   };
 
   const getButtonLabel = () => {
-    switch(status) {
-      case 'submitting':
-        return 'Submitting...';
-      case 'error':
-        return 'Retry';
-      case 'success':
-        return 'Next';
+    switch (status) {
+      case "submitting":
+        return "Submitting...";
+      case "error":
+        return "Retry";
+      case "success":
+        return "Next";
       default:
-        return 'Submit';
+        return "Submit";
     }
   };
 
@@ -103,7 +103,7 @@ const SupermarketAddPage = () => {
             </div>
             <div className="input-group">
               <input
-                type="date" 
+                type="date"
                 name="registeredDate"
                 value={formData.registeredDate}
                 onChange={handleChange}
@@ -147,10 +147,12 @@ const SupermarketAddPage = () => {
               placeholder="Contact Person Full Name"
               required
             />
-            <label htmlFor="contactPersonFullName">Contact Person Full Name</label>
+            <label htmlFor="contactPersonFullName">
+              Contact Person Full Name
+            </label>
           </div>
 
-          {status === 'error' && error && (
+          {status === "error" && error && (
             <div className="error-message">{error}</div>
           )}
 
@@ -161,7 +163,7 @@ const SupermarketAddPage = () => {
             <button
               type="submit" // Changed to submit the form
               className="next-btn"
-              disabled={status === 'submitting'}
+              disabled={status === "submitting"}
             >
               {getButtonLabel()}
             </button>

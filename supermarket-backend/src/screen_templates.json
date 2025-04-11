@@ -1,0 +1,582 @@
+{
+    "color_test": {
+        "elements": [
+            {
+                "type": "text",
+                "x": -0.20001220703125,
+                "y": 0.8000030517578125,
+                "width": 295.6000061035156,
+                "height": 49.60000228881836,
+                "text": "Edit Me",
+                "color": "red",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": -0.20001220703125,
+                "y": 50.525001525878906,
+                "width": 295.6000061035156,
+                "height": 32.60000228881836,
+                "text": "Edit Me",
+                "color": "white",
+                "fill_color": "red",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": -0.20001220703125,
+                "y": 82.5250015258789,
+                "width": 295.6000061035156,
+                "height": 46.60000228881836,
+                "text": "Edit Me",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 5.5875244140625,
+                "y": 41.525001525878906,
+                "width": 70.5999984741211,
+                "height": 48.60000228881836,
+                "text": "Edit Me",
+                "color": "red",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 205.5999755859375,
+                "y": 39.525001525878906,
+                "width": 71.5999984741211,
+                "height": 47.60000228881836,
+                "text": "Edit Me",
+                "color": "black",
+                "fill_color": "red",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            }
+        ]
+    },
+    "Promotion": {
+        "elements": [
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 0.8000030517578125,
+                "width": 297.6000061035156,
+                "height": 33.60000228881836,
+                "text": "Promotion",
+                "color": "white",
+                "fill_color": "red",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 20
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 34.525001525878906,
+                "width": 130,
+                "height": 51.60000228881836,
+                "text": "dynamic:FinalPrice",
+                "color": "white",
+                "fill_color": "red",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 35
+            },
+            {
+                "type": "text",
+                "x": 130.0,
+                "y": 34.525001525878906,
+                "width": 130,
+                "height": 51.60000228881836,
+                "text": "1 KG",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "center",
+                "font_size": 20
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 104.5250015258789,
+                "width": 130,
+                "height": 23.600000381469727,
+                "text": "dynamic:Price",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 85.5250015258789,
+                "width": 130,
+                "height": 21.600000381469727,
+                "text": "Before",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 97.5999755859375,
+                "y": 36.525001525878906,
+                "width": 195.60000610351562,
+                "height": 49.60000228881836,
+                "text": "dynamic:ProductName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "center",
+                "font_size": 25
+            },
+            {
+                "type": "text",
+                "x": 98.7874755859375,
+                "y": 80.5250015258789,
+                "width": 193.60000610351562,
+                "height": 45.60000228881836,
+                "text": "dynamic:CategoryName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "flex-end",
+                "font_size": 20
+            }
+        ]
+    },
+    "Stanadard": {
+        "elements": [
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 0.8000030517578125,
+                "width": 297.6000061035156,
+                "height": 33.60000228881836,
+                "text": "Standard",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 20
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 34.525001525878906,
+                "width": 130,
+                "height": 51.60000228881836,
+                "text": "dynamic:FinalPrice",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 35
+            },
+            {
+                "type": "text",
+                "x": 130.0,
+                "y": 34.525001525878906,
+                "width": 130,
+                "height": 51.60000228881836,
+                "text": "1 KG",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-start",
+                "vertical_alignment": "center",
+                "font_size": 20
+            },
+            {
+                "type": "text",
+                "x": 97.5999755859375,
+                "y": 36.525001525878906,
+                "width": 195.60000610351562,
+                "height": 49.60000228881836,
+                "text": "dynamic:ProductName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "center",
+                "font_size": 25
+            },
+            {
+                "type": "text",
+                "x": 98.7874755859375,
+                "y": 80.5250015258789,
+                "width": 193.60000610351562,
+                "height": 45.60000228881836,
+                "text": "dynamic:CategoryName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "flex-end",
+                "font_size": 20
+            }
+        ]
+    },
+    "Standard": {
+        "elements": [
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 0.6666717529296875,
+                "width": 362.3333435058594,
+                "height": 54.333335876464844,
+                "text": "dynamic:ProductName",
+                "color": "white",
+                "fill_color": "black",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 30
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 54.79167175292969,
+                "width": 159.33334350585938,
+                "height": 83.33333587646484,
+                "text": "dynamic:FinalPrice",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 50
+            },
+            {
+                "type": "text",
+                "x": 175.33334350585938,
+                "y": 185.0,
+                "width": 184.33334350585938,
+                "height": 57.333335876464844,
+                "text": "dynamic:CategoryName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "center",
+                "font_size": 20
+            },
+            {
+                "type": "text",
+                "x": -1.0,
+                "y": 137.7916717529297,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "Old Price:",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 99.65628051757812,
+                "y": 137.7916717529297,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "dynamic:Price",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 200.65628051757812,
+                "y": 53.79167175292969,
+                "width": 106.33333587646484,
+                "height": 82.33333587646484,
+                "text": "dynamic:Discount",
+                "color": "red",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 40
+            }
+        ]
+    },
+    "1": {
+        "elements": [
+            {
+                "type": "text",
+                "x": 49.666656494140625,
+                "y": 50.66667175292969,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "Edit Me",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": 16
+            }
+        ]
+    },
+    "aa": {
+        "elements": [
+            {
+                "type": "barcode",
+                "x": 49.666656494140625,
+                "y": 50.66667175292969,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "Barcode",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "qrcode",
+                "x": 141.32290649414062,
+                "y": 149.79168701171875,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "QR Code",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "barcode",
+                "x": 200.33334350585938,
+                "y": 40.79167175292969,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "dynamic:ProductName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "qrcode",
+                "x": 17.322906494140625,
+                "y": 147.7916717529297,
+                "width": 101.33333587646484,
+                "height": 51.333335876464844,
+                "text": "dynamic:ProductName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "ab": {
+        "elements": [
+            {
+                "type": "qrcode",
+                "x": 50.322906494140625,
+                "y": 50.79167175292969,
+                "width": 101.33333587646484,
+                "height": 101.33333587646484,
+                "text": "dynamic:ProductName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "barcode",
+                "x": 190.33334350585938,
+                "y": 52.79167175292969,
+                "width": 101.33333587646484,
+                "height": 101.33333587646484,
+                "text": "dynamic:CategoryName",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "barcode",
+                "x": 186.33334350585938,
+                "y": 141.0,
+                "width": 101.33333587646484,
+                "height": 101.33333587646484,
+                "text": "Barcode",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "qrcode",
+                "x": 43.322906494140625,
+                "y": 141.0,
+                "width": 101.33333587646484,
+                "height": 101.33333587646484,
+                "text": "QR Code",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "abb": {
+        "elements": [
+            {
+                "type": "qrcode",
+                "x": 30.322906494140625,
+                "y": 0.6666717529296875,
+                "width": 294.3333435058594,
+                "height": 242.33334350585938,
+                "text": "QR Code",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "aad": {
+        "elements": [
+            {
+                "type": "qrcode",
+                "x": 41.322906494140625,
+                "y": 1.7916717529296875,
+                "width": 267.3333435058594,
+                "height": 238.33334350585938,
+                "text": "https://youtu.be/dQw4w9WgXcQ",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "asd": {
+        "elements": [
+            {
+                "type": "qrcode",
+                "x": -0.333343505859375,
+                "y": 62.79167175292969,
+                "width": 177.33334350585938,
+                "height": 180.33334350585938,
+                "text": "https://youtu.be/dQw4w9WgXcQ",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "aqw": {
+        "elements": [
+            {
+                "type": "qrcode",
+                "x": -0.333343505859375,
+                "y": 66.79167175292969,
+                "width": 181.33334350585938,
+                "height": 175.33334350585938,
+                "text": "https://youtu.be/dQw4w9WgXcQ",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            },
+            {
+                "type": "barcode",
+                "x": -0.333343505859375,
+                "y": 0.6666717529296875,
+                "width": 181.33334350585938,
+                "height": 64.33333587646484,
+                "text": "https://youtu.be/dQw4w9WgXcQ",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    },
+    "aaa": {
+        "elements": [
+            {
+                "type": "barcode",
+                "x": -0.333343505859375,
+                "y": 0.6666717529296875,
+                "width": 362.3333435058594,
+                "height": 242.33334350585938,
+                "text": "11234",
+                "color": "black",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "center",
+                "vertical_alignment": "center",
+                "font_size": null
+            }
+        ]
+    }
+}

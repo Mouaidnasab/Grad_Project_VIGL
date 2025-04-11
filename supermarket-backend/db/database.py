@@ -27,3 +27,5 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 # create_db_and_tables()
+
+check_db_connection()

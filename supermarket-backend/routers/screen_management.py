@@ -12,11 +12,17 @@ from fastapi.responses import JSONResponse
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from sqlalchemy.event import listens_for
 from fastapi.background import BackgroundTasks
 from threading import Thread, Event
 import time
+
+# Additional imports for barcode and QR code generation
+from io import BytesIO
+from barcode import Code128
+from barcode.writer import ImageWriter
+import qrcode
 
 # Event for thread-safe signaling
 producti_updated = Event()
@@ -100,8 +106,7 @@ class Element(BaseModel):
     rotation: int
     horizontal_alignment: str
     vertical_alignment: str
-    font_size: int
-
+    font_size: Optional[int] = 16  # Optional with a default value of 16
 
 
 class ScreenTemplate(BaseModel):
@@ -129,12 +134,12 @@ def validate_color(color):
     return color if color in allowed_colors else "black"
 
 
-def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
+def upload_to_esp32(screen_ip, template_data, session, current_screen_id):
     try:
         esp_url = f"http://{screen_ip}/upload"
         font_path = os.path.join(src_directory, 'Futura Heavy font.ttf')
-        width_before = 296
-        height_before = 128
+        width_before = 360
+        height_before = 240
         elements = template_data.get('elements', [])
 
         img = Image.new('RGB', (width_before, height_before), color='white')
@@ -145,8 +150,6 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
         except IOError:
             default_font = ImageFont.load_default()
 
-        
-
         for element in elements:
             x = int(element.get('x', 0))
             y = int(element.get('y', 0))
@@ -155,6 +158,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
 
             fill_color = validate_color(element.get('fill_color', 'transparent'))
 
+            # Handle text elements
             if element['type'] == 'text':
                 text = element.get('text', '')
                 font_size = element.get('font_size', 16)
@@ -163,10 +167,12 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                 vertical_alignment = element.get('vertical_alignment', 'center')
                 color = validate_color(element.get('color', 'black'))
 
+                # Process dynamic text values
                 if text and text.startswith('dynamic:'):
                     text = text.replace('dynamic:', '')
-                    ProductID = session.exec(select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)).first()
-
+                    ProductID = session.exec(
+                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
+                    ).first()
                     match text:
                         case 'ProductName':
                             product = session.exec(
@@ -188,7 +194,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                                 select(PriceHistory.Price)
                                 .where(PriceHistory.ProductID == ProductID, PriceHistory.EndDate == None)
                             ).first()
-                            text = f"{price}TL"
+                            text = f"{price}TL" if price else "Price not available"
 
                         case 'Discount':
                             promotion = session.exec(
@@ -221,8 +227,6 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                     font = default_font
 
                 text_w, text_h = font.getbbox(text)[2:]
-                # print(horizontal_alignment, vertical_alignment)
-
                 if horizontal_alignment == 'center':
                     text_x = x + (w - text_w) / 2
                 elif horizontal_alignment == 'flex-end':
@@ -235,9 +239,6 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                     text_y = y + h - text_h
                 else:
                     text_y = y
-                # print(text_x, text_y)
-
-                
 
                 if rotation != 0:
                     text_img = Image.new('RGBA', (w, h), (255, 255, 255, 0))
@@ -258,37 +259,94 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
                     draw.fontmode = '1'
                     draw.text((text_x, text_y - font_size*0.12), text, font=font, fill=color)
 
+            # Handle barcode elements
+            elif element['type'] == 'barcode':
+                barcode_data = element.get('text', '')
+                # Check for dynamic data
+                if barcode_data.startswith('dynamic:'):
+                    dynamic_field = barcode_data.replace('dynamic:', '')
+                    ProductID = session.exec(
+                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
+                    ).first()
+                    match dynamic_field:
+                        case 'ProductID':
+                            barcode_data = str(ProductID) if ProductID else "ProductID not found"
+                        case 'ProductName':
+                            product = session.exec(
+                                select(Products.ProductName).where(Products.ProductID == ProductID)
+                            ).first()
+                            barcode_data = product if product else "Product not found"
+                        case _:
+                            barcode_data = "Invalid"
+                # Generate the barcode image using Code128
+                barcode_obj = Code128(barcode_data, writer=ImageWriter())
+
+                buffer = BytesIO()
+                barcode_obj.write(buffer)
+                buffer.seek(0)
+                barcode_img = Image.open(buffer)
+                barcode_img = barcode_img.resize((w, h))
+                img.paste(barcode_img, (x, y))
+
+            # Handle QR code elements
+            elif element['type'] == 'qrcode':
+                qr_data = element.get('text', '')
+                if qr_data.startswith('dynamic:'):
+                    dynamic_field = qr_data.replace('dynamic:', '')
+                    ProductID = session.exec(
+                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
+                    ).first()
+                    match dynamic_field:
+                        case 'ProductID':
+                            qr_data = str(ProductID) if ProductID else "ProductID not found"
+                        case 'ProductName':
+                            product = session.exec(
+                                select(Products.ProductName).where(Products.ProductID == ProductID)
+                            ).first()
+                            qr_data = product if product else "Product not found"
+                        case _:
+                            qr_data = "Invalid"
+                qr = qrcode.QRCode(
+                    version=1,
+                    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                    box_size=10,
+                    border=2,
+                )
+                qr.add_data(qr_data)
+                qr.make(fit=True)
+                qr_img = qr.make_image(fill_color="black", back_color="white")
+                qr_img = qr_img.resize((w, h))
+                img.paste(qr_img, (x, y))
+
+            else:
+                # If element type is not recognized, skip processing.
+                continue
+
         img = img.rotate(-90, expand=True)
 
-        # img.show()
-
+        # Convert the processed image into two 1-bit images for uploading.
         width, height = img.size
         black_img = Image.new("1", (width, height))  # Black (1-bit) image
         red_img = Image.new("1", (width, height))    # Red (1-bit) image
 
-        pixels = img.load() # Load pixel data
-        # print(f"Image size: {width}x{height}")
-        # Loop through all pixels and separate black and red data
+        pixels = img.load()
         for y in range(height):
             for x in range(width):
-                # print(f"Processing pixel: {x}, {y}")
                 black_img.putpixel((x, y), 1)
                 red_img.putpixel((x, y), 1)
                 r, g, b = pixels[x, y]
                 if r > 150 and g < 100 and b < 100:  # Red pixel threshold
-                    red_img.putpixel((x, y), 0)  # Red
+                    red_img.putpixel((x, y), 0)
                 else:
-                    if r < 100 and g < 100 and b < 100: # Black pixel threshold
-                        black_img.putpixel((x, y), 0) # Black
+                    if r < 100 and g < 100 and b < 100:
+                        black_img.putpixel((x, y), 0)
 
-
-
-        #upload red image
+        # Upload red image
         files = {"red_file": red_img.tobytes()}
         response = requests.post(esp_url, files=files)
         print(f"Response: {response.status_code} - {response.text}")
     
-        #upload black image
+        # Upload black image
         files = {"black_file": black_img.tobytes()}
         response = requests.post(esp_url, files=files)
         print(f"Response: {response.status_code} - {response.text}")
@@ -298,9 +356,7 @@ def upload_to_esp32(screen_ip, template_data,session,current_screen_id):
 
 
 
-    
-
-@router.post("/add_template", response_model=ScreenTemplate)
+@router.post("/add_screen_template", response_model=ScreenTemplate)
 def add_screen_template(
     screen_template: ScreenTemplate,
     # current_user: User = Depends(get_current_active_user)
@@ -328,21 +384,23 @@ def add_screen_template(
         json.dump(existing_data, json_file, indent=4)
 
     return screen_template
+
 @router.post("/update_display", response_model=UpdateResponse)
 def update_screen_display(
     update_request: UpdateRequest,
     session: Session = Depends(get_session),
     # current_user: User = Depends(get_current_active_user)  
 ):
-    
     product_id = update_request.product_id
     template_name = update_request.template_name
 
+    print(f"Updating screen display for product_id: {product_id}, template_name: {template_name}")
 
     product_screen = session.exec(
         select(ProductScreen).where(ProductScreen.ProductID == product_id)
     ).first()
 
+    print(f"product_screen: {product_screen}")
 
     if not product_screen:
         raise HTTPException(
@@ -353,7 +411,6 @@ def update_screen_display(
     current_screen_id = product_screen.ScreenID
 
     json_path = os.path.join(src_directory, 'screen_templates.json')
-
 
     if os.path.exists(json_path):
         with open(json_path, 'r') as json_file:
@@ -373,10 +430,8 @@ def update_screen_display(
             .order_by(desc(Promotions.PromotionID))
         ).first()
 
-
-
         if result and result.EndDate >= datetime.now().date() and result.Discount > 0:
-            template_name = "Promotion"
+            template_name = "aqw"
         else:
             template_name = "Standard"
 
@@ -396,14 +451,12 @@ def update_screen_display(
     screen_ip = screen.IP
     template_data = screen_templates[template_name]
 
-    upload_to_esp32(screen_ip, template_data,session,current_screen_id)
+    upload_to_esp32(screen_ip, template_data, session, current_screen_id)
 
     return UpdateResponse(
         message="Screen updated successfully.",
         screen=screen
     )
-
-
 
 
 @router.post("/add", response_model=Screens)
@@ -428,4 +481,3 @@ def get_screens(
     linked_screen_ids = session.exec(select(ProductScreen.ScreenID)).all()
     screens = session.exec(select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))).all()
     return screens
-

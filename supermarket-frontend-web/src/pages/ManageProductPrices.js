@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api';
-import './ManageProductPrices.css';
-import Footer from '../components/footerInit.js';
-import Navbar from "../components/Navbar";
-
-
+import React, { useState, useEffect } from "react";
+import api from "../api.js";
+import "./ManageProductPrices.css";
+import Footer from "../components/footerInit.js";
+import Navbar from "../components/Navbar.js";
 
 const ManageProductPrices = () => {
   const [productList, setProductList] = useState([]);
@@ -12,7 +10,7 @@ const ManageProductPrices = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const [formData, setFormData] = useState({});
-  const [searchTerm, setSearchTerm] = useState(''); 
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchProductList();
@@ -32,11 +30,11 @@ const ManageProductPrices = () => {
 
   const fetchProductList = async () => {
     try {
-      const response = await api.get('/product/get');
-      console.log('Fetched Product List:', response.data.Products);
+      const response = await api.get("/product/get");
+      console.log("Fetched Product List:", response.data.Products);
       setProductList(response.data.Products);
     } catch (error) {
-      console.error('Error fetching product list:', error);
+      console.error("Error fetching product list:", error);
     }
   };
 
@@ -53,17 +51,19 @@ const ManageProductPrices = () => {
   const handleUpdatePrice = async (productId) => {
     const newPrice = formData[productId]?.newPrice;
     if (!newPrice || isNaN(newPrice) || newPrice <= 0) {
-      alert('Please enter a valid price!');
+      alert("Please enter a valid price!");
       return;
     }
 
     try {
-      await api.put(`/product/update_price/${parseInt(productId)}?new_price=${newPrice}`);
+      await api.put(
+        `/product/update_price/${parseInt(productId)}?new_price=${newPrice}`
+      );
       fetchProductList();
       clearFormData();
     } catch (error) {
-      console.error('Error updating price:', error);
-      alert('Failed to update price');
+      console.error("Error updating price:", error);
+      alert("Failed to update price");
     }
   };
 
@@ -72,11 +72,11 @@ const ManageProductPrices = () => {
     const discountEndDate = formData[productId]?.discountEndDate;
 
     if (!newPromotion || isNaN(newPromotion) || newPromotion < 0) {
-      alert('Please enter a valid discount!');
+      alert("Please enter a valid discount!");
       return;
     }
     if (!discountEndDate || new Date(discountEndDate) <= new Date()) {
-      alert('Please select a valid future discount end date!');
+      alert("Please select a valid future discount end date!");
       return;
     }
 
@@ -88,8 +88,8 @@ const ManageProductPrices = () => {
       fetchProductList();
       clearFormData();
     } catch (error) {
-      console.error('Error updating promotion:', error);
-      alert('Failed to update promotion');
+      console.error("Error updating promotion:", error);
+      alert("Failed to update promotion");
     }
   };
 
@@ -107,15 +107,18 @@ const ManageProductPrices = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   const clearFormData = () => {
     setFormData({});
   };
 
   return (
-      <>
-      <Navbar/>
+    <>
+      <Navbar />
       <div className="outer-container">
         <div className="page-wrapper">
           <h1>Manage Product Prices</h1>
@@ -158,35 +161,47 @@ const ManageProductPrices = () => {
                       <td>
                         <input
                           type="number"
-                          className='price-input'
+                          className="price-input"
                           placeholder="New Price"
-                          value={formData[product.ProductID]?.newPrice || ''}
+                          value={formData[product.ProductID]?.newPrice || ""}
                           onChange={(e) =>
-                            handleInputChange(product.ProductID, 'newPrice', e.target.value)
+                            handleInputChange(
+                              product.ProductID,
+                              "newPrice",
+                              e.target.value
+                            )
                           }
                         />
                       </td>
                       <td>
                         <input
                           type="number"
-                          className='price-input'
-
+                          className="price-input"
                           placeholder="New Discount"
-                          value={formData[product.ProductID]?.newDiscount || ''}
+                          value={formData[product.ProductID]?.newDiscount || ""}
                           onChange={(e) =>
-                            handleInputChange(product.ProductID, 'newDiscount', e.target.value)
+                            handleInputChange(
+                              product.ProductID,
+                              "newDiscount",
+                              e.target.value
+                            )
                           }
                         />
                       </td>
                       <td>
                         <input
                           type="date"
-                          className='price-input'
-
+                          className="price-input"
                           placeholder="End Date"
-                          value={formData[product.ProductID]?.discountEndDate || ''}
+                          value={
+                            formData[product.ProductID]?.discountEndDate || ""
+                          }
                           onChange={(e) =>
-                            handleInputChange(product.ProductID, 'discountEndDate', e.target.value)
+                            handleInputChange(
+                              product.ProductID,
+                              "discountEndDate",
+                              e.target.value
+                            )
                           }
                         />
                       </td>
@@ -199,7 +214,9 @@ const ManageProductPrices = () => {
                         </button>
                         <button
                           className="update-button"
-                          onClick={() => handleUpdatePromotion(product.ProductID)}
+                          onClick={() =>
+                            handleUpdatePromotion(product.ProductID)
+                          }
                         >
                           Update Promotion
                         </button>
@@ -208,7 +225,7 @@ const ManageProductPrices = () => {
                   ))}
                   {currentItems.length === 0 && (
                     <tr>
-                      <td colSpan="9" style={{ textAlign: 'center' }}>
+                      <td colSpan="9" style={{ textAlign: "center" }}>
                         No products available.
                       </td>
                     </tr>
@@ -224,11 +241,15 @@ const ManageProductPrices = () => {
               Previous
             </button>
             <span>
-              Page {currentPage} of {Math.ceil(filteredProducts.length / itemsPerPage)}
+              Page {currentPage} of{" "}
+              {Math.ceil(filteredProducts.length / itemsPerPage)}
             </span>
             <button
               onClick={handleNextPage}
-              disabled={currentPage === Math.ceil(filteredProducts.length / itemsPerPage)}
+              disabled={
+                currentPage ===
+                Math.ceil(filteredProducts.length / itemsPerPage)
+              }
             >
               Next
             </button>
@@ -236,7 +257,9 @@ const ManageProductPrices = () => {
 
           {/* Displaying items range */}
           <p>
-            Displaying {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products
+            Displaying {indexOfFirstItem + 1}-
+            {Math.min(indexOfLastItem, filteredProducts.length)} of{" "}
+            {filteredProducts.length} products
           </p>
         </div>
       </div>

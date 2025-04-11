@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api'; 
-import './StaffAddPage.css';
-import Footer from '../components/footerInit.js'; 
-import NavInit from '../components/NavInit.js';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import api from "../api.js";
+import "./StaffAddPage.css";
+import Footer from "../components/footerInit.js";
+import NavInit from "../components/NavInit.js";
+import { useNavigate } from "react-router-dom";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL; 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const StaffAddPage = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    FirstName: '',
-    LastName: '',
-    Username: '',
-    Email: '',
-    Password: '',
-    Role: '',
+    FirstName: "",
+    LastName: "",
+    Username: "",
+    Email: "",
+    Password: "",
+    Role: "",
   });
 
   const [staffList, setStaffList] = useState([]);
@@ -26,11 +26,11 @@ const StaffAddPage = () => {
 
   const fetchStaffList = async () => {
     try {
-      const response = await api.get('/users/list');
+      const response = await api.get("/users/list");
 
       setStaffList(response.data);
     } catch (error) {
-      console.error('Error fetching staff list:', error);
+      console.error("Error fetching staff list:", error);
     }
   };
 
@@ -44,7 +44,7 @@ const StaffAddPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/users/create', {
+      const response = await api.post("/users/create", {
         Username: formData.Username,
         Email: formData.Email,
         FirstName: formData.FirstName,
@@ -53,23 +53,23 @@ const StaffAddPage = () => {
         Role: formData.Role,
         Disabled: false,
       });
-      console.log('User created:', response.data);
-      fetchStaffList(); 
+      console.log("User created:", response.data);
+      fetchStaffList();
       setFormData({
-        FirstName: '',
-        LastName: '',
-        Username: '',
-        Email: '',
-        Password: '',
-        Role: '',
+        FirstName: "",
+        LastName: "",
+        Username: "",
+        Email: "",
+        Password: "",
+        Role: "",
       });
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error("Error creating user:", error);
     }
   };
 
   const handleFinish = () => {
-    navigate('/'); 
+    navigate("/");
   };
 
   return (
@@ -92,7 +92,7 @@ const StaffAddPage = () => {
                     onChange={handleChange}
                     placeholder="First Name"
                     required
-                    className='input1'
+                    className="input1"
                   />
                   <label htmlFor="FirstName">First Name</label>
                 </div>
@@ -104,7 +104,7 @@ const StaffAddPage = () => {
                     onChange={handleChange}
                     placeholder="Last Name"
                     required
-                    className='input1'
+                    className="input1"
                   />
                   <label htmlFor="LastName">Last Name</label>
                 </div>
@@ -117,7 +117,7 @@ const StaffAddPage = () => {
                   onChange={handleChange}
                   placeholder="Username"
                   required
-                  className='input1'
+                  className="input1"
                 />
                 <label htmlFor="Username">Username</label>
               </div>
@@ -130,7 +130,7 @@ const StaffAddPage = () => {
                   onChange={handleChange}
                   placeholder="Email"
                   required
-                  className='input1'
+                  className="input1"
                 />
                 <label htmlFor="Email">Email</label>
               </div>
@@ -143,7 +143,7 @@ const StaffAddPage = () => {
                   onChange={handleChange}
                   placeholder="Password"
                   required
-                  className='input1'
+                  className="input1"
                 />
                 <label htmlFor="Password">Password</label>
               </div>
@@ -166,14 +166,19 @@ const StaffAddPage = () => {
               </div>
 
               <div className="button-wrapper">
-                <button type="submit" className="submit-btn">Add</button>
+                <button type="submit" className="submit-btn">
+                  Add
+                </button>
               </div>
             </form>
           </div>
 
           <div className="table-container1">
             <h2>Staff List</h2>
-            <div className="table-wrapper" style={{ overflowX: 'auto', margin: '0 15px' }}>
+            <div
+              className="table-wrapper"
+              style={{ overflowX: "auto", margin: "0 15px" }}
+            >
               <table>
                 <thead>
                   <tr>
@@ -204,7 +209,9 @@ const StaffAddPage = () => {
                       </td> */}
                     </tr>
                   ))}
-                  {Array.from({ length: Math.max(11 - staffList.length, 0) }).map((_, index) => (
+                  {Array.from({
+                    length: Math.max(11 - staffList.length, 0),
+                  }).map((_, index) => (
                     <tr key={`empty-${index}`} className="empty-row">
                       <td colSpan="5"></td>
                     </tr>
@@ -214,7 +221,13 @@ const StaffAddPage = () => {
             </div>
             <div className="table-buttons">
               {/* <button type="button" onClick={handleBack} className="backk-btn">Back</button> */}
-              <button type="button" onClick={handleFinish} className="finish-btn">Finish</button>
+              <button
+                type="button"
+                onClick={handleFinish}
+                className="finish-btn"
+              >
+                Finish
+              </button>
             </div>
           </div>
         </div>
