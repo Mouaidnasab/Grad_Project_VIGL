@@ -60,7 +60,7 @@ const ManageProducts = () => {
         throw new Error("Failed to fetch GOV products");
       }
       const data = await res.json();
-      // Data schema: [{ Product: { ProductID, ProductName, ... }, Category: { CategoryID, CategoryName, ... }}, ...]
+      // Expected schema includes SuggestedPrice and Threshold.
       setGovProducts(data);
     } catch (error) {
       console.error("Error fetching GOV products:", error);
@@ -115,11 +115,24 @@ const ManageProducts = () => {
   );
 
   // ------------------------------------------------
-  // Derived array: Selected GOV Products details
+  //    Toggle selected GOV product
   // ------------------------------------------------
-  const selectedGovProducts = availableGovProducts.filter((item) =>
-    selectedGovProductIDs.includes(String(item.Product.ProductID))
-  );
+  const toggleGovProductSelection = (productIdStr) => {
+    if (selectedGovProductIDs.includes(productIdStr)) {
+      // Deselect: Remove product ID and price
+      setSelectedGovProductIDs((prev) =>
+        prev.filter((id) => id !== productIdStr)
+      );
+      setSelectedPrices((prev) => {
+        const updated = { ...prev };
+        delete updated[productIdStr];
+        return updated;
+      });
+    } else {
+      // Select: Add product ID
+      setSelectedGovProductIDs((prev) => [...prev, productIdStr]);
+    }
+  };
 
   // ------------------------------------------------
   //    Handle adding selected GOV products locally (with custom price)
@@ -153,6 +166,22 @@ const ManageProducts = () => {
       alert(
         "An error occurred while adding products. Check the console for details."
       );
+    }
+  };
+
+  // ------------------------------------------------
+  //          HANDLE PRODUCT DELETE
+  // ------------------------------------------------
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) {
+      return;
+    }
+    try {
+      await api.delete(`/product/delete/${productId}`);
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Error deleting product. Check console for details.");
     }
   };
 
@@ -249,7 +278,10 @@ const ManageProducts = () => {
   return (
     <>
       <Navbar />
-      <div className="manage-container">
+      <div
+        className="manage-container"
+        style={{ overflowY: "auto", maxHeight: "100vh" }}
+      >
         <header className="manage-header">
           <h1 className="borderh1">Manage Products</h1>
         </header>
@@ -288,14 +320,17 @@ const ManageProducts = () => {
                     <th>Product Name</th>
                     <th>Category</th>
                     <th>Barcode / ProductID</th>
-                    <th>Price</th>
+                    <th>Current Price</th>
+                    <th>Suggested Price</th>
+                    <th>Threshold</th>
                     <th>Discount</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {products.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center" }}>
+                      <td colSpan={8} style={{ textAlign: "center" }}>
                         No products available
                       </td>
                     </tr>
@@ -305,11 +340,60 @@ const ManageProducts = () => {
                         <td>{product.ProductName}</td>
                         <td>{product.CategoryName || product.CategoryID}</td>
                         <td>{product.ProductID}</td>
-                        <td>{product.Price ?? "N/A"}</td>
+                        <td>
+                          {product.Price !== undefined &&
+                          product.Price !== null ? (
+                            <div
+                              style={{
+                                color:
+                                  product.Threshold &&
+                                  parseFloat(product.Price) > product.Threshold
+                                    ? "red"
+                                    : "inherit",
+                              }}
+                            >
+                              ₺{product.Price}
+                              {product.Threshold &&
+                                parseFloat(product.Price) >
+                                  product.Threshold && (
+                                  <div
+                                    style={{
+                                      fontSize: "12px",
+                                      marginTop: "4px",
+                                    }}
+                                  >
+                                    Warning: The current price exceeds the
+                                    allowed threshold and may incur a penalty.
+                                  </div>
+                                )}
+                            </div>
+                          ) : (
+                            "N/A"
+                          )}
+                        </td>
+                        <td>₺{product.SuggestedPrice ?? "N/A"}</td>
+                        <td>₺{product.Threshold ?? "N/A"}</td>
                         <td>
                           {product.Discount && product.Discount > 0
                             ? `${product.Discount}% until ${product.DiscountEndDate}`
                             : "No discount"}
+                        </td>
+                        <td>
+                          <button
+                            onClick={() =>
+                              handleDeleteProduct(product.ProductID)
+                            }
+                            style={{
+                              backgroundColor: "#e75252",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "6px",
+                              padding: "6px 12px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -318,181 +402,143 @@ const ManageProducts = () => {
               </table>
 
               {/* ------------------------------------------------------- */}
-              {/*   Section to add GOV products with checkbox selection    */}
+              {/*          GOV PRODUCTS ADDING SECTION (SCROLLABLE)      */}
               {/* ------------------------------------------------------- */}
-
               <div
-                className="gov-add-wrapper"
+                className="gov-add-container"
                 style={{
-                  maxHeight: "500px", // adjust as needed
-                  overflowY: "auto",
+                  margin: "20px",
                   padding: "20px",
                   border: "1px solid #ddd",
                   borderRadius: "8px",
-                  backgroundColor: "#fafafa",
-                  margin: "0 20px 40px", // bottom margin for spacing
+                  backgroundColor: "#f9f9f9",
+                  maxHeight: "500px",
+                  overflowY: "auto",
                 }}
               >
                 <h2>Add Products from GOV Backend</h2>
                 <p>
-                  Select one or more products below to add them to your store.
-                  The <strong>ProductID</strong> will be sent as the barcode and
-                  you can assign a custom price to each.
+                  Click on products to select them. Selected products will turn
+                  blue and display an input field to enter a custom price.
                 </p>
-
-                {/* Scrollable checkbox list */}
                 <div
+                  className="gov-product-grid"
                   style={{
-                    maxHeight: "200px",
-                    overflowY: "auto",
-                    border: "1px solid #ddd",
-                    borderRadius: "6px",
-                    padding: "10px",
-                    backgroundColor: "#fff",
-                    marginBottom: "20px",
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(250px, 1fr))",
+                    gap: "16px",
                   }}
                 >
                   {availableGovProducts.length > 0 ? (
                     availableGovProducts.map((item) => {
-                      const { Product, Category } = item;
-                      const idStr = String(Product.ProductID);
+                      const { Product, Category, Price } = item;
+                      const productIdStr = String(Product.ProductID);
+                      const isSelected =
+                        selectedGovProductIDs.includes(productIdStr);
+                      const customPrice = selectedPrices[productIdStr] || "";
+                      const isOverThreshold =
+                        customPrice &&
+                        parseFloat(customPrice) > Price?.Threshold;
                       return (
                         <div
-                          key={idStr}
+                          key={productIdStr}
+                          className="gov-product-card"
                           style={{
-                            display: "flex",
+                            border: "1px solid #ccc",
+                            borderRadius: "8px",
+                            padding: "16px",
+                            backgroundColor: isSelected ? "#b3d4fc" : "#fff",
                             cursor: "pointer",
-                            padding: "8px 0",
-                            borderBottom: "1px solid #eee",
                           }}
+                          onClick={() =>
+                            toggleGovProductSelection(productIdStr)
+                          }
                         >
-                          <input
-                            type="checkbox"
-                            checked={selectedGovProductIDs.includes(idStr)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedGovProductIDs((prev) => [
-                                  ...prev,
-                                  idStr,
-                                ]);
-                              } else {
-                                setSelectedGovProductIDs((prev) =>
-                                  prev.filter((id) => id !== idStr)
-                                );
-                                setSelectedPrices((prev) => {
-                                  const upd = { ...prev };
-                                  delete upd[idStr];
-                                  return upd;
-                                });
-                              }
-                            }}
+                          <h4 style={{ margin: "0 0 8px" }}>
+                            {Product.ProductName}
+                          </h4>
+                          <p
                             style={{
-                              marginLeft: "20px",
-                              width: "30%",
-                              textAlign: "left",
+                              margin: "0 0 4px",
+                              fontSize: "14px",
+                              color: "#555",
                             }}
-                          />
-                          <div>
-                            <div style={{ fontWeight: 500 }}>
-                              {Product.ProductName}
+                          >
+                            {Category?.CategoryName || "No Category"}
+                          </p>
+                          <p
+                            style={{
+                              margin: "0",
+                              fontSize: "12px",
+                              color: "#777",
+                            }}
+                          >
+                            Suggested Price: ₺{Price?.SuggestedPrice} |
+                            Threshold: ₺{Price?.Threshold}
+                          </p>
+                          {isSelected && (
+                            <div style={{ marginTop: "8px" }}>
+                              <input
+                                type="number"
+                                step="0.01"
+                                placeholder="Enter Price"
+                                value={customPrice}
+                                onClick={(e) => e.stopPropagation()}
+                                onChange={(e) =>
+                                  setSelectedPrices((prev) => ({
+                                    ...prev,
+                                    [productIdStr]: e.target.value,
+                                  }))
+                                }
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  borderRadius: "4px",
+                                  border: isOverThreshold
+                                    ? "1px solid red"
+                                    : "1px solid #ccc",
+                                }}
+                              />
+                              {isOverThreshold && (
+                                <p
+                                  style={{
+                                    color: "red",
+                                    fontSize: "12px",
+                                    marginTop: "4px",
+                                  }}
+                                >
+                                  Penalty may be applied. Price exceeds
+                                  threshold!
+                                </p>
+                              )}
                             </div>
-                            <div style={{ fontSize: "13px", color: "#666" }}>
-                              {Category?.CategoryName || "No Category"}
-                            </div>
-                          </div>
+                          )}
                         </div>
                       );
                     })
                   ) : (
-                    <p style={{ textAlign: "center", color: "#888" }}>
+                    <p
+                      style={{
+                        gridColumn: "1 / -1",
+                        textAlign: "center",
+                        color: "#888",
+                      }}
+                    >
                       No GOV products available.
                     </p>
                   )}
                 </div>
 
-                {/* Selected items display */}
-                {selectedGovProductIDs.length > 0 && (
-                  <div style={{ marginBottom: "20px" }}>
-                    <h3>Selected Products</h3>
-                    <div
-                      style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}
-                    >
-                      {selectedGovProducts.map((item) => {
-                        const { Product } = item;
-                        const idStr = String(Product.ProductID);
-                        return (
-                          <div
-                            key={idStr}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              border: "1px solid #ddd",
-                              borderRadius: "8px",
-                              padding: "10px",
-                              minWidth: "220px",
-                              backgroundColor: "#fff",
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "40px",
-                                height: "40px",
-                                borderRadius: "50%",
-                                backgroundColor: "#007bff",
-                                color: "#fff",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: "600",
-                                marginRight: "12px",
-                              }}
-                            >
-                              {Product.ProductName.charAt(0)}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div
-                                style={{ marginBottom: "6px", fontWeight: 500 }}
-                              >
-                                {Product.ProductName}
-                              </div>
-                              <input
-                                type="number"
-                                step="0.01"
-                                placeholder="Enter Price"
-                                value={selectedPrices[idStr] || ""}
-                                onChange={(e) =>
-                                  setSelectedPrices((prev) => ({
-                                    ...prev,
-                                    [idStr]: e.target.value,
-                                  }))
-                                }
-                                style={{
-                                  width: "100%",
-                                  padding: "6px 8px",
-                                  borderRadius: "4px",
-                                  border: "1px solid #ccc",
-                                  fontSize: "14px",
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
                 <button
                   onClick={handleAddSelectedProducts}
                   style={{
-                    display: "block",
+                    marginTop: "20px",
                     width: "100%",
-                    padding: "12px 0",
-                    backgroundColor: "#28a745",
+                    padding: "12px",
+                    backgroundColor: "#738844",
                     color: "#fff",
                     fontSize: "16px",
-                    fontWeight: 500,
                     border: "none",
                     borderRadius: "6px",
                     cursor: "pointer",

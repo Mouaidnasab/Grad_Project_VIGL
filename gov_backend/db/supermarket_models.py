@@ -1,4 +1,4 @@
-# db/models.py
+# db/supermarket_models.py
 
 from typing import Optional, List
 from datetime import datetime, date
@@ -10,8 +10,6 @@ class RoleEnum(str, Enum):
     owner = "owner"
     manager = "manager"
     staff = "staff"
-
-
 
 
 class Products(SQLModel, table=True):

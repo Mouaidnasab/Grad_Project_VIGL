@@ -55,19 +55,6 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
-# Security for Initialize Owner Endpoint
-INITIALIZE_OWNER_API_KEY = os.getenv("INITIALIZE_OWNER_API_KEY", "owner_key")
-api_key_header = APIKeyHeader(name="X-Initialize-Owner-Token", auto_error=False)
-
-def verify_initialize_owner_token(api_key: str = Security(api_key_header)):
-
-    if api_key != INITIALIZE_OWNER_API_KEY:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid initialization token",
-        )
-    return api_key
-
 
 
 @router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -260,47 +247,3 @@ def is_owner():
         owner = session.exec(statement).first()
         return owner is not None
     
-@router.post(
-    "/initialize_owner",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(verify_initialize_owner_token)],
-)
-def initialize_owner(user: UserCreate):
-
-    with Session(engine) as session:
-        statement = select(Users).where(Users.Role == "owner")
-        existing_owner = session.exec(statement).first()
-        if existing_owner:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Owner already exists",
-            )
-
-        user.Role = "owner"
-
-        # Hash the Password
-        hashed_Password = get_password_hash(user.Password)
-
-        new_owner = Users(
-            Username=user.Username,
-            Email=user.Email,
-            FirstName=user.FirstName,
-            LastName=user.LastName,
-            Password=hashed_Password,
-            Role=user.Role,
-            Disabled=user.Disabled,
-        )
-        session.add(new_owner)
-        session.commit()
-        session.refresh(new_owner)
-        return UserResponse(
-            UserID=new_owner.UserID,
-            Username=new_owner.Username,
-            Email=new_owner.Email,
-            FirstName=new_owner.FirstName,
-            LastName=new_owner.LastName,
-            Role=new_owner.Role,
-            Disabled=new_owner.Disabled,
-        )
-

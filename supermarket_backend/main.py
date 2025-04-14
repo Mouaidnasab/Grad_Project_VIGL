@@ -2,11 +2,9 @@ from fastapi import FastAPI
 from routers import (
     current_user,
     user_managament,
-    supermarket_management,
     screen_management,
     product_management,
     shelf_management,
-    category_management
     )
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
@@ -38,11 +36,9 @@ app.add_middleware(
 
 app.include_router(current_user.router)
 app.include_router(user_managament.router)
-app.include_router(supermarket_management.router)
 app.include_router(screen_management.router)
 app.include_router(product_management.router)
 app.include_router(shelf_management.router)
-app.include_router(category_management.router)
 
 
 

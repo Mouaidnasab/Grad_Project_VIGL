@@ -8,9 +8,10 @@ from dependencies.auth import (
     get_current_active_user,
     User,
     get_password_hash,
+    require_Role,
 )
 from db.database import gov_engine
-from db.models import Users, RefreshToken
+from db.models import GovUsers, GovRefreshToken
 from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
 import os
@@ -63,8 +64,8 @@ def create_user(
     # current_user: User = Depends(get_current_active_user),
 ):
     with Session(gov_engine) as session:
-        statement = select(Users).where(
-            (Users.Username == user.Username) | (Users.Email == user.Email)
+        statement = select(GovUsers).where(
+            (GovUsers.Username == user.Username) | (GovUsers.Email == user.Email)
         )
         existing_user = session.exec(statement).first()
         if existing_user:
@@ -75,7 +76,7 @@ def create_user(
 
         hashed_Password = get_password_hash(user.Password)
 
-        new_user = Users(
+        new_user = GovUsers(
             Username=user.Username,
             Email=user.Email,
             FirstName=user.FirstName,
@@ -101,10 +102,10 @@ def create_user(
 def update_user(
     UserID: int,
     user_update: UserUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_Role(["staff"])),
 ):
     with Session(gov_engine) as session:
-        statement = select(Users).where(Users.UserID == UserID)
+        statement = select(GovUsers).where(GovUsers.UserID == UserID)
         user = session.exec(statement).first()
         if not user:
             raise HTTPException(
@@ -114,7 +115,7 @@ def update_user(
 
         if user_update.Email:
             Email_check = session.exec(
-                select(Users).where(Users.Email == user_update.Email, Users.UserID != UserID)
+                select(GovUsers).where(GovUsers.Email == user_update.Email, GovUsers.UserID != UserID)
             ).first()
             if Email_check:
                 raise HTTPException(
@@ -153,7 +154,7 @@ def delete_user(
     current_user: User = Depends(get_current_active_user),
 ):
     with Session(gov_engine) as session:
-        statement = select(Users).where(Users.UserID == UserID)
+        statement = select(GovUsers).where(GovUsers.UserID == UserID)
         user = session.exec(statement).first()
         if not user:
             raise HTTPException(
@@ -162,7 +163,7 @@ def delete_user(
             )
 
 
-        gettokens = select(RefreshToken).where(RefreshToken.UserID == UserID)
+        gettokens = select(GovRefreshToken).where(GovRefreshToken.UserID == UserID)
         delettokens = session.exec(gettokens).all()
         for token in delettokens:
             session.delete(token)
@@ -175,10 +176,10 @@ def delete_user(
 def list_users(
     # skip: int = 0,
     # limit: int = 10,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_Role(["staff"])),
 ):
     with Session(gov_engine) as session:
-        statement = select(Users)  #.offset(skip).limit(limit)
+        statement = select(GovUsers)  #.offset(skip).limit(limit)
         users = session.exec(statement).all()
         return [
             UserResponse(

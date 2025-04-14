@@ -10,7 +10,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlmodel import Session, select
 from db.database import gov_engine
-from db.models import Users, RefreshToken
+from db.models import GovUsers, GovRefreshToken
 
 # Secret and algorithm configurations
 SECRET_KEY = "0e2ea5c457d4877e1ef2c0902edc6956cb47ef485672742372601cc1765158d3"
@@ -64,7 +64,7 @@ def get_user_from_db(Username: str) -> Optional[UserInDB]:
         Optional[UserInDB]: The user object if found, else None.
     """
     with Session(gov_engine) as session:
-        statement = select(Users).where(Users.Username == Username)
+        statement = select(GovUsers).where(GovUsers.Username == Username)
         user = session.exec(statement).one_or_none()
         if user:
             return UserInDB(
@@ -101,7 +101,7 @@ def authenticate_user(Username: str, Password: str) -> Optional[UserInDB]:
 
     # Update Last_used timestamp
     with Session(gov_engine) as session:
-        user_record = session.exec(select(Users).where(Users.Username == Username)).one()
+        user_record = session.exec(select(GovUsers).where(GovUsers.Username == Username)).one()
         session.add(user_record)
         session.commit()
     return user
@@ -143,7 +143,7 @@ def create_refresh_token(data: dict, UserID: int, expires_delta: Optional[timede
 
     # Store the token in the RefreshToken table
     with Session(gov_engine) as session:
-        new_token = RefreshToken(
+        new_token = GovRefreshToken(
             Token=encoded_jwt,
             UserID=UserID,
             CreatedAt=datetime.now(timezone.utc),
@@ -181,9 +181,9 @@ def verify_refresh_token(token: str) -> Optional[str]:
 
         # Verify the token in the database
         with Session(gov_engine) as session:
-            statement = select(RefreshToken).where(
-                RefreshToken.Token == token,
-                RefreshToken.Revoked == False
+            statement = select(GovRefreshToken).where(
+                GovRefreshToken.Token == token,
+                GovRefreshToken.Revoked == False
             )
             refresh_token = session.exec(statement).first()
             if not refresh_token:
@@ -264,3 +264,15 @@ async def get_current_active_user(current_user: Annotated[User, Depends(get_curr
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
+
+
+# Dependency for Role-Based Access Control
+def require_Role(required_Roles: List[str]):
+    def Role_checker(current_user: User = Depends(get_current_active_user)):
+        if current_user.Role not in required_Roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+    return Role_checker

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from datetime import timedelta
 from sqlmodel import Session, select
 from db.database import gov_engine
-from db.models import RefreshToken
+from db.models import GovRefreshToken
 
 router = APIRouter()
 
@@ -58,7 +58,7 @@ async def refresh_access_token(request: RefreshTokenRequest):
 
     # Fetch the UserID before closing the session
     with Session(gov_engine) as session:
-        statement = select(RefreshToken).where(RefreshToken.Token == refresh_token)
+        statement = select(GovRefreshToken).where(GovRefreshToken.Token == refresh_token)
         token_record = session.exec(statement).first()
         
         if token_record:
@@ -115,7 +115,7 @@ async def validate_token(token_request: ValidateTokenRequest):
 
         # If token is a valid refresh token, check if it's revoked
         with Session(gov_engine) as session:
-            statement = select(RefreshToken).where(RefreshToken.Token == token)
+            statement = select(GovRefreshToken).where(GovRefreshToken.Token == token)
             token_record = session.exec(statement).first()
 
             if token_record and token_record.Revoked:
