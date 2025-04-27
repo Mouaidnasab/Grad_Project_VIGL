@@ -11,6 +11,66 @@ const ManageProducts = () => {
   const [relations, setRelations] = useState([]);
   const [displayShelves, setDisplayShelves] = useState([]);
   const [unshelvedProducts, setUnshelvedProducts] = useState([]);
+  const [showSuggestModal, setShowSuggestModal] = useState(false);
+
+  // form state for the suggestion
+  const [suggestForm, setSuggestForm] = useState({
+    ProductName: "",
+    CategoryID: 1,
+    CategoryName: "Fruits",
+    Description: "",
+    SuggestedPrice: "",
+    Suppermarket: "",
+  });
+
+  const openSuggestModal = () => setShowSuggestModal(true);
+  const closeSuggestModal = () => setShowSuggestModal(false);
+
+  const handleSuggestChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "CategoryID") {
+      const nameMap = { 1: "Fruits", 2: "Vegetables" };
+      setSuggestForm((f) => ({
+        ...f,
+        CategoryID: Number(value),
+        CategoryName: nameMap[value],
+      }));
+    } else {
+      setSuggestForm((f) => ({ ...f, [name]: value }));
+    }
+  };
+
+  const handleSuggestSubmit = async (e) => {
+    e.preventDefault();
+    const GOV_BACKEND_URL = process.env.REACT_APP_GOV_BACKEND_URL;
+    try {
+      const res = await fetch(
+        `${GOV_BACKEND_URL}/product/upload_suggested_product/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...suggestForm,
+            SuggestedPrice: parseFloat(suggestForm.SuggestedPrice),
+          }),
+        }
+      );
+      if (!res.ok) throw new Error("Failed to submit suggestion");
+      alert("Thank you! Your suggestion has been sent.");
+      closeSuggestModal();
+      setSuggestForm({
+        ProductName: "",
+        CategoryID: 1,
+        CategoryName: "",
+        Description: "",
+        SuggestedPrice: "",
+        Suppermarket: "",
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting suggestion. See console for details.");
+    }
+  };
 
   // ------------------------------
   // States for GOV products and selection
@@ -338,7 +398,7 @@ const ManageProducts = () => {
                     products.map((product, index) => (
                       <tr key={index}>
                         <td>{product.ProductName}</td>
-                        <td>{product.CategoryName || product.CategoryID}</td>
+                        <td>{product.CategoryName}</td>
                         <td>{product.ProductID}</td>
                         <td>
                           {product.Price !== undefined &&
@@ -421,6 +481,24 @@ const ManageProducts = () => {
                   Click on products to select them. Selected products will turn
                   blue and display an input field to enter a custom price.
                 </p>
+                <p>
+                  If product not available, please fill this{" "}
+                  <button
+                    onClick={openSuggestModal}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#0066cc",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      padding: 0,
+                      font: "inherit",
+                    }}
+                  >
+                    form
+                  </button>
+                </p>
+
                 <div
                   className="gov-product-grid"
                   style={{
@@ -604,6 +682,83 @@ const ManageProducts = () => {
         </div>
         <Footer />
       </div>
+      {showSuggestModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Suggest a New Product</h2>
+            <form onSubmit={handleSuggestSubmit}>
+              <div className="form-group">
+                <label htmlFor="ProductName">Product Name</label>
+                <input
+                  id="ProductName"
+                  name="ProductName"
+                  placeholder="Enter product name"
+                  value={suggestForm.ProductName}
+                  onChange={handleSuggestChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="CategoryID">Category</label>
+                <select
+                  id="CategoryID"
+                  name="CategoryID"
+                  value={suggestForm.CategoryID}
+                  onChange={handleSuggestChange}
+                >
+                  <option value={1}>Fruits</option>
+                  <option value={2}>Vegetables</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="Description">Description</label>
+                <textarea
+                  id="Description"
+                  name="Description"
+                  placeholder="Brief description"
+                  value={suggestForm.Description}
+                  onChange={handleSuggestChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="SuggestedPrice">Suggested Price</label>
+                <input
+                  id="SuggestedPrice"
+                  name="SuggestedPrice"
+                  type="number"
+                  step="0.01"
+                  placeholder="₺0.00"
+                  value={suggestForm.SuggestedPrice}
+                  onChange={handleSuggestChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="Suppermarket">Supermarket</label>
+                <input
+                  id="Suppermarket"
+                  name="Suppermarket"
+                  placeholder="Your supermarket name"
+                  value={suggestForm.Suppermarket}
+                  onChange={handleSuggestChange}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={closeSuggestModal}>
+                  Cancel
+                </button>
+                <button type="submit">Send Suggestion</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

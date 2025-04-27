@@ -11,7 +11,7 @@ from sqlmodel import Session, create_engine
 from db.database import gov_engine
 from db.models import GovPriceHistory, GovProducts, Categories, GovPriceHistory, Supermarkets
 from dependencies.auth import get_current_active_user, User, require_Role
-from db.create_supermarket import BASE_MYSQL_URL, Products, PriceHistory, Promotions
+from db.create_supermarket import BASE_MYSQL_URL, Products, PriceHistory
 
 router = APIRouter(
     prefix="/product",
@@ -33,10 +33,9 @@ class SupermarketProducts(BaseModel):
     Category: Categories
     GovPrice: GovPriceHistory
     SupermarketPrice: PriceHistory
-    Promotion: Optional[Promotions] = None
 
 
-class GetSupermarketResponse(BaseModel):
+class GetProductsFromSupermarketResponse(BaseModel):
     Supermarket: Supermarkets
     Products: List[SupermarketProducts]
 
@@ -55,24 +54,7 @@ class UpdateRequest(BaseModel):
     Description: Optional[str] = None
 
 
-# Endpoint to get products
-@router.get("/get/", response_model=List[GetResponse])
-def get_products(
-    session: Session = Depends(get_session),
-    # current_user: User = Depends(get_current_active_user)
-):
-    products = session.exec(select(GovProducts)).scalars().all()
-    categories = session.exec(select(Categories)).scalars().all()
-    gov_prices = session.exec(select(GovPriceHistory)).scalars().all()
 
-
-    organized_products = []
-    for product in products:
-        category = next((c for c in categories if c.CategoryID == product.CategoryID), None)
-        gov_price = next((p for p in gov_prices if p.ProductID == product.ProductID and p.EndDate is None), None)
-        organized_products.append(GetResponse(Product=product, Category=category, Price=gov_price))
-
-    return organized_products
 
 # Endpoint to create a new product
 @router.post("/create")
@@ -178,9 +160,31 @@ def update_product(
     }
 
 
+
+# Endpoint to get products
+@router.get("/get/", response_model=List[GetResponse])
+def get_products(
+    session: Session = Depends(get_session),
+    # current_user: User = Depends(get_current_active_user)
+):
+    products = session.exec(select(GovProducts)).scalars().all()
+    categories = session.exec(select(Categories)).scalars().all()
+    gov_prices = session.exec(select(GovPriceHistory)).scalars().all()
+
+
+    organized_products = []
+    for product in products:
+        category = next((c for c in categories if c.CategoryID == product.CategoryID), None)
+        gov_price = next((p for p in gov_prices if p.ProductID == product.ProductID and p.EndDate is None), None)
+        organized_products.append(GetResponse(Product=product, Category=category, Price=gov_price))
+
+    return organized_products
+    
+
+
 # Endpoint to get a specific product by ID
 @router.get("/get/{product_id}", response_model=GetResponse)
-def get_product(
+def get_specific_product(
     product_id: int,
     session: Session = Depends(get_session),
     # current_user: User = Depends(get_current_active_user)
@@ -190,10 +194,16 @@ def get_product(
         raise HTTPException(status_code=404, detail="Product not found")
 
     category = session.get(Categories, product.CategoryID)
-    return GetResponse(Product=product, Category=category)
+
+    Price = session.scalar(
+        select(GovPriceHistory)
+        .where(GovPriceHistory.ProductID == product_id)
+        .where(GovPriceHistory.EndDate.is_(None))
+    )
+    return GetResponse(Product=product, Category=category, Price=Price)
 
 
-@router.get("/get_from_all_supermarkets", response_model=List[GetSupermarketResponse])
+@router.get("/get_from_all_supermarkets", response_model=List[GetProductsFromSupermarketResponse])
 def get_products_from_all_supermarkets(
     session: Session = Depends(get_session),
     # current_user: User = Depends(get_current_active_user)
@@ -221,11 +231,7 @@ def get_products_from_all_supermarkets(
                         .where(PriceHistory.ProductID == product.ProductID, 
                                PriceHistory.EndDate == None)
                     )
-                    supermarket_promo = supermarket_session.scalar(
-                        select(Promotions)
-                        .where(Promotions.ProductID == product.ProductID, 
-                               Promotions.EndDate > datetime.now())
-                    )
+
                 gov_price = session.scalar(
                     select(GovPriceHistory)
                     .where(GovPriceHistory.ProductID == product.ProductID, 
@@ -243,15 +249,166 @@ def get_products_from_all_supermarkets(
                         Category=category,
                         GovPrice=gov_price,
                         SupermarketPrice=supermarket_price,
-                        Promotion=supermarket_promo
                     )
                 )
 
             results.append(
-                GetSupermarketResponse(
+                GetProductsFromSupermarketResponse(
                     Supermarket=supermarket,
                     Products=supermarket_products
                 )
             )
 
     return results
+
+
+@router.get("/get_from_supermarket/{supermarket_id}", response_model=GetProductsFromSupermarketResponse)
+def get_products_from_specific_supermarket(
+    supermarket_id: int,
+    session: Session = Depends(get_session),
+    # current_user: User = Depends(get_current_active_user)
+):
+    supermarket = session.get(Supermarkets, supermarket_id)
+
+    gov_products = session.scalars(select(GovProducts)).all()
+    categories = session.scalars(select(Categories)).all()
+
+    if not supermarket:
+        raise HTTPException(status_code=404, detail="Supermarket not found")
+
+
+    supermarket_products = []
+
+    supermarket_db = "s" + str(supermarket.SupermarketID)
+    new_engine = create_engine(f"{BASE_MYSQL_URL}{supermarket_db}")
+
+    with Session(new_engine) as supermarket_session:
+        products = supermarket_session.scalars(select(Products)).all()
+
+    for product in products:
+        with Session(new_engine) as supermarket_session:
+            supermarket_price = supermarket_session.scalar(
+                select(PriceHistory)
+                .where(PriceHistory.ProductID == product.ProductID, 
+                        PriceHistory.EndDate == None)
+            )
+
+        gov_price = session.scalar(
+            select(GovPriceHistory)
+            .where(GovPriceHistory.ProductID == product.ProductID, 
+                    GovPriceHistory.EndDate == None)
+        )
+
+        gov_product = next((gp for gp in gov_products if gp.ProductID == product.ProductID), None)
+        category = None
+        if gov_product:
+            category = next((cat for cat in categories if cat.CategoryID == gov_product.CategoryID), None)
+
+        supermarket_products.append(
+            SupermarketProducts(
+                Product=gov_product,
+                Category=category,
+                GovPrice=gov_price,
+                SupermarketPrice=supermarket_price,
+            )
+        )
+
+    return GetProductsFromSupermarketResponse(
+        Supermarket=supermarket,
+        Products=supermarket_products
+    )
+
+
+
+import json
+from pathlib import Path
+
+class SuggestedProduct(BaseModel):
+    ProductName: str
+    CategoryID: int
+    CategoryName: str
+    Description: str
+    Suppermarket: str
+
+@router.post("/upload_suggested_product/")
+async def upload_suggested_product(data: SuggestedProduct):
+    file_path = Path("src/suggested_products.json")
+
+    if file_path.exists():
+        with open(file_path, "r") as f:
+            raw = json.load(f)
+        if isinstance(raw, list):
+            products: dict[str, dict] = {
+                str(i + 1): entry for i, entry in enumerate(raw)
+            }
+        else:
+            products: dict[str, dict] = raw
+    else:
+        products = {}
+
+    if products:
+        max_id = max(int(k) for k in products)
+        next_id = max_id + 1
+    else:
+        next_id = 1
+
+    new_entry = {
+        "ProductName":  data.ProductName,
+        "CategoryID":   data.CategoryID,
+        "CategoryName": data.CategoryName,
+        "Description":  data.Description,
+        "Suppermarket": data.Suppermarket,
+        "DateCreated":  datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    products[str(next_id)] = new_entry
+
+    with open(file_path, "w") as f:
+        json.dump(products, f, indent=4)
+
+    return {
+        "message": "Suggested product saved successfully",
+        "id": next_id
+    }
+
+
+@router.get("/get_suggested_products/")
+async def get_suggested_products():
+    # Define the path to the JSON file
+    file_path = Path("src/suggested_products.json")
+
+    # Load existing products or create an empty list if the file doesn't exist
+    if file_path.exists():
+        with open(file_path, "r") as file:
+            products = json.load(file)
+    else:
+        products = []
+
+    return {"suggested_products": products}
+
+@router.delete("/delete_suggested_product/{id}/")
+async def delete_suggested_product(id: int):
+    file_path = Path("src/suggested_products.json")
+
+    if file_path.exists():
+        with open(file_path, "r") as f:
+            raw = json.load(f)
+        if isinstance(raw, list):
+            products: dict[str, dict] = {
+                str(i + 1): entry for i, entry in enumerate(raw)
+            }
+        else:
+            products = raw
+    else:
+        products = {}
+
+    key = str(id)
+    if key in products:
+        del products[key]
+    else:
+        raise HTTPException(status_code=404, detail="No suggested product with that ID")
+
+    with open(file_path, "w") as f:
+        json.dump(products, f, indent=4)
+
+    return {"message": "Suggested product deleted successfully", "id": id}

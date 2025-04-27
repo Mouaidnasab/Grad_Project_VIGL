@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select, desc
 from pydantic import BaseModel
 from db.database import engine
+from db.gov_database import gov_engine
 from db.models import Screens, ProductScreen, PriceHistory, Promotions
 from db.gov_models import Categories, GovProducts
 from dependencies.auth import get_current_active_user, User, require_Role  
 import json
 import os
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
@@ -44,8 +45,12 @@ def producti_monitor():
             try:
                 time.sleep(1)
                 print("Updating screen display")
-                with Session(engine) as session:
-                    update_screen_display(update_request=update_request, session=session)
+                with Session(engine) as session, Session(gov_engine) as gov_session:
+                    update_screen_display(
+                    update_request=update_request,
+                    session=session,
+                    gov_session=gov_session
+                    )
             except Exception as e:
                 print(f"Error updating screen display: {e}")
         producti_value = None  # Reset the producti_value
@@ -93,7 +98,10 @@ def get_session():
     with Session(engine) as session:
         yield session
 
-src_directory = "./src"
+def get_gov_session():
+    with Session(gov_engine) as session:
+        yield session
+
 
 class Element(BaseModel):
     type: str
@@ -127,227 +135,245 @@ class UpdateResponse(BaseModel):
 allowed_colors = {
     "black": (0, 0, 0),
     "white": (255, 255, 255),
-    "red": (255, 0, 0),
+    "red":   (255, 0, 0),
     "transparent": (0, 0, 0, 0)
 }
 
-def validate_color(color):
-    return color if color in allowed_colors else "black"
+src_directory = "./src"
+
+font_path = os.path.join(src_directory, "Futura Heavy font.ttf")
 
 
-def upload_to_esp32(screen_ip, template_data, session, gov_session, current_screen_id):
+def _validate_color(c: str) -> str:
+    return c if c in allowed_colors else "black"
+
+
+def generate_image(template_data: dict,
+                   session=None,
+                   gov_session=None,
+                   current_screen_id: int | None = None,
+                   *, dummy: bool = False) -> Image.Image:
+    """
+    Build a PIL.Image that is pixel-for-pixel identical to what will be flashed
+    to the e-Paper module.  
+    When *dummy* is True (or sessions are None) every dynamic token is replaced
+    by a hard-coded sample so the designer can preview without DB access.
+    """
+    width_before, height_before = 360, 240
+    img  = Image.new("RGB", (width_before, height_before), "white")
+    draw = ImageDraw.Draw(img)
+
     try:
-        esp_url = f"http://{screen_ip}/upload"
-        font_path = os.path.join(src_directory, 'Futura Heavy font.ttf')
-        width_before = 360
-        height_before = 240
-        elements = template_data.get('elements', [])
+        default_font = ImageFont.truetype(font_path, 16)
+    except IOError:
+        default_font = ImageFont.load_default()
 
-        img = Image.new('RGB', (width_before, height_before), color='white')
-        draw = ImageDraw.Draw(img)
+    elements = template_data.get("elements", [])
+    for element in elements:
+        x = int(element.get("x", 0))
+        y = int(element.get("y", 0))
+        w = int(element.get("width", 100))
+        h = int(element.get("height", 50))
 
-        try:
-            default_font = ImageFont.truetype(font_path, 16)
-        except IOError:
-            default_font = ImageFont.load_default()
+        fill_color = element.get("fill_color", "transparent")
+        fill_color = _validate_color(fill_color)
 
-        for element in elements:
-            x = int(element.get('x', 0))
-            y = int(element.get('y', 0))
-            w = int(element.get('width', 100))
-            h = int(element.get('height', 50))
+        etype      = element["type"]
 
-            fill_color = validate_color(element.get('fill_color', 'transparent'))
-
-            # Handle text elements
-            if element['type'] == 'text':
-                text = element.get('text', '')
-                font_size = element.get('font_size', 16)
-                rotation = element.get('rotation', 0)
-                horizontal_alignment = element.get('horizontal_alignment', 'center')
-                vertical_alignment = element.get('vertical_alignment', 'center')
-                color = validate_color(element.get('color', 'black'))
-
-                # Process dynamic text values
-                if text and text.startswith('dynamic:'):
-                    text = text.replace('dynamic:', '')
-                    ProductID = session.exec(
-                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
-                    ).first()
-                    match text:
-                        case 'ProductID':
-                            text = str(ProductID) if ProductID else "ProductID not found"
-                        case 'ProductName':
-                            product = gov_session.exec(
-                                select(GovProducts.ProductName).where(GovProducts.ProductID == ProductID)
-                            ).first()
-                            text = product if product else "Product not found"
-                        
-                        case 'CategoryName':
-                            category = gov_session.exec(
-                                select(Categories.CategoryName)
-                                .join(GovProducts, GovProducts.CategoryID == Categories.CategoryID)
-                                .where(GovProducts.ProductID == ProductID)
-                            ).first()
-
-                            text = category if category else "Category not found"
-
-                        case 'Price':
-                            price = session.exec(
-                                select(PriceHistory.Price)
-                                .where(PriceHistory.ProductID == ProductID, PriceHistory.EndDate == None)
-                            ).first()
-                            text = f"{price}TL" if price else "Price not available"
-
-                        case 'Discount':
-                            promotion = session.exec(
-                                select(Promotions.Discount).where(Promotions.ProductID == ProductID)
-                            ).first()
-                            text = f"{promotion} %" if promotion else "No discount available"
-
-                        case 'FinalPrice':
-                            price = session.exec(
-                                select(PriceHistory.Price)
-                                .where(PriceHistory.ProductID == ProductID, PriceHistory.EndDate == None)
-                            ).first()
-                            discount = session.exec(
-                                select(Promotions.Discount)
-                                .where(Promotions.ProductID == ProductID)
-                                .order_by(desc(Promotions.EndDate)) 
-                            ).first()
-                            if price:
-                                final_price = price - (price * (discount / 100)) if discount else price
-                                text = f"{final_price:.1f}TL"
-                            else:
-                                text = "Price not available"
-
-                        case _:
-                            text = "Invalid request"
-
-                try:
-                    font = ImageFont.truetype(font_path, font_size)
-                except IOError:
-                    font = default_font
-
-                text_w, text_h = font.getbbox(text)[2:]
-                if horizontal_alignment == 'center':
-                    text_x = x + (w - text_w) / 2
-                elif horizontal_alignment == 'flex-end':
-                    text_x = x + w - text_w
-                else:
-                    text_x = x
-                if vertical_alignment == 'center':
-                    text_y = y + (h - text_h) / 2
-                elif vertical_alignment == 'flex-end':
-                    text_y = y + h - text_h
-                else:
-                    text_y = y
-
-                if rotation != 0:
-                    text_img = Image.new('RGBA', (w, h), (255, 255, 255, 0))
-                    text_draw = ImageDraw.Draw(text_img)
-                    if fill_color == 'transparent':
-                        text_draw.rectangle([0, 0, w, h], width=0)
-                    else:
-                        text_draw.rectangle([0, 0, w, h], fill=fill_color)
-                    text_draw.fontmode = '1'
-                    text_draw.text((text_x - x, text_y - y), text, font=font, fill=color)
-                    rotated_text = text_img.rotate(-rotation, expand=True)
-                    img.paste(rotated_text, (x, y), rotated_text)
-                else:
-                    if fill_color == 'transparent':
-                        draw.rectangle([x, y, x + w, y + h], width=0)
-                    else:
-                        draw.rectangle([x, y, x + w, y + h], fill=fill_color)
-                    draw.fontmode = '1'
-                    draw.text((text_x, text_y - font_size*0.12), text, font=font, fill=color)
-
-            # Handle barcode elements
-            elif element['type'] == 'barcode':
-                barcode_data = element.get('text', '')
-                # Check for dynamic data
-                if barcode_data.startswith('dynamic:'):
-                    dynamic_field = barcode_data.replace('dynamic:', '')
-                    ProductID = session.exec(
-                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
-                    ).first()
-                    match dynamic_field:
-                        case 'ProductID':
-                            barcode_data = str(ProductID) if ProductID else "ProductID not found"
-                        case _:
-                            barcode_data = "Invalid"
-                # Generate the barcode image using Code128
-                barcode_obj = Code128(barcode_data, writer=ImageWriter())
-
-                buffer = BytesIO()
-                barcode_obj.write(buffer)
-                buffer.seek(0)
-                barcode_img = Image.open(buffer)
-                barcode_img = barcode_img.resize((w, h))
-                img.paste(barcode_img, (x, y))
-
-            # Handle QR code elements
-            elif element['type'] == 'qrcode':
-                qr_data = element.get('text', '')
-                if qr_data.startswith('dynamic:'):
-                    dynamic_field = qr_data.replace('dynamic:', '')
-                    ProductID = session.exec(
-                        select(ProductScreen.ProductID).where(ProductScreen.ScreenID == current_screen_id)
-                    ).first()
-                    match dynamic_field:
-                        case 'ProductID':
-                            qr_data = str(ProductID) if ProductID else "ProductID not found"
-                        case _:
-                            qr_data = "Invalid"
-                qr = qrcode.QRCode(
-                    version=1,
-                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                    box_size=10,
-                    border=2,
-                )
-                qr.add_data(qr_data)
-                qr.make(fit=True)
-                qr_img = qr.make_image(fill_color="black", back_color="white")
-                qr_img = qr_img.resize((w, h))
-                img.paste(qr_img, (x, y))
-
+        # ─── TEXT / BARCODE / QRCODE share dynamic-token logic ────────────
+        token = element.get("text", "")
+        if token.startswith("dynamic:"):
+            field = token[8:]
+            if dummy or session is None:
+                # preview values
+                samples = {
+                    "ProductID":   "123456",
+                    "ProductName": "Sample Product",
+                    "CategoryName":"Beverages",
+                    "Price":       "19.95TL",
+                    "Discount":    "15 %",
+                    "FinalPrice":  "16.96TL",
+                }
+                token = samples.get(field, f"({field})")
             else:
-                # If element type is not recognized, skip processing.
-                continue
+                # *** ORIGINAL DB-LOOKUP SECTION (unchanged) ***
+                ProductID = session.exec(
+                    select(ProductScreen.ProductID)
+                    .where(ProductScreen.ScreenID == current_screen_id)
+                ).first()
+                match field:
+                    case "ProductID":
+                        token = str(ProductID) if ProductID else "ProductID?"
+                    case "ProductName":
+                        token = gov_session.exec(
+                            select(GovProducts.ProductName)
+                            .where(GovProducts.ProductID == ProductID)
+                        ).first() or "Name?"
+                    case "CategoryName":
+                        token = gov_session.exec(
+                            select(Categories.CategoryName)
+                            .join(GovProducts, GovProducts.CategoryID == Categories.CategoryID)
+                            .where(GovProducts.ProductID == ProductID)
+                        ).first() or "Category?"
+                    case "Price":
+                        price = session.exec(
+                            select(PriceHistory.Price)
+                            .where(PriceHistory.ProductID == ProductID,
+                                   PriceHistory.EndDate == None)
+                        ).first()
+                        token = f"{price}TL" if price else "Price?"
+                    case "Discount":
+                        disc = session.exec(
+                            select(Promotions.Discount)
+                            .where(Promotions.ProductID == ProductID)
+                        ).first()
+                        token = f"{disc} %" if disc else "0 %"
+                    case "FinalPrice":
+                        price = session.exec(
+                            select(PriceHistory.Price)
+                            .where(PriceHistory.ProductID == ProductID,
+                                   PriceHistory.EndDate == None)
+                        ).first()
+                        disc  = session.exec(
+                            select(Promotions.Discount)
+                            .where(Promotions.ProductID == ProductID)
+                            .order_by(desc(Promotions.EndDate))
+                        ).first() or 0
+                        token = f"{price - price*disc/100:.1f}TL" if price else "--"
+                    case _:
+                        token = "(invalid)"
 
-        img = img.rotate(-90, expand=True)
+        # ─── TYPE-SPECIFIC RENDERING ──────────────────────────────────────
+        if etype == "text":
+            font_size = element.get("font_size", 16)
+            rotation  = int(element.get("rotation", 0))
+            h_align   = element.get("horizontal_alignment", "center")
+            v_align   = element.get("vertical_alignment", "center")
+            color     = _validate_color(element.get("color", "black"))
 
-        # Convert the processed image into two 1-bit images for uploading.
+            try:
+                font = ImageFont.truetype(font_path, font_size)
+            except IOError:
+                font = default_font
+
+            text_w, text_h = font.getbbox(token)[2:]
+            if h_align == "center":
+                tx = x + (w - text_w) / 2
+            elif h_align == "flex-end":
+                tx = x + w - text_w
+            else:
+                tx = x
+            if v_align == "center":
+                ty = y + (h - text_h) / 2
+            elif v_align == "flex-end":
+                ty = y + h - text_h
+            else:
+                ty = y
+
+            if fill_color != "transparent":
+                draw.rectangle([x, y, x + w, y + h], fill=fill_color)
+
+            if rotation:
+                temp = Image.new("RGBA", (w, h), (0,0,0,0))
+                ImageDraw.Draw(temp).text((tx - x, ty - y), token, font=font, fill=color)
+                img.paste(temp.rotate(-rotation, expand=True), (x, y), temp.rotate(-rotation, expand=True))
+            else:
+                draw.text((tx, ty - font_size*0.12), token, font=font, fill=color)
+
+        elif etype == "barcode":
+            writer_opts = {"write_text": False, "quiet_zone": 0}
+            barcode_img = Code128(token, writer=ImageWriter()).render(writer_options=writer_opts)
+
+            barcode_img = barcode_img.convert("RGBA")
+            newdata = [(255, 255, 255, 0) if (r > 250 and g > 250 and b > 250)
+                    else (r, g, b, 255)
+                    for (r, g, b, *_) in barcode_img.getdata()]
+            barcode_img.putdata(newdata)
+
+            barcode_img = barcode_img.resize((w, h), Image.LANCZOS)
+            img.paste(barcode_img, (x, y), barcode_img)
+
+        elif etype == "qrcode":
+            qrobj = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=0,  
+            )
+            qrobj.add_data(token)
+            qrobj.make(fit=True)
+            qr_img = qrobj.make_image(
+                fill_color="black",
+                back_color=(255, 255, 255, 0)  
+            ).convert("RGBA")
+
+            qr_img = qr_img.resize((w, h), Image.LANCZOS)
+            img.paste(qr_img, (x, y), qr_img)
+
+
+    # Hardware expects 90° CCW; keep that so preview matches hardware
+    return img.rotate(-90, expand=True)
+
+
+
+
+def upload_to_esp32(screen_ip: str,
+                    template_data: dict,
+                    session,
+                    gov_session,
+                    current_screen_id: int):
+    try:
+        base_url = f"http://{screen_ip}"
+
+        # Build full-colour preview first
+        img = generate_image(template_data,
+                             session=session,
+                             gov_session=gov_session,
+                             current_screen_id=current_screen_id,
+                             dummy=False)
+
+        # Convert to 1-bit bw / red planes
         width, height = img.size
-        black_img = Image.new("1", (width, height))  # Black (1-bit) image
-        red_img = Image.new("1", (width, height))    # Red (1-bit) image
+        black_img = Image.new("1", (width, height), 1)
+        red_img   = Image.new("1", (width, height), 1)
 
-        pixels = img.load()
+        px = img.load()
         for y in range(height):
             for x in range(width):
-                black_img.putpixel((x, y), 1)
-                red_img.putpixel((x, y), 1)
-                r, g, b = pixels[x, y]
-                if r > 150 and g < 100 and b < 100:  # Red pixel threshold
+                r, g, b = px[x, y]
+                if r > 150 and g < 100 and b < 100:          # red
                     red_img.putpixel((x, y), 0)
-                else:
-                    if r < 100 and g < 100 and b < 100:
-                        black_img.putpixel((x, y), 0)
+                elif r < 100 and g < 100 and b < 100:        # black
+                    black_img.putpixel((x, y), 0)
 
-        # Upload red image
-        files = {"red_file": red_img.tobytes()}
-        response = requests.post(esp_url, files=files)
-        print(f"Response: {response.status_code} - {response.text}")
-    
-        # Upload black image
-        files = {"black_file": black_img.tobytes()}
-        response = requests.post(esp_url, files=files)
-        print(f"Response: {response.status_code} - {response.text}")
+        # Push planes to ESP32
+        for endpoint, plane in (("upload_bw", black_img),
+                                ("upload_red", red_img)):
+            r = requests.post(f"{base_url}/{endpoint}",
+                              data=plane.tobytes(),
+                              headers={"Content-Type": "application/octet-stream"})
+            print(f"{endpoint}: {r.status_code} • {r.text}")
+
+        disp = requests.post(f"{base_url}/display")
+        print(f"display: {disp.status_code} • {disp.text}")
 
     except Exception as e:
-        print("Error:", str(e))
+        print("[upload_to_esp32] ERROR:", e)
 
 
+@router.post("/preview_png")
+def preview_png(screen_template: ScreenTemplate):
+    """
+    Returns a PNG preview of the supplied template using dummy data.
+    The body *must* be exactly what your designer already creates:
+    { "template_name": "...", "elements":[ ... ] }
+    """
+    img = generate_image(screen_template.model_dump(), dummy=True)
+    img = img.rotate(90, expand=True)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="image/png")
 
 @router.post("/add_screen_template", response_model=ScreenTemplate)
 def add_screen_template(
@@ -355,33 +381,37 @@ def add_screen_template(
     # current_user: User = Depends(get_current_active_user)
 ):
     template_name = screen_template.template_name
-    json_path = os.path.join(src_directory, 'screen_templates.json')
+    json_path = os.path.join(src_directory, "screen_templates.json")
 
+    # Read previous contents (or start fresh)
     if os.path.exists(json_path):
-        with open(json_path, 'r') as json_file:
-            existing_data = json.load(json_file)
+        with open(json_path, "r") as f:
+            existing_data = json.load(f)
     else:
         existing_data = {}
 
-    if template_name in existing_data:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Template name '{template_name}' already exists. Choose a different name."
-        )
+    # Prepare payload (leave template_name only as the key)
+    data_without_template_name = screen_template.model_dump(
+        exclude={"template_name"}
+    )
 
-    data_without_template_name = screen_template.model_dump(exclude={'template_name'})
-
+    # Insert or overwrite
+    existed_before = template_name in existing_data
     existing_data[template_name] = data_without_template_name
 
-    with open(json_path, 'w') as json_file:
-        json.dump(existing_data, json_file, indent=4)
+    # Persist to disk
+    with open(json_path, "w") as f:
+        json.dump(existing_data, f, indent=4)
 
-    return screen_template
+    # Return the template and an appropriate status code
+    status_code = status.HTTP_200_OK if existed_before else status.HTTP_201_CREATED
+    return screen_template, status_code
 
 @router.post("/update_display", response_model=UpdateResponse)
 def update_screen_display(
     update_request: UpdateRequest,
     session: Session = Depends(get_session),
+    gov_session: Session = Depends(get_gov_session),
     # current_user: User = Depends(get_current_active_user)  
 ):
     product_id = update_request.product_id
@@ -423,8 +453,8 @@ def update_screen_display(
             .order_by(desc(Promotions.PromotionID))
         ).first()
 
-        if result and result.EndDate >= datetime.now().date() and result.Discount > 0:
-            template_name = "aqw"
+        if result and result.EndDate > datetime.now().date() and result.Discount > 0:
+            template_name = "Promotion"
         else:
             template_name = "Standard"
 
@@ -444,7 +474,8 @@ def update_screen_display(
     screen_ip = screen.IP
     template_data = screen_templates[template_name]
 
-    upload_to_esp32(screen_ip, template_data, session, current_screen_id)
+
+    upload_to_esp32(screen_ip, template_data, session, gov_session, current_screen_id)
 
     return UpdateResponse(
         message="Screen updated successfully.",
