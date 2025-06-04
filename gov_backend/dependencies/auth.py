@@ -22,14 +22,17 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/user_auth/token")
 
+
 # Token Models
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
+
 class TokenData(BaseModel):
     Username: Optional[str] = None
+
 
 class User(BaseModel):
     Username: str
@@ -40,29 +43,22 @@ class User(BaseModel):
     Role: Optional[str] = None
     Disabled: Optional[bool] = None
 
+
 class UserInDB(User):
     Password: str
 
+
 # Helper functions for Password hashing and verification
 def verify_Password(plain_Password: str, Password: str) -> bool:
-    """Verify a plain Password against its hashed version."""
     return pwd_context.verify(plain_Password, Password)
 
+
 def get_password_hash(Password: str) -> str:
-    """Hash a plain Password."""
     return pwd_context.hash(Password)
+
 
 # Database interactions to get user data
 def get_user_from_db(Username: str) -> Optional[UserInDB]:
-    """
-    Retrieve a user from the database by Username.
-
-    Args:
-        Username (str): The Username of the user to retrieve.
-
-    Returns:
-        Optional[UserInDB]: The user object if found, else None.
-    """
     with Session(gov_engine) as session:
         statement = select(GovUsers).where(GovUsers.Username == Username)
         user = session.exec(statement).one_or_none()
@@ -79,18 +75,8 @@ def get_user_from_db(Username: str) -> Optional[UserInDB]:
             )
         return None
 
-# Authentication function
+
 def authenticate_user(Username: str, Password: str) -> Optional[UserInDB]:
-    """
-    Authenticate a user by Username and Password.
-
-    Args:
-        Username (str): The Username of the user.
-        Password (str): The plain Password of the user.
-
-    Returns:
-        Optional[UserInDB]: The authenticated user object if successful, else None.
-    """
     user = get_user_from_db(Username)
     if not user:
         return None
@@ -99,76 +85,54 @@ def authenticate_user(Username: str, Password: str) -> Optional[UserInDB]:
     if not verify_Password(Password, user.Password):
         return None
 
-    # Update Last_used timestamp
     with Session(gov_engine) as session:
-        user_record = session.exec(select(GovUsers).where(GovUsers.Username == Username)).one()
+        user_record = session.exec(
+            select(GovUsers).where(GovUsers.Username == Username)
+        ).one()
         session.add(user_record)
         session.commit()
     return user
 
+
 # Token creation functions
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """
-    Create a JWT access token.
-
-    Args:
-        data (dict): The data to encode in the token.
-        expires_delta (Optional[timedelta]): The token's expiration time.
-
-    Returns:
-        str: The encoded JWT token.
-    """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + (
+        expires_delta
+        if expires_delta
+        else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(data: dict, UserID: int, expires_delta: Optional[timedelta] = None) -> str:
-    """
-    Create a JWT refresh token and store it in the database.
 
-    Args:
-        data (dict): The data to encode in the token.
-        UserID (int): The ID of the user.
-        expires_delta (Optional[timedelta]): The token's expiration time.
-
-    Returns:
-        str: The encoded JWT refresh token.
-    """
+def create_refresh_token(
+    data: dict, UserID: int, expires_delta: Optional[timedelta] = None
+) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta if expires_delta else timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+    expire = datetime.now(timezone.utc) + (
+        expires_delta if expires_delta else timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-    # Store the token in the RefreshToken table
     with Session(gov_engine) as session:
         new_token = GovRefreshToken(
             Token=encoded_jwt,
             UserID=UserID,
             CreatedAt=datetime.now(timezone.utc),
-            ExpiresAt=expire,  # Ensure ExpiresAt is timezone-aware
-            Revoked=False
+            ExpiresAt=expire,
+            Revoked=False,
         )
         session.add(new_token)
         session.commit()
-    
+
     return encoded_jwt
 
-# Token verification function for refresh token with database valIDation
+
+# Token verification function for refresh token with database validation
 def verify_refresh_token(token: str) -> Optional[str]:
-    """
-    Verify a refresh token.
-
-    Args:
-        token (str): The refresh token to verify.
-
-    Returns:
-        Optional[str]: The Username if the token is valID, else None.
-
-    Raises:
-        HTTPException: If the token is invalID or expired.
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         Username = payload.get("sub")
@@ -179,11 +143,9 @@ def verify_refresh_token(token: str) -> Optional[str]:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Verify the token in the database
         with Session(gov_engine) as session:
             statement = select(GovRefreshToken).where(
-                GovRefreshToken.Token == token,
-                GovRefreshToken.Revoked == False
+                GovRefreshToken.Token == token, GovRefreshToken.Revoked == False
             )
             refresh_token = session.exec(statement).first()
             if not refresh_token:
@@ -192,7 +154,9 @@ def verify_refresh_token(token: str) -> Optional[str]:
                     detail="Invalid refresh token",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
-            if refresh_token.ExpiresAt.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            if refresh_token.ExpiresAt.replace(tzinfo=timezone.utc) < datetime.now(
+                timezone.utc
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Refresh token has expired",
@@ -211,22 +175,10 @@ def verify_refresh_token(token: str) -> Optional[str]:
             detail="InvalID token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
 
 # Dependency to get the current user based on token
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
-    """
-    Retrieve the current user based on the provIDed JWT token.
-
-    Args:
-        token (str): The JWT token.
-
-    Returns:
-        User: The current authenticated user.
-
-    Raises:
-        HTTPException: If the token is invalID or the user doesn't exist.
-    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -246,24 +198,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
         raise credentials_exception
     return user
 
+
 # Dependency to ensure user is active
-async def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    """
-    Ensure that the current user is active (not Disabled).
-
-    Args:
-        current_user (User): The current authenticated user.
-
-    Returns:
-        User: The active user.
-
-    Raises:
-        HTTPException: If the user is Disabled.
-    """
+async def get_current_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
     if current_user.Disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
-
 
 
 # Dependency for Role-Based Access Control
@@ -275,4 +217,5 @@ def require_Role(required_Roles: List[str]):
                 detail="Insufficient permissions",
             )
         return current_user
+
     return Role_checker

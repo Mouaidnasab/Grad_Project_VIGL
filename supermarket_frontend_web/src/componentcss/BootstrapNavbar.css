@@ -1,0 +1,51 @@
+.custom-navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 20px;
+  align-items: center;
+}
+
+.navbar-logo {
+  font-size: 34px;
+  font-weight: bold;
+  color: #255200;
+  font-family: 'Mochiy Pop One', sans-serif;
+  padding-left: 25px;
+}
+
+.navbar-links {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.nav-link {
+  color: #4A5568;
+  text-decoration: none;
+  font-size: 22px;
+  font-family: 'Mochiy Pop One', sans-serif;
+}
+
+.navbar-profile {
+  width: 55px;
+  height: 55px;
+  background-color: #255200;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+@media (min-width: 300px) and (max-width: 900px) {
+  .navbar-collapse {
+    transition: padding-left 0.3s ease, padding-top 0.3s ease;
+  }
+
+  .navbar-collapse.show {
+    padding-left: 20px;
+    padding-top: 40px;
+  }
+}

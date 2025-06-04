@@ -1,13 +1,15 @@
-# db/models.py
+# db/gov_models.py
 
 from typing import Optional, List
-from datetime import datetime, date
+from datetime import date
 from sqlmodel import SQLModel, Field, Relationship, Index
 from enum import Enum
-from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey
+
 
 class RoleEnum(str, Enum):
     staff = "staff"
+
 
 class Categories(SQLModel, table=True):
     __tablename__ = "categories"
@@ -24,11 +26,13 @@ class GovProducts(SQLModel, table=True):
     __tablename__ = "gov_products"
 
     ProductID: Optional[int] = Field(
-        sa_column=Column(sa_BigInteger, primary_key=True, autoincrement=False), 
-        default=None
+        sa_column=Column(sa_BigInteger, primary_key=True, autoincrement=False),
+        default=None,
     )
     ProductName: Optional[str] = Field(default=None, max_length=100)
-    CategoryID: Optional[int] = Field(default=None, foreign_key="categories.CategoryID", index=True)
+    CategoryID: Optional[int] = Field(
+        default=None, foreign_key="categories.CategoryID", index=True
+    )
     Description: Optional[str] = Field(default=None, max_length=255)
 
     # Relationships
@@ -48,12 +52,16 @@ class GovPriceHistory(SQLModel, table=True):
     )
 
     HistoryID: Optional[int] = Field(default=None, primary_key=True, index=True)
-    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("gov_products.ProductID")))
+    ProductID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("gov_products.ProductID"))
+    )
     SuggestedPrice: Optional[float] = Field(default=None)
     Threshold: Optional[int] = Field(default=None)
     StartDate: Optional[date] = Field(default=None)
     EndDate: Optional[date] = Field(default=None)
-    ChangedBy: Optional[int] = Field(default=None, foreign_key="gov_users.UserID", index=True)
+    ChangedBy: Optional[int] = Field(
+        default=None, foreign_key="gov_users.UserID", index=True
+    )
 
     # Relationships
     product: Optional["GovProducts"] = Relationship(back_populates="price_histories")
@@ -92,6 +100,7 @@ class PenaltyStatusEnum(str, Enum):
     PAID = "paid"
     LATE = "late"
 
+
 class Penalties(SQLModel, table=True):
     __tablename__ = "penalties"
     __table_args__ = {
@@ -113,11 +122,11 @@ class Penalties(SQLModel, table=True):
     Reason: Optional[str] = Field(default=None, max_length=255)
     ProductID: Optional[int] = Field(
         default=None,
-        sa_column=Column(sa_BigInteger, ForeignKey("gov_products.ProductID"))
+        sa_column=Column(sa_BigInteger, ForeignKey("gov_products.ProductID")),
     )
     SupermarketID: Optional[int] = Field(
         default=None,
-        sa_column=Column(sa_BigInteger, ForeignKey("supermarkets.SupermarketID"))
+        sa_column=Column(sa_BigInteger, ForeignKey("supermarkets.SupermarketID")),
     )
     Status: Optional[PenaltyStatusEnum] = Field(default=None)
 

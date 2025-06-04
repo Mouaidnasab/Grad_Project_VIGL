@@ -353,7 +353,9 @@
       //------------------------------------------------------------------
       async function loadTemplatesList() {
         try {
-          const response = await fetch("screen_templates.json");
+          const response = await fetch(
+            "http://localhost:8000/screen/get_screen_templates"
+          );
           const data = await response.json(); // <-- data is an object
           templatesCache = data; // keep it as an object
 

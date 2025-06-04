@@ -1,0 +1,520 @@
+@import url("https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap");
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.dashboard {
+  min-height: 100vh;
+  background-color: #ede8e0;
+  position: relative;
+}
+
+.rating-section {
+  background-color: #16422e;
+  color: #ffffff;
+  padding: 34px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 40px 110px;
+  padding-left: 90px;
+  flex-wrap: wrap;
+}
+
+.rating-info {
+  display: flex;
+  gap: 100px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.rating-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.rating-logo {
+  display: flex;
+  justify-content: center;
+}
+
+.rating-star {
+  font-size: 95px;
+}
+
+.rating-text {
+  font-size: 23px;
+  margin: 0;
+  font-family: "Mochiy Pop One", sans-serif;
+}
+
+.certified-logo {
+  display: flex;
+  justify-content: center;
+}
+
+.certified-image {
+  width: 170px;
+  height: auto;
+}
+
+.iso-image {
+  width: 165px;
+  height: auto;
+}
+
+.certified-text {
+  font-size: 23px;
+  margin: 0;
+  font-family: "Mochiy Pop One", sans-serif;
+}
+
+.rating-store {
+  font-size: 95px;
+}
+
+.quick-access {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  align-items: center;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.quick-access-label {
+  font-size: 23px;
+  margin: 0;
+  font-family: "Mochiy Pop One", sans-serif;
+}
+
+.rating-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+}
+
+.rating-button {
+  background-color: #266314;
+  color: #ffffff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 22px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 370px;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+}
+
+.rating-button:hover {
+  background-color: #275719;
+}
+
+.sea-wave-sticker-container1 {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 700px;
+  height: auto;
+  opacity: 1;
+}
+
+.sea-wave-sticker1 {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  margin: 0 110px;
+  padding-bottom: 40px;
+  position: relative;
+}
+
+.left-column {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.square-image {
+  width: 100%;
+  max-width: 815px;
+  height: auto;
+  max-height: 565px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.screen-stats {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.screen-stat {
+  min-width: 300px;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.screen-stat:hover {
+  transform: translateY(-2px);
+}
+
+.screen-icon {
+  font-size: 50px;
+}
+
+.screen-details {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.screen-label {
+  color: #255200;
+  font-size: 20px;
+  font-family: "Mochiy Pop One", sans-serif;
+  margin: 0;
+}
+
+.screen-value {
+  font-size: 40px;
+  font-weight: bold;
+  margin: 0;
+  font-family: "Mochiy Pop One", sans-serif;
+}
+
+.penalties-sales {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.penalties,
+.sales {
+  min-width: 300px;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.penalties {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 250px;
+  transition: transform 0.2s ease;
+}
+
+.sales {
+  transition: transform 0.2s ease;
+}
+
+.section-titlea {
+  color: #255200;
+  font-size: 23px;
+  font-family: "Mochiy Pop One", sans-serif;
+  font-weight: normal;
+  margin-top: 0;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.penalties-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.penalties-icon {
+  font-size: 40px;
+  background-color: #16422e;
+  color: #fbbf24;
+  border-radius: 50%;
+  padding: 16px;
+}
+
+.penalties-status {
+  text-align: center;
+  color: #255200;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 16px 0;
+  flex-grow: 1;
+}
+
+.penalties-button {
+  width: 100%;
+  max-width: 200px;
+  background-color: #16422e;
+  color: #ffffff;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.penalties-button:hover {
+  background-color: #1e4000;
+}
+
+.penalties:hover,
+.sales:hover {
+  transform: translateY(-2px);
+}
+
+.sales-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sales-select {
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.sales-amount {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 8px 0;
+  text-align: left;
+}
+
+.sales-chart {
+  margin: 16px 0;
+  height: 250px;
+}
+
+@media (max-width: 1360px) {
+  .rating-section {
+    margin: 30px 50px;
+    padding-left: 20px;
+    padding-right: 20px;
+    gap: 20px;
+  }
+
+  .rating-info {
+    gap: 40px;
+  }
+}
+
+@media (max-width: 1069px) {
+  .rating-section {
+    margin: 30px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .rating-info {
+    flex-direction: row;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  .rating-item {
+    max-width: 180px;
+  }
+
+  .certified-image,
+  .iso-image {
+    width: 120px;
+  }
+
+  .rating-star,
+  .rating-store {
+    font-size: 70px;
+  }
+
+  .rating-text,
+  .certified-text,
+  .quick-access-label {
+    font-size: 18px;
+  }
+
+  .rating-button {
+    font-size: 18px;
+  }
+
+  .main-content {
+    margin: 0 50px;
+  }
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    margin: 0;
+    padding: 0 24px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .left-column {
+    display: none;
+  }
+
+  .right-column {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .screen-stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .penalties-sales {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .screen-stat,
+  .penalties,
+  .sales {
+    width: 100%;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .screen-details {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .screen-label {
+    font-size: 18px;
+  }
+
+  .screen-value {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 767px) {
+  .rating-section {
+    margin: 20px 15px;
+    padding: 20px 15px;
+  }
+
+  .rating-info {
+    gap: 20px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .rating-item {
+    max-width: none;
+    width: auto;
+  }
+
+  .certified-image,
+  .iso-image {
+    width: 100px;
+  }
+
+  .rating-star,
+  .rating-store {
+    font-size: 60px;
+  }
+
+  .rating-text,
+  .certified-text,
+  .quick-access-label {
+    font-size: 18px;
+  }
+
+  .quick-access {
+    max-width: 100%;
+    gap: 15px;
+  }
+
+  .rating-buttons {
+    gap: 10px;
+  }
+
+  .rating-button {
+    font-size: 21px;
+    padding: 8px 12px;
+  }
+
+  .main-content {
+    padding: 0 15px;
+    margin: 15px 0;
+  }
+
+  .section-titlea {
+    font-size: 20px;
+  }
+
+  .penalties,
+  .sales {
+    padding: 16px;
+    margin-bottom: 15px;
+  }
+
+  .sales-header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sales-select {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}

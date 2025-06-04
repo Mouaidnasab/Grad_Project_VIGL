@@ -1,9 +1,9 @@
 # routers/user_management.py
 
 from typing import List, Optional, Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Security
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
-from sqlmodel import Session, select, update, delete
+from sqlmodel import Session, select
 from dependencies.auth import (
     get_current_active_user,
     User,
@@ -12,9 +12,6 @@ from dependencies.auth import (
 )
 from db.database import gov_engine
 from db.models import GovUsers, GovRefreshToken
-from datetime import datetime
-from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
-import os
 
 router = APIRouter(
     prefix="/users",
@@ -23,6 +20,7 @@ router = APIRouter(
 )
 
 # Pydantic Schemas
+
 
 class UserCreate(BaseModel):
     Username: Annotated[str, constr(min_length=3, max_length=50)]
@@ -56,12 +54,12 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-
-
-@router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 def create_user(
     user: UserCreate,
-    # current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_user),
 ):
     with Session(gov_engine) as session:
         statement = select(GovUsers).where(
@@ -98,6 +96,7 @@ def create_user(
             Disabled=new_user.Disabled,
         )
 
+
 @router.put("/edit/{UserID}", response_model=UserResponse)
 def update_user(
     UserID: int,
@@ -115,7 +114,9 @@ def update_user(
 
         if user_update.Email:
             Email_check = session.exec(
-                select(GovUsers).where(GovUsers.Email == user_update.Email, GovUsers.UserID != UserID)
+                select(GovUsers).where(
+                    GovUsers.Email == user_update.Email, GovUsers.UserID != UserID
+                )
             ).first()
             if Email_check:
                 raise HTTPException(
@@ -148,6 +149,7 @@ def update_user(
             Disabled=user.Disabled,
         )
 
+
 @router.delete("/delete/{UserID}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     UserID: int,
@@ -162,7 +164,6 @@ def delete_user(
                 detail="User not found",
             )
 
-
         gettokens = select(GovRefreshToken).where(GovRefreshToken.UserID == UserID)
         delettokens = session.exec(gettokens).all()
         for token in delettokens:
@@ -172,14 +173,13 @@ def delete_user(
         session.commit()
         return
 
+
 @router.get("/list", response_model=List[UserResponse])
 def list_users(
-    # skip: int = 0,
-    # limit: int = 10,
     current_user: User = Depends(require_Role(["staff"])),
 ):
     with Session(gov_engine) as session:
-        statement = select(GovUsers)  #.offset(skip).limit(limit)
+        statement = select(GovUsers)
         users = session.exec(statement).all()
         return [
             UserResponse(
@@ -193,4 +193,3 @@ def list_users(
             )
             for user in users
         ]
-    

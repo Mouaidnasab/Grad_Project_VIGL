@@ -1,0 +1,233 @@
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    padding: 0px;
+}
+
+.main-content-layout-two-columns {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.settings-image-column {
+    flex: 1.2;
+    flex-shrink: 0;
+    background-color: #eef4ed;
+    overflow: hidden;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-column-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+.settings-right-column-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background-color: #fdfdfd;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+    position: relative;
+    padding-top: 12rem;
+}
+
+.search-bar-wrapper {
+  width: 100%; 
+  max-width: 500px; 
+  margin-bottom: 2rem; 
+  position: relative; 
+  z-index: 2; 
+}
+
+.search-input {
+  width: 100%; 
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #0e3d29; 
+  box-shadow: 0 0 0 3px rgba(14, 61, 41, 0.25); 
+}
+
+.buttons-container {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 4rem 3rem;
+    width: 100%;
+    max-width: 550px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    transform: translateY(-10px);
+    transition: transform 0.3s ease;
+    z-index: 1; 
+    position: relative;
+}
+.buttons-container:hover {
+    transform: translateY(-15px);
+}
+
+.buttons-container-title {
+    font-size: 1.9rem;
+    font-weight: bold;
+    color: #3b3b3b;
+    margin-bottom: 2.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    font-family: 'Mochiy Pop One', sans-serif; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.manage-users-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.block-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    width: 100%;
+    max-width: 600px;
+    margin: 0.8rem 0;
+    padding: 1.1rem 0rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #0e3d29;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.block-button:hover {
+    background-color: #419962;
+    transform: translateY(-4px);
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.25);
+}
+
+.buttons-container a {
+    text-decoration: none;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.curved-bottom-right-graphic {
+    position: absolute; 
+    bottom: 0;
+    right: 0;
+    width: 100%; 
+    height: auto; 
+    object-fit: contain; 
+    z-index: 0; 
+    pointer-events: none; 
+}
+
+@media (max-width: 768px) {
+    .settings-right-column-content {
+        padding-top: 2rem; 
+    }
+
+    .search-bar-wrapper {
+        width: 95%; 
+        max-width: none; 
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+    }
+
+    .main-content-layout-two-columns {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .settings-image-column {
+        width: 100%;
+        height: 200px; 
+        border-radius: 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-right-column-content {
+        padding: 1.5rem 1rem; 
+        width: 100%;
+        box-sizing: border-box; 
+        overflow-y: visible;
+        padding-top: 2rem; 
+    }
+
+
+    .buttons-container {
+        padding: 2.5rem 1.5rem; 
+        max-width: none; 
+        transform: none;
+        margin-top: 0;
+    }
+    .buttons-container:hover {
+        transform: none;
+    }
+
+    .buttons-container-title {
+        font-size: 1.5rem; 
+        margin-bottom: 2rem;
+    }
+
+    .block-button {
+        width: 100%; 
+        padding: 1rem 1.2rem; 
+        font-size: 1.1rem; 
+    }
+
+    .curved-bottom-right-graphic {
+        width: 100%;
+        max-width: 250px;
+        height: auto;
+    }
+}

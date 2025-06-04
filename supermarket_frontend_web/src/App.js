@@ -1,40 +1,31 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AdminRegistrationPage from './pages/AdminRegistrationPage';
-import SupermarketAddPage from './pages/SupermarketAddPage';
-import StaffAddPage from './pages/StaffAddPage';
-import LoginPage from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import SettingsPage from './pages/SettingsPage';
-import ManageShelf from './pages/ManageShelf';
-import OverviewDashboard from './pages/Dashboard';
-import ManageProductsPage from './pages/ManageProductsPage';
-import ManageProductPrices from './pages/ManageProductPrices'; 
-import OwnerPage from './pages/OwnerPage';
-
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ViglDashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Manageproducts from "./pages/ManageProducts";
+import ManageSS from "./pages/ManageSS";
+import Settings from "./pages/Settings";
+import AddStaff from "./pages/AddStaff";
+import About from "./pages/About";
+import Penalties from "./pages/Penalties";
+import ScreenTemplate from "./pages/ScreenTemplate";
 
 function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-          <Route path="/" element={<Navigate to="/overview-dashboard" />} />
-          <Route path="/overview-dashboard" element={<OverviewDashboard />} />
-          <Route path="/admin-registration" element={<AdminRegistrationPage />} />
-          <Route path="/supermarket-registration" element={<SupermarketAddPage />} />
-          <Route path="/staff-registration" element={<StaffAddPage />} />
-          <Route path="/staff-add" element={<StaffAddPage />} /> 
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/manage-shelves" element={<ManageShelf />} /> 
-          <Route path="/settings" element={<SettingsPage />} /> 
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/manage-products" element={<ManageProductsPage />} />
-          <Route path="/manage-products-prices" element={<ManageProductPrices />} />
-          <Route path="/owner-settings" element={<OwnerPage />} />
-
-        </Routes>
-        </BrowserRouter>
-    );
+        <Route path="/" element={<ViglDashboard />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/manage-products" element={<Manageproducts />} />
+        <Route path="/manage-shelves-screens" element={<ManageSS />} />
+        <Route path="/Settings" element={<Settings />} />
+        <Route path="/Add-Staff" element={<AddStaff />} />
+        <Route path="/About" element={<About />} />
+        <Route path="/penalties" element={<Penalties />} />
+        <Route path="screen-template" element={<ScreenTemplate />} />
+        <Route path="*" element={<ViglDashboard />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

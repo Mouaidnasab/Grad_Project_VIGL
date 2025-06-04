@@ -5,20 +5,15 @@ from routers import (
     products,
     category_management,
     supermarket_management,
-    penalties
-    )
-import uvicorn
+    penalties,
+)
 from fastapi.middleware.cors import CORSMiddleware
-
-from db.database import create_db_and_tables 
-
+import logging
 
 
 ###For removing passlib warning
-import logging
-logging.getLogger('passlib').setLevel(logging.ERROR)
+logging.getLogger("passlib").setLevel(logging.ERROR)
 ###
-
 
 
 app = FastAPI()
@@ -26,9 +21,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*"       
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,13 +34,3 @@ app.include_router(user_managament.router)
 app.include_router(category_management.router)
 app.include_router(supermarket_management.router)
 app.include_router(penalties.router)
-
-
-
-
-
-# if __name__ == "__main__":
-#     create_db_and_tables()
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# to run the server (cd supermarket_backend) and then use (uvicorn main:app --reload --port 8001)

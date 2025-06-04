@@ -1,0 +1,440 @@
+/* General Page Layout */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  color: #333;
+}
+
+.about-outer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 30px 20px 30px 800px;
+  box-sizing: border-box;
+  min-height: calc(100vh - 120px);
+  position: relative;
+}
+
+.about-page-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  padding: 20px 0;
+}
+
+.fixed-left-square-image {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60vh;
+  height: 60vh;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  pointer-events: none;
+  background-color: #a5bb77;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fixed-left-square-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.about-hero-section {
+  background: #16422e;
+  padding: 80px 40px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 1s ease-out;
+  color: white !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.about-heading {
+  font-size: 3.8rem;
+  color: white;
+  margin-bottom: 20px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.about-subheading {
+  font-size: 1.6rem;
+  color: #d7ddd0;
+  max-width: 900px;
+  margin: 0 auto;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.about-section {
+  background-color: #ffffff;
+  padding: 50px;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.section-title {
+  font-size: 2.8rem;
+  color: #255200;
+  margin-bottom: 35px;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.section-title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background-color: #16422e;
+  border-radius: 2px;
+  color: white;
+}
+
+.section-description {
+  font-size: 1.2rem;
+  color: #555;
+  line-height: 1.8;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.feature-item {
+  background-color: #f0fdf4;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.feature-item:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  background-color: #e6ffe6;
+}
+
+.feature-icon {
+  font-size: 3.5rem;
+  color: #738844;
+  margin-bottom: 20px;
+  transition: color 0.3s ease;
+}
+
+.feature-item:hover .feature-icon {
+  color: #255200;
+}
+
+.feature-item h3 {
+  font-size: 1.6rem;
+  color: #333;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.feature-item p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.7;
+}
+
+.tools-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 40px;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0fdf4;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  min-width: 160px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.tool-item:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  background-color: #e6ffe6;
+}
+
+.tool-icon {
+  font-size: 3rem;
+  color: #738844;
+  margin-bottom: 15px;
+  transition: color 0.3s ease;
+}
+
+.tool-item:hover .tool-icon {
+  color: #255200;
+}
+
+.tool-item span {
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+}
+
+.team-member-card {
+  background-color: #f0fdf4;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.team-member-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  background-color: #e6ffe6;
+}
+
+.team-member-image {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+  border: 4px solid #738844;
+  box-shadow: 0 0 0 5px rgba(115, 136, 68, 0.2);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-member-card:hover .team-member-image {
+  border-color: #255200;
+  box-shadow: 0 0 0 5px rgba(37, 82, 0, 0.3);
+}
+
+.team-member-card h3 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.team-member-role {
+  font-size: 1.1rem;
+  color: #5e6936;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.team-member-description {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.cta-button {
+  background-color: #255200;
+  color: white;
+  padding: 18px 40px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease,
+    box-shadow 0.3s ease;
+  margin-top: 40px;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cta-button:hover {
+  background-color: #5e6936;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 1024px) {
+  .about-hero-section {
+    padding: 60px 30px;
+  }
+  .about-heading {
+    font-size: 3rem;
+  }
+  .about-subheading {
+    font-size: 1.4rem;
+  }
+  .section-title {
+    font-size: 2.2rem;
+  }
+  .features-grid,
+  .team-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+  }
+  .about-section {
+    padding: 40px;
+  }
+  .about-outer-container {
+    padding-left: 20px;
+  }
+  .fixed-left-square-image {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-outer-container {
+    padding: 15px;
+  }
+  .about-hero-section {
+    padding: 40px 20px;
+  }
+  .about-heading {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+  }
+  .about-subheading {
+    font-size: 1.2rem;
+  }
+  .about-section {
+    padding: 30px 20px;
+  }
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+  }
+  .section-title::after {
+    width: 60px;
+  }
+  .section-description {
+    font-size: 1.1rem;
+  }
+  .features-grid,
+  .team-grid,
+  .tools-list {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .feature-item,
+  .tool-item,
+  .team-member-card {
+    padding: 25px;
+  }
+  .feature-icon,
+  .tool-icon {
+    font-size: 3rem;
+  }
+  .feature-item h3 {
+    font-size: 1.4rem;
+  }
+  .team-member-image {
+    width: 140px;
+    height: 140px;
+  }
+  .team-member-card h3 {
+    font-size: 1.6rem;
+  }
+  .cta-button {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-hero-section {
+    padding: 30px 15px;
+  }
+  .about-heading {
+    font-size: 2rem;
+  }
+  .about-subheading {
+    font-size: 1rem;
+  }
+  .about-section {
+    padding: 20px 15px;
+  }
+  .section-title {
+    font-size: 1.7rem;
+  }
+  .section-title::after {
+    width: 50px;
+  }
+  .feature-icon,
+  .tool-icon {
+    font-size: 2.5rem;
+  }
+  .team-member-image {
+    width: 120px;
+    height: 120px;
+  }
+  .team-member-card h3 {
+    font-size: 1.4rem;
+  }
+}

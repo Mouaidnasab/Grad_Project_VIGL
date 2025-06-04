@@ -4,7 +4,8 @@ from typing import Optional, List
 from datetime import datetime, date
 from sqlmodel import SQLModel, Field, Relationship, Index
 from enum import Enum
-from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey, Sequence, UniqueConstraint
+from sqlalchemy import Column, BigInteger as sa_BigInteger, ForeignKey, UniqueConstraint
+
 
 class RoleEnum(str, Enum):
     owner = "owner"
@@ -12,14 +13,12 @@ class RoleEnum(str, Enum):
     staff = "staff"
 
 
-
-
 class Products(SQLModel, table=True):
     __tablename__ = "products"
 
     ProductID: Optional[int] = Field(
-        sa_column=Column(sa_BigInteger, primary_key=True, autoincrement=False), 
-        default=None
+        sa_column=Column(sa_BigInteger, primary_key=True, autoincrement=False),
+        default=None,
     )
 
     # Relationships
@@ -47,7 +46,7 @@ class Screens(SQLModel, table=True):
         ),
     )
     Status: Optional[str] = Field(default=None, max_length=50)
-    IP: Optional[str]     = Field(default=None, max_length=50)
+    IP: Optional[str] = Field(default=None, max_length=50)
     Description: Optional[str] = Field(default=None, max_length=255)
 
     # Relationships
@@ -69,21 +68,28 @@ class Shelfs(SQLModel, table=True):
             autoincrement=True,
         ),
     )
-    Isle: Optional[str]        = Field(default=None, max_length=50)
-    Floor: Optional[str]       = Field(default=None, max_length=50)
-    Section: Optional[str]     = Field(default=None, max_length=50)
+    Isle: Optional[str] = Field(default=None, max_length=50)
+    Floor: Optional[str] = Field(default=None, max_length=50)
+    Section: Optional[str] = Field(default=None, max_length=50)
     Description: Optional[str] = Field(default=None, max_length=255)
 
     # Relationships
     product_screens: List["ProductScreen"] = Relationship(back_populates="shelf")
 
+
 class ProductScreen(SQLModel, table=True):
     __tablename__ = "product_screens"
 
     ProductScreenID: Optional[int] = Field(default=None, primary_key=True, index=True)
-    ShelfID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("shelfs.ShelfID")))
-    ScreenID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("screens.ScreenID")))
-    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID"), nullable=True))
+    ShelfID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("shelfs.ShelfID"))
+    )
+    ScreenID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("screens.ScreenID"))
+    )
+    ProductID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID"), nullable=True)
+    )
     ChangedAt: datetime = Field(default_factory=datetime.now)
 
     # Relationships
@@ -94,9 +100,8 @@ class ProductScreen(SQLModel, table=True):
     class Config:
         arbitrary_types_allowed = True
 
-    __table_args__ = (
-        UniqueConstraint("ShelfID", "ScreenID", name="uq_shelf_screen"),
-    )
+    __table_args__ = (UniqueConstraint("ShelfID", "ScreenID", name="uq_shelf_screen"),)
+
 
 class RefreshToken(SQLModel, table=True):
     __tablename__ = "refresh_tokens"
@@ -125,9 +130,14 @@ class Users(SQLModel, table=True):
     Disabled: bool = Field(default=False)
 
     # Relationships
-    price_histories_changed: List["PriceHistory"] = Relationship(back_populates="changed_by_user")
-    promotions_created: List["Promotions"] = Relationship(back_populates="created_by_user")
+    price_histories_changed: List["PriceHistory"] = Relationship(
+        back_populates="changed_by_user"
+    )
+    promotions_created: List["Promotions"] = Relationship(
+        back_populates="created_by_user"
+    )
     refresh_tokens: List[RefreshToken] = Relationship(back_populates="user")
+
 
 class PriceHistory(SQLModel, table=True):
     __tablename__ = "price_histories"
@@ -137,15 +147,21 @@ class PriceHistory(SQLModel, table=True):
     )
 
     HistoryID: Optional[int] = Field(default=None, primary_key=True, index=True)
-    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID")))
+    ProductID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID"))
+    )
     Price: Optional[float] = Field(default=None)
     StartDate: Optional[date] = Field(default=None)
     EndDate: Optional[date] = Field(default=None)
-    ChangedBy: Optional[int] = Field(default=None, foreign_key="users.UserID", index=True)
+    ChangedBy: Optional[int] = Field(
+        default=None, foreign_key="users.UserID", index=True
+    )
 
     # Relationships
     product: Optional["Products"] = Relationship(back_populates="price_histories")
-    changed_by_user: Optional["Users"] = Relationship(back_populates="price_histories_changed")
+    changed_by_user: Optional["Users"] = Relationship(
+        back_populates="price_histories_changed"
+    )
 
     class Config:
         arbitrary_types_allowed = True
@@ -159,18 +175,22 @@ class Promotions(SQLModel, table=True):
     )
 
     PromotionID: Optional[int] = Field(default=None, primary_key=True, index=True)
-    ProductID: Optional[int] = Field(sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID")))
+    ProductID: Optional[int] = Field(
+        sa_column=Column(sa_BigInteger, ForeignKey("products.ProductID"))
+    )
     PromotionName: Optional[str] = Field(default=None, max_length=100)
     Discount: Optional[float] = Field(default=None)
     StartDate: Optional[date] = Field(default=None)
     EndDate: Optional[date] = Field(default=None)
-    CreatedBy: Optional[int] = Field(default=None, foreign_key="users.UserID", index=True)
+    CreatedBy: Optional[int] = Field(
+        default=None, foreign_key="users.UserID", index=True
+    )
 
     # Relationships
     product: Optional["Products"] = Relationship(back_populates="promotions")
-    created_by_user: Optional["Users"] = Relationship(back_populates="promotions_created")
+    created_by_user: Optional["Users"] = Relationship(
+        back_populates="promotions_created"
+    )
 
     class Config:
         arbitrary_types_allowed = True
-
-

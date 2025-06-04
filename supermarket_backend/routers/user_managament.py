@@ -1,20 +1,16 @@
 # routers/user_management.py
 
 from typing import List, Optional, Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Security
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
-from sqlmodel import Session, select, update, delete
+from sqlmodel import Session, select
 from dependencies.auth import (
-    get_current_active_user,
     User,
     get_password_hash,
     require_Role,
 )
 from db.database import engine
 from db.models import Users, RefreshToken
-from datetime import datetime
-from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
-import os
 
 router = APIRouter(
     prefix="/users",
@@ -23,6 +19,7 @@ router = APIRouter(
 )
 
 # Pydantic Schemas
+
 
 class UserCreate(BaseModel):
     Username: Annotated[str, constr(min_length=3, max_length=50)]
@@ -56,8 +53,9 @@ class UserResponse(BaseModel):
         orm_mode = True
 
 
-
-@router.post("/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 def create_user(
     user: UserCreate,
     current_user: User = Depends(require_Role(["owner", "manager"])),
@@ -79,7 +77,7 @@ def create_user(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Managers can only create staff users",
                 )
-            user.Role = "staff" 
+            user.Role = "staff"
         elif current_user.Role == "owner":
             if user.Role not in ["manager", "staff", None]:
                 raise HTTPException(
@@ -87,7 +85,7 @@ def create_user(
                     detail="Invalid role. Only 'manager' or 'staff' can be assigned",
                 )
             if not user.Role:
-                user.Role = "staff" 
+                user.Role = "staff"
 
         hashed_Password = get_password_hash(user.Password)
 
@@ -112,6 +110,7 @@ def create_user(
             Role=new_user.Role,
             Disabled=new_user.Disabled,
         )
+
 
 @router.put("/edit/{UserID}", response_model=UserResponse)
 def update_user(
@@ -150,7 +149,9 @@ def update_user(
 
         if user_update.Email:
             Email_check = session.exec(
-                select(Users).where(Users.Email == user_update.Email, Users.UserID != UserID)
+                select(Users).where(
+                    Users.Email == user_update.Email, Users.UserID != UserID
+                )
             ).first()
             if Email_check:
                 raise HTTPException(
@@ -182,6 +183,7 @@ def update_user(
             Role=user.Role,
             Disabled=user.Disabled,
         )
+
 
 @router.delete("/delete/{UserID}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
@@ -218,14 +220,13 @@ def delete_user(
         session.commit()
         return
 
+
 @router.get("/list", response_model=List[UserResponse])
 def list_users(
-    # skip: int = 0,
-    # limit: int = 10,
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
     with Session(engine) as session:
-        statement = select(Users)  #.offset(skip).limit(limit)
+        statement = select(Users)
         users = session.exec(statement).all()
         return [
             UserResponse(
@@ -239,11 +240,13 @@ def list_users(
             )
             for user in users
         ]
-    
-@router.get("/is_owner", response_model=bool)
-def is_owner():
+
+
+@router.get("/is_first_login", response_model=bool)
+def is_first_login():
     with Session(engine) as session:
-        statement = select(Users).where(Users.Role == "owner")
-        owner = session.exec(statement).first()
-        return owner is not None
-    
+        owner = session.exec(select(Users).where(Users.Role == "owner")).first()
+        refresh = session.exec(
+            select(RefreshToken).where(RefreshToken.UserID == owner.UserID)  # type: ignore
+        ).first()  # type: ignore
+        return not refresh
