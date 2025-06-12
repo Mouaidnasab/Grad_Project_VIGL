@@ -1,11 +1,19 @@
+import os
 from sqlmodel import SQLModel, create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 from .models import *
 
 
+GOV_DB = os.getenv("GOV_DB", "gov")
+GOV_DB_USERNAME = os.getenv("GOV_DB_USERNAME", "root")
+GOV_DB_PASSWORD = os.getenv("GOV_DB_PASSWORD", "secretpass")
+GOV_DB_HOST = os.getenv("GOV_DB_HOST", "100.92.172.33")
+GOV_DB_PORT = os.getenv("GOV_DB_PORT", "4324")
+
+
 mysql_file_name = "database.db"
-mysql_url = f"mysql+pymysql://root:secretpass@100.92.172.33:4324/gov"
+mysql_url = f"mysql+pymysql://{GOV_DB_USERNAME}:{GOV_DB_PASSWORD}@{GOV_DB_HOST}:{GOV_DB_PORT}/{GOV_DB}"
 
 
 gov_engine = create_engine(mysql_url)

@@ -7,11 +7,18 @@ from db.database import engine
 from db.models import ProductScreen, Products, PriceHistory, Promotions
 from db.gov_models import GovProducts, Penalties, GovPriceHistory, PenaltyStatusEnum
 from db.gov_database import gov_engine
-from dependencies.auth import get_current_active_user, User, require_Role
+from dependencies.auth import get_current_active_user, User
 from datetime import datetime, date, timedelta
-from sqlalchemy import func, text
 from typing import List, Optional
 import requests
+import os
+
+from .screen_management import (
+    ScreenUpdateRequest,
+    update_screen_display,
+)
+
+SUPERMARKET_ID = os.getenv("SUPERMARKET_ID")
 
 
 router = APIRouter(
@@ -94,23 +101,27 @@ def add_product(
         )
 
     new_product = Products(
-        ProductID=product_add.Barcode,
+        ProductID=int(product_add.Barcode),
     )
     new_price = PriceHistory(
-        ProductID=product_add.Barcode,
+        ProductID=int(product_add.Barcode),
         Price=product_add.Price,
         StartDate=datetime.now(),
         ChangedBy=current_user.UserID,
     )
-    SupermarketID = session.exec(text("SELECT DATABASE();")).scalar()[1:]
+    SupermarketID = int(SUPERMARKET_ID) if SUPERMARKET_ID else None
 
     gov_price = gov_session.exec(
         select(GovPriceHistory).where(GovPriceHistory.ProductID == product_add.Barcode)
     ).first()
-    if gov_price and gov_price.Threshold < product_add.Price:
+    if (
+        gov_price
+        and gov_price.Threshold is not None
+        and gov_price.Threshold < product_add.Price
+    ):
         penalty = Penalties(
-            ProductID=product_add.Barcode,
-            Amount="1000",
+            ProductID=int(product_add.Barcode),
+            Amount=1000,
             Reason="Price over threshold",
             IssuedDate=datetime.now(),
             LastPaymentDate=datetime.now() + timedelta(days=15),
@@ -141,13 +152,15 @@ def get_products(
     local_product_ids_set = set(product_ids)
 
     price_query = select(PriceHistory).where(
-        PriceHistory.ProductID.in_(product_ids), PriceHistory.EndDate == None
+        PriceHistory.ProductID.in_(product_ids),  # type: ignore
+        PriceHistory.EndDate == None,  # type: ignore  # noqa: E711
     )
     local_prices_result = session.exec(price_query).all()
     local_prices = {price.ProductID: price.Price for price in local_prices_result}
 
     promo_query = select(Promotions).where(
-        Promotions.ProductID.in_(product_ids), Promotions.EndDate > datetime.now()
+        Promotions.ProductID.in_(product_ids),  # type: ignore
+        Promotions.EndDate > datetime.now(),  # type: ignore
     )
     local_promos_result = session.exec(promo_query).all()
     local_promos = {
@@ -159,7 +172,7 @@ def get_products(
         gov_response = requests.get("http://localhost:8001/product/get")
         gov_response.raise_for_status()
         gov_products_data = gov_response.json()
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500, detail="Error fetching government products data"
         )
@@ -185,7 +198,7 @@ def get_products(
             Price=float(local_price) if local_price is not None else 0,
             SuggestedPrice=price_info["SuggestedPrice"],
             Threshold=price_info["Threshold"],
-            Discount=discount,
+            Discount=discount if discount is not None else 0,
             DiscountEndDate=discount_end,
         )
         products.append(product)
@@ -212,11 +225,12 @@ def update_product(
     old_price = session.exec(
         select(PriceHistory)
         .where(PriceHistory.ProductID == product_id)
-        .where(PriceHistory.EndDate.is_(None))
+        .where(PriceHistory.EndDate.is_(None))  # type: ignore
     ).first()
-    old_price.EndDate = datetime.now()
-    session.add(old_price)
-    session.commit()
+    if old_price:
+        old_price.EndDate = datetime.now()
+        session.add(old_price)
+        session.commit()
     price_history = PriceHistory(
         ProductID=product_id,
         Price=new_price,
@@ -227,15 +241,20 @@ def update_product(
     session.commit()
     session.refresh(price_history)
 
-    SupermarketID = session.exec(text("SELECT DATABASE();")).scalar()[1:]
+    SupermarketID = int(SUPERMARKET_ID) if SUPERMARKET_ID else None
 
     gov_price = gov_session.exec(
         select(GovPriceHistory).where(GovPriceHistory.ProductID == product.ProductID)
     ).first()
-    if gov_price and gov_price.Threshold < price_history.Price:
+    if (
+        gov_price
+        and gov_price.Threshold is not None
+        and price_history.Price is not None
+        and gov_price.Threshold < price_history.Price
+    ):
         penalty = Penalties(
             ProductID=product.ProductID,
-            Amount="1000",
+            Amount=1000,
             Reason="Price over threshold",
             IssuedDate=datetime.now(),
             LastPaymentDate=datetime.now() + timedelta(days=15),
@@ -245,8 +264,15 @@ def update_product(
         gov_session.add(penalty)
         gov_session.commit()
         gov_session.refresh(penalty)
+
+    update_screen_display(
+        update_request=ScreenUpdateRequest(product_id=product_id, template_name=""),
+        session=session,
+        gov_session=gov_session,
+    )
+
     return ProductResponse(
-        message=f"Price updated successfully and old price ({old_price.Price}) archived",
+        message=f"Price updated successfully and old price ({old_price.Price if old_price else 'N/A'}) archived",
         price=price_history,
         product=product,
     )
@@ -256,6 +282,7 @@ def update_product(
 def update_discount(
     product_id: int,
     new_discount: DiscountRequest,
+    gov_session: Session = Depends(get_gov_session),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -276,7 +303,7 @@ def update_discount(
     promotions = session.exec(
         select(Promotions)
         .where(Promotions.ProductID == product_id)
-        .where(Promotions.EndDate > datetime.now())
+        .where(Promotions.EndDate > datetime.now())  # type: ignore
     ).all()
 
     for promotion in promotions:
@@ -297,6 +324,12 @@ def update_discount(
     session.add(promotion)
     session.commit()
     session.refresh(promotion)
+
+    update_screen_display(
+        update_request=ScreenUpdateRequest(product_id=product_id, template_name=""),
+        session=session,
+        gov_session=gov_session,
+    )
     return DiscountResponse(
         message="Discount updated successfully", promotion=promotion, product=product
     )
@@ -348,15 +381,15 @@ def get_penalties(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ):
-    SupermarketID = session.exec(text("SELECT DATABASE();")).scalar()[1:]
+    SupermarketID = SUPERMARKET_ID if SUPERMARKET_ID else None
 
     try:
         gov_response = requests.get(
-            "http://localhost:8001/penalty/get/" + SupermarketID
+            "http://localhost:8001/penalty/get/" + (SupermarketID or "")
         )
         gov_response.raise_for_status()
         gov_penalties_data = gov_response.json()
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=500, detail="Error fetching government products data"
         )

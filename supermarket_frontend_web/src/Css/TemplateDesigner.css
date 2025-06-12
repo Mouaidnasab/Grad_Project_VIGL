@@ -9,22 +9,45 @@ body {
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 12px;
+  padding: 0 1rem;
 }
 
+/* New layout styles */
+.designer-main-content {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.designer-left-column {
+  flex: 1 1 50%;
+  min-width: 400px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.designer-right-column {
+  flex: 1 1 50%;
+  min-width: 400px;
+  padding: 1rem;
+}
+
+/* Modified canvas styles */
 #canvas-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  background: #f9f9f9;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f9f9f9;
 }
 
 #canvas {
   position: relative;
-  width: 360px; /* Screen width */
-  height: 240px; /* Screen height */
+  width: 100%;
+  /* Maintain 360:240 aspect ratio */
+  aspect-ratio: 360 / 240;
   border: 1px solid #ccc;
   background: white;
   overflow: hidden;
@@ -70,7 +93,6 @@ body {
   text-align: left;
   width: 100%;
   color: #000;
-
   cursor: pointer;
 }
 
@@ -85,17 +107,31 @@ body {
   padding: 5px 0;
 }
 
-#dynamic-content {
-  font-family: "Futura";
-  line-height: 1.6;
-  padding: 20px;
-  max-width: 400px;
+#preview-container {
+  width: 100%;
+  max-width: 500px; /* Adjust as needed */
 }
 
 .section-title {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
+}
+
+.item-container {
+  margin-bottom: 5px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#dynamic-content {
+  font-family: "Futura";
+  line-height: 1.6;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
 }
 
 .item {
@@ -105,6 +141,20 @@ body {
   margin-bottom: 5px;
 }
 
+.item-title {
+  font-weight: bold;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.grid-container .item-container {
+  margin-bottom: 0;
+}
+
 button {
   margin-left: 2px;
   padding: 5px 10px;
@@ -112,9 +162,9 @@ button {
   cursor: pointer;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background-color: #f0f0f0;
+  background-color: #295b00;
 }
 
 button:hover {
-  background-color: #e0e0e0;
+  background-color: #1e4200;
 }

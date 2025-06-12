@@ -1,23 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from routers import (
     current_user,
     user_managament,
     screen_management,
     product_management,
     shelf_management,
-    )
-import uvicorn
+)
 from fastapi.middleware.cors import CORSMiddleware
-
-from db.database import create_db_and_tables 
-
+import pdfkit
 
 
 ###For removing passlib warning
 import logging
-logging.getLogger('passlib').setLevel(logging.ERROR)
-###
 
+logging.getLogger("passlib").setLevel(logging.ERROR)
+###
 
 
 app = FastAPI()
@@ -25,9 +22,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*"       
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,7 +36,25 @@ app.include_router(product_management.router)
 app.include_router(shelf_management.router)
 
 
-
+@app.get(
+    "/docs/pdf",
+    include_in_schema=False,
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}}},
+)
+async def swagger_pdf(request: Request) -> Response:
+    """
+    Fetch the live Swagger‐UI page and convert it to PDF on the fly.
+    """
+    # construct full URL to /docs
+    docs_url = str(request.base_url) + "docs"
+    # generate PDF (requires wkhtmltopdf on your PATH)
+    pdf_bytes = pdfkit.from_url(docs_url, False)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=api_docs.pdf"},
+    )
 
 
 # if __name__ == "__main__":

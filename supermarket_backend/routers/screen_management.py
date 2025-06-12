@@ -1,6 +1,6 @@
 # routers/screen_management.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlmodel import Session, select, desc
 from pydantic import BaseModel
 from db.database import engine
@@ -15,69 +15,12 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy.event import listens_for
-from threading import Thread, Event
-import time
+
 
 from io import BytesIO
 from barcode import Code128
 from barcode.writer import ImageWriter
 import qrcode
-
-producti_updated = Event()
-producti_value = None
-
-
-def producti_monitor():
-    global producti_value
-    while True:
-        producti_updated.wait()
-        print("producti_value:", producti_value)
-        if producti_value:
-            print("producti_dsdsvalue:", producti_value)
-            update_request = UpdateRequest(product_id=producti_value, template_name="")
-            try:
-                time.sleep(1)
-                print("Updating screen display")
-                with Session(engine) as session, Session(gov_engine) as gov_session:
-                    update_screen_display(
-                        update_request=update_request,
-                        session=session,
-                        gov_session=gov_session,
-                    )
-            except Exception as e:
-                print(f"Error updating screen display: {e}")
-        producti_value = None
-        producti_updated.clear()
-
-
-monitor_thread = Thread(target=producti_monitor, daemon=True)
-monitor_thread.start()
-
-
-@listens_for(ProductScreen, "after_update")
-@listens_for(ProductScreen, "after_insert")
-def on_product_screen_update(mapper, connection, target):
-    print("ProductScreen updated:", target)
-    global producti_value
-    producti_value = target.ProductID
-    producti_updated.set()
-
-
-@listens_for(PriceHistory, "after_update")
-@listens_for(PriceHistory, "after_insert")
-def on_price_history_update(mapper, connection, target):
-    global producti_value
-    producti_value = target.ProductID
-    producti_updated.set()
-
-
-@listens_for(Promotions, "after_update")
-@listens_for(Promotions, "after_insert")
-def on_promotion_update(mapper, connection, target):
-    global producti_value
-    producti_value = target.ProductID
-    producti_updated.set()
 
 
 router = APIRouter(
@@ -116,14 +59,13 @@ class ScreenTemplate(BaseModel):
     elements: list[Element]
 
 
-class UpdateRequest(BaseModel):
+class ScreenUpdateRequest(BaseModel):
     product_id: int
     template_name: str
 
 
 class UpdateResponse(BaseModel):
     message: str
-    screen: Screens
 
 
 allowed_colors = {
@@ -144,8 +86,8 @@ def _validate_color(c: str) -> str:
 
 def generate_image(
     template_data: dict,
-    session=None,
-    gov_session=None,
+    session: Session = Depends(get_session),
+    gov_session: Session = Depends(get_gov_session),
     current_screen_id: int | None = None,
     *,
     dummy: bool = False,
@@ -208,7 +150,7 @@ def generate_image(
                                 select(Categories.CategoryName)
                                 .join(
                                     GovProducts,
-                                    GovProducts.CategoryID == Categories.CategoryID,
+                                    GovProducts.CategoryID == Categories.CategoryID,  # type: ignore
                                 )
                                 .where(GovProducts.ProductID == ProductID)
                             ).first()
@@ -218,7 +160,7 @@ def generate_image(
                         price = session.exec(
                             select(PriceHistory.Price).where(
                                 PriceHistory.ProductID == ProductID,
-                                PriceHistory.EndDate == None,
+                                PriceHistory.EndDate == None,  # noqa: E711
                             )
                         ).first()
                         token = f"{price}TL" if price else "Price?"
@@ -233,7 +175,7 @@ def generate_image(
                         price = session.exec(
                             select(PriceHistory.Price).where(
                                 PriceHistory.ProductID == ProductID,
-                                PriceHistory.EndDate == None,
+                                PriceHistory.EndDate == None,  # noqa: E711
                             )
                         ).first()
                         disc = (
@@ -305,13 +247,13 @@ def generate_image(
             ]
             barcode_img.putdata(newdata)
 
-            barcode_img = barcode_img.resize((w, h), Image.LANCZOS)
+            barcode_img = barcode_img.resize((w, h), Image.LANCZOS)  # type: ignore
             img.paste(barcode_img, (x, y), barcode_img)
 
         elif etype == "qrcode":
             qrobj = qrcode.QRCode(
                 version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,  # type: ignore
                 box_size=10,
                 border=0,
             )
@@ -319,12 +261,12 @@ def generate_image(
             qrobj.make(fit=True)
             qr_img = qrobj.make_image(
                 fill_color="black", back_color=(255, 255, 255, 0)
-            ).convert("RGBA")
+            ).convert("RGBA")  # type: ignore
 
-            qr_img = qr_img.resize((w, h), Image.LANCZOS)
+            qr_img = qr_img.resize((w, h), Image.LANCZOS)  # type: ignore
             img.paste(qr_img, (x, y), qr_img)
 
-    return img.rotate(-90, expand=True)
+    return img.rotate(-270, expand=True)
 
 
 def upload_to_esp32(
@@ -348,7 +290,7 @@ def upload_to_esp32(
         px = img.load()
         for y in range(height):
             for x in range(width):
-                r, g, b = px[x, y]
+                r, g, b = px[x, y]  # type: ignore
                 if r > 150 and g < 100 and b < 100:  # red
                     red_img.putpixel((x, y), 0)
                 elif r < 100 and g < 100 and b < 100:  # black
@@ -363,7 +305,7 @@ def upload_to_esp32(
             print(f"{endpoint}: {r.status_code} • {r.text}")
 
         disp = requests.post(f"{base_url}/display")
-        print(f"display: {disp.status_code} • {disp.text}")
+        print(f"display: {disp.status_code} • {disp.text} • {screen_ip}")
 
     except Exception as e:
         print("[upload_to_esp32] ERROR:", e)
@@ -375,16 +317,20 @@ def preview_png(
     current_user: User = Depends(get_current_active_user),
 ):
     img = generate_image(screen_template.model_dump(), dummy=True)
-    img = img.rotate(90, expand=True)
+    img = img.rotate(-90, expand=True)
     buf = BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
     return StreamingResponse(buf, media_type="image/png")
 
 
-@router.post("/add_screen_template", response_model=ScreenTemplate)
+@router.post(
+    "/add_screen_template",
+    response_model=ScreenTemplate,
+)
 def add_screen_template(
     screen_template: ScreenTemplate,
+    response: Response,  # <— inject this
     current_user: User = Depends(get_current_active_user),
 ):
     template_name = screen_template.template_name
@@ -396,16 +342,22 @@ def add_screen_template(
     else:
         existing_data = {}
 
-    data_without_template_name = screen_template.model_dump(exclude={"template_name"})
+    # strip out the template_name for storage
+    data_without_name = screen_template.model_dump(exclude={"template_name"})
 
     existed_before = template_name in existing_data
-    existing_data[template_name] = data_without_template_name
+    existing_data[template_name] = data_without_name
 
     with open(json_path, "w") as f:
         json.dump(existing_data, f, indent=4)
 
-    status_code = status.HTTP_200_OK if existed_before else status.HTTP_201_CREATED
-    return screen_template, status_code
+    # set status based on whether it was an overwrite
+    response.status_code = (
+        status.HTTP_200_OK if existed_before else status.HTTP_201_CREATED
+    )
+
+    # return only the Pydantic model
+    return screen_template
 
 
 @router.get("/get_screen_templates")
@@ -423,7 +375,7 @@ def get_screen_templates():
 
 @router.post("/update_display", response_model=UpdateResponse)
 def update_screen_display(
-    update_request: UpdateRequest,
+    update_request: ScreenUpdateRequest,
     session: Session = Depends(get_session),
     gov_session: Session = Depends(get_gov_session),
     # current_user: User = Depends(get_current_active_user)
@@ -431,70 +383,79 @@ def update_screen_display(
     product_id = update_request.product_id
     template_name = update_request.template_name
 
-    print(
-        f"Updating screen display for product_id: {product_id}, template_name: {template_name}"
-    )
-
-    product_screen = session.exec(
+    product_screens = session.scalars(
         select(ProductScreen).where(ProductScreen.ProductID == product_id)
-    ).first()
+    ).all()
 
-    print(f"product_screen: {product_screen}")
+    if not product_screens:
+        return {"message": "No product screens found for the given product ID."}
 
-    if not product_screen:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No screen found for Product ID {product_id}.",
-        )
+    for product_screen in product_screens:
+        print(product_screen)
+        current_screen_id = product_screen.ScreenID
 
-    current_screen_id = product_screen.ScreenID
+        json_path = os.path.join(src_directory, "screen_templates.json")
 
-    json_path = os.path.join(src_directory, "screen_templates.json")
-
-    if os.path.exists(json_path):
-        with open(json_path, "r") as json_file:
-            screen_templates = json.load(json_file)
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Screen templates file not found.",
-        )
-    if template_name == "":
-        result = session.exec(
-            select(Promotions)
-            .where(
-                (ProductScreen.ScreenID == current_screen_id)
-                & (ProductScreen.ProductID == Promotions.ProductID)
-            )
-            .order_by(desc(Promotions.PromotionID))
-        ).first()
-
-        if result and result.EndDate > datetime.now().date() and result.Discount > 0:
-            template_name = "Promotion"
+        if os.path.exists(json_path):
+            with open(json_path, "r") as json_file:
+                screen_templates = json.load(json_file)
         else:
-            template_name = "Standard"
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Screen templates file not found.",
+            )
+        if template_name == "":
+            result = session.exec(
+                select(Promotions)
+                .where(
+                    (ProductScreen.ScreenID == current_screen_id)
+                    & (ProductScreen.ProductID == Promotions.ProductID)
+                )
+                .order_by(desc(Promotions.PromotionID))
+            ).first()
 
-    if template_name != "" and template_name not in screen_templates:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Screen template '{template_name}' not found.",
+            if (
+                result
+                and result.EndDate
+                and result.EndDate > datetime.now().date()
+                and result.Discount
+                and result.Discount > 0
+            ):
+                template_name = "Promotion"
+            else:
+                template_name = "Standard"
+
+        if template_name != "" and template_name not in screen_templates:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Screen template '{template_name}' not found.",
+            )
+
+        print(
+            f"Updating screen display for product_id: {product_id}, screen_id: {current_screen_id}, template_name: {template_name}"
         )
 
-    screen = session.exec(
-        select(Screens).where(Screens.ScreenID == current_screen_id)
-    ).first()
-    if not screen:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Screen not found.",
+        screen = session.exec(
+            select(Screens).where(Screens.ScreenID == current_screen_id)
+        ).first()
+        if not screen:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Screen not found.",
+            )
+
+        screen_ip = screen.IP or ""
+        template_data = screen_templates[template_name]
+
+        upload_to_esp32(
+            screen_ip,
+            template_data,
+            session,
+            gov_session,
+            current_screen_id or 0,
         )
 
-    screen_ip = screen.IP
-    template_data = screen_templates[template_name]
-
-    upload_to_esp32(screen_ip, template_data, session, gov_session, current_screen_id)
-
-    return UpdateResponse(message="Screen updated successfully.", screen=screen)
+    return UpdateResponse(message="Screen updated successfully.")
 
 
 @router.post("/add", response_model=Screens)
@@ -517,7 +478,7 @@ def get_screens(
 ):
     linked_screen_ids = session.exec(select(ProductScreen.ScreenID)).all()
     screens = session.exec(
-        select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))
+        select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))  # type: ignore
     ).all()
     return screens
 

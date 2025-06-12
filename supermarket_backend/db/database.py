@@ -6,10 +6,14 @@ import os
 
 
 SUPERMARKET_ID = os.getenv("SUPERMARKET_ID", "s100001")
+SUBERMARKET_DB_USERNAME = os.getenv("SUBERMARKET_DB_USERNAME", "root")
+SUBERMARKET_DB_PASSWORD = os.getenv("SUBERMARKET_DB_PASSWORD", "secretpass")
+SUBERMARKET_DB_HOST = os.getenv("SUBERMARKET_DB_HOST", "100.92.172.33")
+SUBERMARKET_DB_PORT = os.getenv("SUBERMARKET_DB_PORT", "4324")
 
 
 mysql_file_name = "database.db"
-mysql_url = f"mysql+pymysql://root:secretpass@100.92.172.33:4324/{SUPERMARKET_ID}"
+mysql_url = f"mysql+pymysql://{SUBERMARKET_DB_USERNAME}:{SUBERMARKET_DB_PASSWORD}@{SUBERMARKET_DB_HOST}:{SUBERMARKET_DB_PORT}/{SUPERMARKET_ID}"
 
 
 engine = create_engine(mysql_url)

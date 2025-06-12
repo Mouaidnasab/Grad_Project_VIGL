@@ -25,51 +25,51 @@ class _CameraPage extends State<CameraPage> {
     }
   }
 
-void _showResult(String code) {
-  final Uri? url = Uri.tryParse(code);
-  final bool isValidUrl = url != null && (url.scheme == 'http' || url.scheme == 'https');
+  void _showResult(String code) {
+    final Uri? url = Uri.tryParse(code);
+    final bool isValidUrl =
+        url != null && (url.scheme == 'http' || url.scheme == 'https');
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      title: const Text('QR Code Detected'),
-      content: isValidUrl
-          ? InkWell(
-              onTap: () async {
-                final launched = await launchUrl(
-                  url!,
-                  mode: LaunchMode.externalApplication, // ✅ use external browser
-                );
-                if (!launched) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not launch URL')),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('QR Code Detected'),
+        content: isValidUrl
+            ? InkWell(
+                onTap: () async {
+                  final launched = await launchUrl(
+                    url,
+                    mode: LaunchMode
+                        .externalApplication, // ✅ use external browser
                   );
-                }
-              },
-              child: Text(
-                code,
-                style: const TextStyle(
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline,
+                  if (!launched) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not launch URL')),
+                    );
+                  }
+                },
+                child: Text(
+                  code,
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
-              ),
-            )
-          : Text(code),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            setState(() => _isScanned = false);
-          },
-          child: const Text('OK'),
-        ),
-      ],
-    ),
-  );
-}
-
-
+              )
+            : Text(code),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() => _isScanned = false);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -105,7 +105,8 @@ void _showResult(String code) {
 
                   // Pick image
                   final picker = ImagePicker();
-                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  final XFile? image =
+                      await picker.pickImage(source: ImageSource.gallery);
 
                   if (image != null) {
                     try {
@@ -117,9 +118,9 @@ void _showResult(String code) {
                     }
                   }
                 },
-                child: const Text('Gallery Scan'), // ✅ make sure there's a comma here
+                child: const Text(
+                    'Gallery Scan'), // ✅ make sure there's a comma here
               ),
-
             ),
           ),
         ],

@@ -95,19 +95,19 @@ def create_user(
             FirstName=user.FirstName,
             LastName=user.LastName,
             Password=hashed_Password,
-            Role=user.Role,
-            Disabled=user.Disabled,
+            Role=user.Role,  # type: ignore
+            Disabled=user.Disabled or False,
         )
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
         return UserResponse(
-            UserID=new_user.UserID,
-            Username=new_user.Username,
-            Email=new_user.Email,
-            FirstName=new_user.FirstName,
-            LastName=new_user.LastName,
-            Role=new_user.Role,
+            UserID=new_user.UserID or 0,
+            Username=new_user.Username or "",
+            Email=new_user.Email or "",
+            FirstName=new_user.FirstName or "",
+            LastName=new_user.LastName or "",
+            Role=new_user.Role or "",
             Disabled=new_user.Disabled,
         )
 
@@ -166,7 +166,7 @@ def update_user(
         if user_update.Password:
             user.Password = get_password_hash(user_update.Password)
         if user_update.Role:
-            user.Role = user_update.Role
+            user.Role = user_update.Role  # type: ignore
         if user_update.Disabled is not None:
             user.Disabled = user_update.Disabled
 
@@ -175,12 +175,12 @@ def update_user(
         session.refresh(user)
 
         return UserResponse(
-            UserID=user.UserID,
-            Username=user.Username,
-            Email=user.Email,
-            FirstName=user.FirstName,
-            LastName=user.LastName,
-            Role=user.Role,
+            UserID=user.UserID or 0,
+            Username=user.Username or "",
+            Email=str(user.Email),
+            FirstName=user.FirstName or "",
+            LastName=user.LastName or "",
+            Role=user.Role or "",
             Disabled=user.Disabled,
         )
 
@@ -230,12 +230,12 @@ def list_users(
         users = session.exec(statement).all()
         return [
             UserResponse(
-                UserID=user.UserID,
-                Username=user.Username,
-                Email=user.Email,
-                FirstName=user.FirstName,
-                LastName=user.LastName,
-                Role=user.Role,
+                UserID=user.UserID or 0,
+                Username=user.Username or "",
+                Email=user.Email or "",
+                FirstName=user.FirstName or "",
+                LastName=user.LastName or "",
+                Role=user.Role or "",
                 Disabled=user.Disabled,
             )
             for user in users

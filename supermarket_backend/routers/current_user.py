@@ -52,7 +52,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.Username}, expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token(
-        data={"sub": user.Username}, UserID=user.UserID
+        data={"sub": user.Username}, UserID=user.UserID or 0
     )
     return Token(access_token=access_token, refresh_token=refresh_token)
 
@@ -69,6 +69,7 @@ async def refresh_access_token(request: RefreshTokenRequest):
             detail="Invalid or expired refresh token",
         )
 
+    UserID = 0
     with Session(engine) as session:
         statement = select(RefreshToken).where(RefreshToken.Token == refresh_token)
         token_record = session.exec(statement).first()
@@ -93,7 +94,9 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
     detail_level: int = 1,
 ):
-    FullName = str(current_user.FirstName + " " + current_user.LastName)
+    FirstName = current_user.FirstName or ""
+    LastName = current_user.LastName or ""
+    FullName = str(FirstName + " " + LastName)
     if detail_level == 1:
         return UserProfile(FullName=FullName)
     elif detail_level == 2:
@@ -134,5 +137,5 @@ async def validate_token(token_request: ValidateTokenRequest):
 
         return {"valid": True, "reason": "Token is valid and active."}
 
-    except Exception as e:
+    except Exception:
         return {"valid": False, "reason": "Token is invalid or expired."}

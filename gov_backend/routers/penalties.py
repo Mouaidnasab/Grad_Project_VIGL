@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlmodel import Session
 
 from db.database import gov_engine
-from db.models import Penalties
+from db.models import Penalties, PenaltyStatusEnum
 from dependencies.auth import User, require_Role
 
 router = APIRouter(
@@ -34,7 +34,7 @@ def get_penalty(
     session: Session = Depends(get_session),
 ):
     penalties = session.scalars(
-        select(Penalties).where(Penalties.SupermarketID == supermarket_id)
+        select(Penalties).where(Penalties.SupermarketID.is_(supermarket_id))  # type: ignore
     ).all()
     if not penalties:
         raise HTTPException(
@@ -83,7 +83,7 @@ def update_penalty(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status."
         )
-    penalty.Status = new_status
+    penalty.Status = PenaltyStatusEnum(new_status)
     session.add(penalty)
     session.commit()
     session.refresh(penalty)

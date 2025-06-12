@@ -5,9 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from db.database import engine
-from db.models import Products, Shelfs, Screens, ProductScreen
+from db.gov_database import gov_engine
+from db.gov_models import GovProducts, Categories
+from db.models import Products, Shelfs, Screens, ProductScreen, PriceHistory
 from dependencies.auth import User, require_Role
 from typing import List
+
+from routers.screen_management import (
+    ScreenUpdateRequest,
+    update_screen_display,
+)
 
 
 router = APIRouter(
@@ -18,6 +25,11 @@ router = APIRouter(
 
 def get_session():
     with Session(engine) as session:
+        yield session
+
+
+def get_gov_session():
+    with Session(gov_engine) as session:
         yield session
 
 
@@ -57,27 +69,49 @@ def create_relation_screen(
     shelf = session.exec(
         select(Shelfs).where(Shelfs.ShelfID == request.shelf_id)
     ).first()
-    shelf_in_relation = session.exec(
-        select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)
-    ).first()
-    if not shelf and not shelf_in_relation:
+    if not shelf:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Shelf not found or in relation.",
+            detail="Shelf not found.",
         )
+
     screen = session.exec(
         select(Screens).where(Screens.ScreenID == request.screen_id)
     ).first()
-    screen_in_relation = session.exec(
-        select(ProductScreen).where(ProductScreen.ScreenID == request.screen_id)
-    ).first()
-    if not screen and not screen_in_relation:
+    if not screen:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Screen not found or in relation.",
+            detail="Screen not found.",
         )
 
-    new_relation = ProductScreen(ShelfID=request.shelf_id, ScreenID=request.screen_id)
+    conflict = session.exec(
+        select(ProductScreen).where(
+            ProductScreen.ScreenID == request.screen_id,
+            ProductScreen.ShelfID != request.shelf_id,
+        )
+    ).first()
+    if conflict:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Screen is already related to another shelf.",
+        )
+
+    relation = session.exec(
+        select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)
+    ).first()
+
+    if relation:
+        relation.ScreenID = request.screen_id
+        session.add(relation)
+        session.commit()
+        session.refresh(relation)
+        return RelationResponse(message="Relation updated successfully")
+
+    new_relation = ProductScreen(
+        ShelfID=request.shelf_id,
+        ScreenID=request.screen_id,
+        ProductID=None,
+    )
     session.add(new_relation)
     session.commit()
     session.refresh(new_relation)
@@ -103,7 +137,7 @@ def update_relation_screen(
     screen_in_relation = session.exec(
         select(ProductScreen).where(ProductScreen.ScreenID == request.screen_id)
     ).first()
-    if not screen and screen_in_relation.ShelfID != request.shelf_id:
+    if not screen and screen_in_relation.ShelfID != request.shelf_id:  # type: ignore
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Screen not found or in different relation.",
@@ -130,6 +164,7 @@ def update_relation_screen(
 def update_relation_product(
     request: RelationProductRequest,
     session: Session = Depends(get_session),
+    gov_session: Session = Depends(get_gov_session),
     current_user=Depends(require_Role(["owner", "manager"])),
 ):
     shelf = session.exec(
@@ -163,6 +198,14 @@ def update_relation_product(
         product_screen.ProductID = request.product_id
         product_screen.ChangedAt = datetime.now()
 
+        update_screen_display(
+            update_request=ScreenUpdateRequest(
+                product_id=product_screen.ProductID, template_name=""
+            ),
+            session=session,
+            gov_session=gov_session,
+        )
+
     session.add(product_screen)
     session.commit()
     session.refresh(product_screen)
@@ -178,6 +221,51 @@ def get_relations(
     return session.exec(select(ProductScreen)).all()
 
 
+class GetResponse(BaseModel):
+    shelf: Shelfs
+    screen: Screens
+    product: GovProducts
+    category: Categories
+    price: PriceHistory
+
+
+@router.get("/get_relations_by_unkown/{id}", response_model=GetResponse)
+def get_relations_by_unkown(
+    id: int,
+    session: Session = Depends(get_session),
+    gov_session: Session = Depends(get_gov_session),
+    current_user: User = Depends(require_Role(["owner", "manager"])),
+):
+    is_shelf = session.exec(select(Shelfs).where(Shelfs.ShelfID == id)).first()
+    is_screen = session.exec(select(Screens).where(Screens.ScreenID == id)).first()
+    is_product = session.exec(select(Products).where(Products.ProductID == id)).first()
+
+    if is_shelf:
+        relation = session.exec(
+            select(ProductScreen).where(ProductScreen.ShelfID == id)
+        ).first()
+    elif is_screen:
+        relation = session.exec(
+            select(ProductScreen).where(ProductScreen.ScreenID == id)
+        ).first()
+    elif is_product:
+        relation = session.exec(
+            select(ProductScreen).where(ProductScreen.ProductID == id)
+        ).first()
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Relation not found."
+        )
+
+    return GetResponse(
+        shelf=session.get(Shelfs, relation.ShelfID),  # type: ignore
+        screen=session.get(Screens, relation.ScreenID),  # type: ignore
+        product=gov_session.get(GovProducts, relation.ProductID),  # type: ignore
+        category=session.get(Categories, relation.ProductID),  # type: ignore
+        price=session.get(PriceHistory, relation.ProductID),  # type: ignore
+    )
+
+
 @router.get("/get", response_model=List[Shelfs])
 def get_shelves(
     session: Session = Depends(get_session),
@@ -185,7 +273,7 @@ def get_shelves(
 ):
     linked_shelf_ids = session.exec(select(ProductScreen.ShelfID)).all()
     shelves = session.exec(
-        select(Shelfs).where(Shelfs.ShelfID.not_in(linked_shelf_ids))
+        select(Shelfs).where(Shelfs.ShelfID.not_in(linked_shelf_ids))  # type: ignore
     ).all()
     return shelves
 

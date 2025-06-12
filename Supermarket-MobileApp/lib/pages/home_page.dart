@@ -1,90 +1,87 @@
 import 'package:flutter/material.dart';
-
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vigil/pages/login_page.dart';
-import 'package:vigil/widgets/camera_button.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            Text(
-              'The main page, where the worker can scan a product or a screen',
-              style: TextStyle(
-                color: Colors.orange,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Expanded(
-              child: Center(
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final MobileScannerController _scannerController = MobileScannerController();
+  bool _scanningEnabled = false;
+  bool _hasDetected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scannerController.start();
+  }
+
+  @override
+  void dispose() {
+    _scannerController.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (!_scanningEnabled || _hasDetected) return;
+
+    final barcode = capture.barcodes.first;
+    final String? code = barcode.rawValue;
+    if (code != null) {
+      _hasDetected = true;
+      _showResultDialog(code);
+    }
+  }
+
+  Future<void> _showResultDialog(String code) async {
+    final Uri? uri = Uri.tryParse(code);
+    final bool isValidUrl =
+        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('QR Code Detected'),
+        content: isValidUrl
+            ? InkWell(
+                onTap: () async {
+                  final launched = await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
+                  if (!launched) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not launch URL')),
+                    );
+                  }
+                },
                 child: Text(
-                'Maybe we can add a meaningful thing here, the page is empty!',
-                style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
+                  code,
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _roundIconButton(Icons.menu, () {
-                    _showSettingsMenu(context);
-                  }),
-                  CameraButton(),
-                  _roundIconButton(Icons.add_circle_sharp, () {
-                    _showAddOptions(context);
-                  }),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-
-  Widget _roundIconButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.green[300],
-          shape: BoxShape.circle,
-        ),
-        padding: EdgeInsets.all(12),
-        child: Icon(icon, color: Colors.white, size: 28),
-      ),
-    );
-  }
-
-  Widget _scanButton() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-      ),
-      child: Text(
-        'SCAN',
-        style: TextStyle(
-          color: Colors.green[800],
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+              )
+            : Text(code),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _hasDetected = false;
+                _scanningEnabled = false;
+              });
+            },
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -96,15 +93,15 @@ class HomePage extends StatelessWidget {
         child: Wrap(
           children: [
             ListTile(
-              leading: Icon(Icons.logout, color: Colors.red),
-              title: Text('Sign Out'),
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Sign Out'),
               onTap: () {
-              Navigator.pop(context); // Close the bottom sheet first
-              Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => LoginPage()), // your main page class
-              (Route<dynamic> route) => false, // Remove all old pages
-              );
+                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (Route<dynamic> route) => false,
+                );
               },
             ),
           ],
@@ -113,35 +110,91 @@ class HomePage extends StatelessWidget {
     );
   }
 
-void _showAddOptions(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+  void _showAddOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.inventory, color: Colors.blue),
+              title: const Text('Assign Product'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to Assign Product page
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.smart_screen, color: Colors.green),
+              title: const Text('Assign Screen'),
+              onTap: () {
+                Navigator.pop(context);
+                // TODO: Navigate to Assign Screen page
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _roundIconButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.green[300],
+          shape: BoxShape.circle,
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Icon(icon, color: Colors.white, size: 28),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
         children: [
-          ListTile(
-            leading: Icon(Icons.inventory, color: Colors.blue),
-            title: Text('Assign Product'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to Assign Product page
-            },
+          MobileScanner(
+            controller: _scannerController,
+            onDetect: _onDetect,
           ),
-          ListTile(
-            leading: Icon(Icons.smart_screen, color: Colors.green),
-            title: Text('Assign Screen'),
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to Assign Screen page
-            },
+          SafeArea(
+            child: Column(
+              children: [
+                const Spacer(),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 30.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _roundIconButton(Icons.menu, () {
+                        _showSettingsMenu(context);
+                      }),
+                      _roundIconButton(Icons.camera_alt, () {
+                        setState(() {
+                          _scanningEnabled = true;
+                          _hasDetected = false;
+                        });
+                      }),
+                      _roundIconButton(Icons.add_circle_sharp, () {
+                        _showAddOptions(context);
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 }

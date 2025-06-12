@@ -51,9 +51,8 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub": user.Username}, expires_delta=access_token_expires
     )
-    refresh_token = create_refresh_token(
-        data={"sub": user.Username}, UserID=user.UserID
-    )
+    user_id = user.UserID if user.UserID is not None else 0
+    refresh_token = create_refresh_token(data={"sub": user.Username}, UserID=user_id)
     return Token(access_token=access_token, refresh_token=refresh_token)
 
 
@@ -63,6 +62,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 async def refresh_access_token(request: RefreshTokenRequest):
     refresh_token = request.refresh_token
     Username = verify_refresh_token(refresh_token)
+    UserID = 0
     if not Username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -95,7 +95,9 @@ async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
     detail_level: int = 1,
 ):
-    FullName = str(current_user.FirstName + " " + current_user.LastName)
+    first_name = current_user.FirstName or ""
+    last_name = current_user.LastName or ""
+    FullName = f"{first_name} {last_name}"
     if detail_level == 1:
         return UserProfile(FullName=FullName)
     elif detail_level == 2:
@@ -136,5 +138,5 @@ async def validate_token(token_request: ValidateTokenRequest):
 
         return {"valid": True, "reason": "Token is valid and active."}
 
-    except Exception as e:
+    except Exception:
         return {"valid": False, "reason": "Token is invalid or expired."}

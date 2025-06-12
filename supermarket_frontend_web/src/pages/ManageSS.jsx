@@ -348,7 +348,7 @@ const Manage = () => {
                       {selectedScreen
                         ? (selectedScreen === "0"
                             ? "Unassigned"
-                            : (screens.find(s => s.ScreenID === parseInt(selectedScreen))?.Description || selectedScreen))
+                            : (screens.find(s => s.ScreenID === parseInt(selectedScreen))?.IP || selectedScreen))
                         : "Select Screen"}
                     </div>
                     {isScreenDropdownOpen && (
@@ -362,7 +362,7 @@ const Manage = () => {
                             className="dropdown-option2"
                             onClick={() => handleSelectScreen(screen.ScreenID)}
                           >
-                            {screen.ScreenID} - {screen.Description}
+                            {screen.ScreenID} - {screen.IP}
                           </div>
                         ))}
                       </div>
@@ -396,7 +396,7 @@ const Manage = () => {
                       <tr key={relation.ProductScreenID}>
                         <td data-label="Relation ID">{relation.ProductScreenID}</td>
                         <td data-label="Shelf ID">
-                          {relation.ShelfID} - {shelves.find(s => s.ShelfID === relation.ShelfID)?.Description || 'N/A'}
+                          {relation.ShelfID}
                         </td>
                         <td data-label="Screen ID">
                           {editingRelationId === relation.ProductScreenID ? (
@@ -408,7 +408,7 @@ const Manage = () => {
                                 <option value="0">Unassigned</option>
                                 {screens.map((screen) => (
                                   <option key={screen.ScreenID} value={String(screen.ScreenID)}>
-                                    {screen.ScreenID} - {screen.Description}
+                                    {screen.ScreenID} - {screen.IP}
                                   </option>
                                 ))}
                               </select>
@@ -416,7 +416,7 @@ const Manage = () => {
                           ) : (
                             relation.ScreenID === 0
                               ? "Unassigned"
-                              : `${relation.ScreenID} - ${screens.find(s => s.ScreenID === relation.ScreenID)?.Description || 'N/A'}`
+                              : `${relation.ScreenID}`
                           )}
                         </td>
                         <td data-label="Last Updated">
