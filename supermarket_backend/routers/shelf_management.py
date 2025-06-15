@@ -228,7 +228,6 @@ class GetResponse(BaseModel):
     category: Categories
     price: PriceHistory
 
-
 @router.get("/get_relations_by_unkown/{id}", response_model=GetResponse)
 def get_relations_by_unkown(
     id: int,
@@ -257,14 +256,32 @@ def get_relations_by_unkown(
             status_code=status.HTTP_404_NOT_FOUND, detail="Relation not found."
         )
 
+    product = gov_session.exec(
+        select(GovProducts).where(GovProducts.ProductID == relation.ProductID)  # type: ignore
+    ).first()
+
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found."
+        )
+
+    if not relation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Relation not found."
+        )
+
     return GetResponse(
         shelf=session.get(Shelfs, relation.ShelfID),  # type: ignore
         screen=session.get(Screens, relation.ScreenID),  # type: ignore
         product=gov_session.get(GovProducts, relation.ProductID),  # type: ignore
-        category=session.get(Categories, relation.ProductID),  # type: ignore
-        price=session.get(PriceHistory, relation.ProductID),  # type: ignore
+        category=gov_session.get(Categories, product.CategoryID),  # type: ignore
+        price=session.scalar(
+            select(PriceHistory).where(
+                PriceHistory.ProductID == product.ProductID,
+                PriceHistory.EndDate.is_(None),  # type: ignore
+            )
+        ),
     )
-
 
 @router.get("/get", response_model=List[Shelfs])
 def get_shelves(

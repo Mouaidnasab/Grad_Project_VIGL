@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:vigil/utils/api_helper.dart'; // your shared getAuthHeaders
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vigil/pages/login_page.dart';
+import 'package:vigil/pages/scan_result_page.dart'; // assume you have this page
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,6 +17,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final MobileScannerController _scannerController = MobileScannerController();
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+
   bool _scanningEnabled = false;
   bool _hasDetected = false;
 
@@ -27,59 +34,76 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) {
+  void _onDetect(BarcodeCapture capture) async {
     if (!_scanningEnabled || _hasDetected) return;
 
     final barcode = capture.barcodes.first;
     final String? code = barcode.rawValue;
-    if (code != null) {
-      _hasDetected = true;
-      _showResultDialog(code);
+    if (code == null) return;
+
+    _hasDetected = true;
+
+    final id = int.tryParse(code);
+    if (id == null) {
+      _showDialog("Invalid code scanned: $code");
+      _resetScanner();
+      return;
+    }
+
+    final baseIp = await storage.read(key: 'base_ip');
+    if (baseIp == null || baseIp.isEmpty) {
+      _showDialog("IP address not set. Please log in again.");
+      _resetScanner();
+      return;
+    }
+
+    try {
+      final uri = Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id');
+      final headers = await getAuthHeaders(extraHeaders: {"id": id.toString()});
+
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+
+        if (!mounted) return; // check if still in widget tree
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScanResultPage(result: jsonData),
+          ),
+        ).then((_) => _resetScanner());
+      } else {
+        _showDialog("Server error: ${response.statusCode}");
+        _resetScanner();
+      }
+    } catch (e) {
+      _showDialog("Request failed: $e");
+      _resetScanner();
     }
   }
 
-  Future<void> _showResultDialog(String code) async {
-    final Uri? uri = Uri.tryParse(code);
-    final bool isValidUrl =
-        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+  void _resetScanner() {
+    setState(() {
+      _hasDetected = false;
+      _scanningEnabled = false;
+    });
+  }
 
-    await showDialog(
+  void _showDialog(String message) {
+    showDialog(
       context: context,
-      barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text('QR Code Detected'),
-        content: isValidUrl
-            ? InkWell(
-                onTap: () async {
-                  final launched = await launchUrl(
-                    uri,
-                    mode: LaunchMode.externalApplication,
-                  );
-                  if (!launched) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Could not launch URL')),
-                    );
-                  }
-                },
-                child: Text(
-                  code,
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              )
-            : Text(code),
+        title: const Text("Error"),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                _hasDetected = false;
-                _scanningEnabled = false;
-              });
+              _resetScanner();
             },
-            child: const Text('OK'),
+            child: const Text("OK"),
           ),
         ],
       ),
