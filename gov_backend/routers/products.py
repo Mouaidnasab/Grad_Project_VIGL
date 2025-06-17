@@ -15,7 +15,6 @@ from db.models import (
     GovPriceHistory,
     GovProducts,
     Categories,
-    GovPriceHistory,
     Supermarkets,
 )
 from dependencies.auth import User, require_Role
@@ -120,40 +119,37 @@ def update_product(
     if not existing_product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    if product.ProductName is not None:
-        existing_product.ProductName = product.ProductName
-    if product.Description is not None:
-        existing_product.Description = product.Description
+    existing_product.ProductName = product.ProductName
+    existing_product.Description = product.Description
 
-    if product.SuggestedPrice is not None or product.Threshold is not None:
-        active_prices = (
-            session.exec(
-                select(GovPriceHistory)
-                .where(GovPriceHistory.ProductID == product_id)
-                .where(GovPriceHistory.EndDate.is_(None))
-            )
-            .scalars()
-            .all()
+    active_prices = (
+        session.exec(
+            select(GovPriceHistory)
+            .where(GovPriceHistory.ProductID == product_id)  # type: ignore
+            .where(GovPriceHistory.EndDate.is_(None))  # type: ignore
+        )  # type: ignore
+        .scalars()
+        .all()
+    )
+
+    if not active_prices[0].SuggestedPrice == product.SuggestedPrice:
+        product.Threshold = round(
+            (active_prices[0].Threshold / active_prices[0].SuggestedPrice - 1) * 100
         )
+        print(product.Threshold)
 
-        if not active_prices:
-            raise HTTPException(
-                status_code=404, detail="Active price history not found"
-            )
+    now = datetime.now()
+    for price_history in active_prices:
+        price_history.EndDate = now
 
-        now = datetime.now()
-        for price_history in active_prices:
-            price_history.EndDate = now
-
-        new_price = GovPriceHistory(
-            ProductID=product_id,
-            SuggestedPrice=product.SuggestedPrice,
-            Threshold=float(product.SuggestedPrice)
-            * (float(product.Threshold) / 100 + 1),
-            StartDate=now,
-            EndDate=None,
-            ChangedBy=current_user.UserID,
-        )
+    new_price = GovPriceHistory(
+        ProductID=product_id,
+        SuggestedPrice=product.SuggestedPrice,
+        Threshold=float(product.SuggestedPrice) * (float(product.Threshold) / 100 + 1),
+        StartDate=now,
+        EndDate=None,
+        ChangedBy=current_user.UserID,
+    )
 
     if "new_price" in locals():
         session.add(new_price)

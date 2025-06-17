@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from typing import List
 
 from dependencies.auth import User, get_password_hash, require_Role
-from db.models import Supermarkets, GovUsers
+from db.models import Supermarkets
 from db.supermarket_models import Users, RoleEnum
 from db.database import gov_engine
 from db.create_supermarket import create_supermarket_database
@@ -22,7 +22,7 @@ def get_session():
         yield session
 
 
-class OwnerResponse(BaseModel):
+class OwnerResquest(BaseModel):
     Username: str
     Email: str
     Password: str
@@ -31,7 +31,7 @@ class OwnerResponse(BaseModel):
 @router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_supermarket(
     supermarket: Supermarkets,
-    OwnerReq: OwnerResponse,
+    OwnerReq: OwnerResquest,
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["staff"])),
 ):
@@ -57,7 +57,6 @@ def create_supermarket(
         first_name = names[0]
         last_name = " ".join(names[1:])
 
-        supermarket.ContactPersonUserID = int("0000001")
         session.add(supermarket)
         session.commit()
         session.refresh(supermarket)
@@ -101,40 +100,10 @@ def update_supermarket(
             detail="Supermarket not found.",
         )
 
-    if supermarket_update.ContactPersonFullName:
-        names = supermarket_update.ContactPersonFullName.strip().split()
-        if len(names) < 2:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="ContactPersonFullName must include both first name and last name.",
-            )
-        first_name = names[0]
-        last_name = " ".join(names[1:])
-
-        user = session.exec(
-            select(GovUsers).where(
-                GovUsers.FirstName == first_name, GovUsers.LastName == last_name
-            )
-        ).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Contact person must exist in the Users table.",
-            )
-
-        if user.Role not in ["manager", "owner"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Contact person must have the role 'manager' or 'owner'.",
-            )
-
-        supermarket.ContactPersonUserID = user.UserID
-
-    update_data = supermarket_update.model_dump(
-        exclude={"ContactPersonUserID", "RegisteredID"}, exclude_unset=True
-    )
-    for key, value in update_data.items():
-        setattr(supermarket, key, value)
+    supermarket.RegisteredName = supermarket_update.RegisteredName
+    supermarket.Address = supermarket_update.Address
+    supermarket.ContactPersonFullName = supermarket_update.ContactPersonFullName
+    supermarket.ContactPersonUserID = supermarket_update.ContactPersonUserID
 
     session.add(supermarket)
     session.commit()

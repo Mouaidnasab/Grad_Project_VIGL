@@ -44,7 +44,7 @@ class UserUpdate(BaseModel):
 class UserResponse(BaseModel):
     UserID: int
     Username: str
-    Email: EmailStr
+    Email: Optional[EmailStr]
     FirstName: str
     LastName: str
     Role: str
@@ -104,8 +104,7 @@ def update_user(
     current_user: User = Depends(require_Role(["staff"])),
 ):
     with Session(gov_engine) as session:
-        statement = select(GovUsers).where(GovUsers.UserID == UserID)
-        user = session.exec(statement).first()
+        user = session.exec(select(GovUsers).where(GovUsers.UserID == UserID)).first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
