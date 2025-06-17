@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
+//add this to every page except login
     final baseIp = await storage.read(key: 'base_ip');
     if (baseIp == null || baseIp.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
