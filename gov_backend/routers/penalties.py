@@ -23,7 +23,6 @@ def get_session():
 @router.get("/get", response_model=List[Penalties])
 def get_penalties(
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_Role(["staff"])),
 ):
     return session.scalars(select(Penalties)).all()
 
