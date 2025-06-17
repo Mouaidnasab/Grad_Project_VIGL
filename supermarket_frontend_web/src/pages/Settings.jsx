@@ -28,7 +28,7 @@ const SettingsPage = () => {
 
                         <a href="/add-staff">
                             <button className="block-button">
-                                <i className="fas fa-user-plus"></i> Add User
+                                <i className="fas fa-user-plus"></i> Manage Staff
                             </button>
                         </a>
                     </div>
