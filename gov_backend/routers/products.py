@@ -66,7 +66,7 @@ class UpdateRequest(BaseModel):
     Description: Optional[str] = None
 
 
-@router.post("/create")
+@router.post("/create/")
 def create_product(
     product: AddRequest,
     session: Session = Depends(get_session),
@@ -192,7 +192,7 @@ def get_products(
     return organized_products
 
 
-@router.get("/get/{product_id}", response_model=GetResponse)
+@router.get("/get/{product_id}/", response_model=GetResponse)
 def get_specific_product(
     product_id: int,
     session: Session = Depends(get_session),
@@ -212,7 +212,7 @@ def get_specific_product(
 
 
 @router.get(
-    "/get_from_all_supermarkets",
+    "/get_from_all_supermarkets/",
     response_model=List[GetProductsFromSupermarketResponse],
 )
 def get_products_from_all_supermarkets(
@@ -284,7 +284,7 @@ def get_products_from_all_supermarkets(
 
 
 @router.get(
-    "/get_from_supermarket/{supermarket_id}",
+    "/get_from_supermarket/{supermarket_id}/",
     response_model=GetProductsFromSupermarketResponse,
 )
 def get_products_from_specific_supermarket(
@@ -344,6 +344,73 @@ def get_products_from_specific_supermarket(
 
     return GetProductsFromSupermarketResponse(
         Supermarket=supermarket, Products=supermarket_products
+    )
+
+
+class SupermarketPriceResponse(BaseModel):
+    SupermarketName: str
+    SupermarketAddress: Optional[str]
+    Price: Optional[float] = None
+
+
+class GetProductPricesResponse(BaseModel):
+    Product: GovProducts
+    GovPrice: Optional[GovPriceHistory] = None
+    SupermarketPrices: List[SupermarketPriceResponse]
+
+
+@router.get(
+    "/prices/full/{product_id}/",
+    response_model=GetProductPricesResponse,
+)
+def get_product_prices(
+    product_id: int,
+    session: Session = Depends(get_session),
+):
+    gov_product = session.get(GovProducts, product_id)
+    if not gov_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    gov_price = session.scalar(
+        select(GovPriceHistory).where(
+            GovPriceHistory.ProductID == product_id,
+            GovPriceHistory.EndDate.is_(None),
+        )
+    )
+
+    supermarkets = session.scalars(select(Supermarkets)).all()
+    supermarket_prices: List[SupermarketPriceResponse] = []
+
+    for sm in supermarkets:
+        db_name = f"s{sm.SupermarketID}"
+        engine = create_engine(f"{BASE_MYSQL_URL}{db_name}")
+        print(f"Creating database `{db_name}` (if not exists)...")
+
+        with Session(engine) as sm_session:
+            price_rec = sm_session.scalar(
+                select(PriceHistory).where(
+                    PriceHistory.ProductID == product_id,
+                    PriceHistory.EndDate.is_(None),
+                )
+            )
+
+        if price_rec is None:
+            continue
+
+        price_value = price_rec.Price
+
+        supermarket_prices.append(
+            SupermarketPriceResponse(
+                SupermarketName=sm.RegisteredName,
+                SupermarketAddress=sm.Address,
+                Price=price_value,
+            )
+        )
+
+    return GetProductPricesResponse(
+        Product=gov_product,
+        GovPrice=gov_price,
+        SupermarketPrices=supermarket_prices,
     )
 
 
