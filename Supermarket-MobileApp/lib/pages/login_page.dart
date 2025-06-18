@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _loadStoredIp() async {
     String? storedIp = await storage.read(key: 'base_ip');
     setState(() {
-      baseIp = storedIp;
+      baseIp = storedIp ?? "0";
     });
     }
 

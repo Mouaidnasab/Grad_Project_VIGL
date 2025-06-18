@@ -7,7 +7,7 @@ Future<Map<String, String>> getAuthHeaders({Map<String, String>? extraHeaders}) 
 
   final headers = <String, String>{};
 
-  if (accessToken.isNotEmpty) {
+  if ((accessToken ?? "0").isNotEmpty) {
     headers['Authorization'] = 'Bearer $accessToken';
   }
 

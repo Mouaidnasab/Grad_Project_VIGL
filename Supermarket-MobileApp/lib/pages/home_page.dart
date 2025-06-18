@@ -3,10 +3,16 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:vigil/utils/api_helper.dart'; // your shared getAuthHeaders
+import 'package:vigil/utils/api_helper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vigil/pages/login_page.dart';
-import 'package:vigil/pages/scan_result_page.dart'; // assume you have this page
+import 'package:vigil/pages/scan_result_page.dart';
+import 'package:vigil/pages/Screen_accept.dart';
+import 'package:vigil/pages/product_accept.dart';
+
+// TODO: Import your ScreenAccept and ProductAccept pages
+// import 'package:vigil/pages/screen_accept.dart';
+// import 'package:vigil/pages/product_accept.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,11 +22,46 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final MobileScannerController _scannerController = MobileScannerController();
+  final MobileScannerController _scannerController = MobileScannerController(
+    formats: [
+      BarcodeFormat.code128,
+      BarcodeFormat.code39,
+      BarcodeFormat.code93,
+      BarcodeFormat.ean13,
+      BarcodeFormat.ean8,
+      BarcodeFormat.upcA,
+      BarcodeFormat.upcE,
+      BarcodeFormat.itf,
+    ],
+  );
+
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
   bool _scanningEnabled = false;
   bool _hasDetected = false;
+
+  int _modeIndex = 0;
+
+  // For double scan in Add Screen and Add Product modes:
+  List<int> _scannedIds = [];
+
+  final List<IconData> _icons = [
+    Icons.inventory, // Add Product
+    Icons.smart_screen, // Add Screen
+    Icons.qr_code_scanner, // View Relations
+  ];
+
+  final List<String> _modeLabels = [
+    "Add Product",
+    "Add Screen",
+    "View Relations and Details",
+  ];
+
+  final List<Color> _modeColors = [
+    Colors.orange,
+    Colors.blue,
+    Colors.green,
+  ];
 
   @override
   void initState() {
@@ -37,11 +78,10 @@ class _HomePageState extends State<HomePage> {
   void _onDetect(BarcodeCapture capture) async {
     if (!_scanningEnabled || _hasDetected) return;
 
+    if (capture.barcodes.isEmpty) return;
     final barcode = capture.barcodes.first;
     final String? code = barcode.rawValue;
     if (code == null) return;
-
-    _hasDetected = true;
 
     final id = int.tryParse(code);
     if (id == null) {
@@ -50,7 +90,20 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-//add this to every page except login
+    if (_modeIndex == 2) {
+      // View Relations mode - single scan behavior
+      _hasDetected = true;
+      await _handleViewRelations(id);
+    } else if (_modeIndex == 1) {
+      // Add Screen mode - double scan
+      await _handleDoubleScan(id, isScreenMode: true);
+    } else if (_modeIndex == 0) {
+      // Add Product mode - double scan
+      await _handleDoubleScan(id, isScreenMode: false);
+    }
+  }
+
+  Future<void> _handleViewRelations(int id) async {
     final baseIp = await storage.read(key: 'base_ip');
     if (baseIp == null || baseIp.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
@@ -67,7 +120,7 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
 
-        if (!mounted) return; // check if still in widget tree
+        if (!mounted) return;
 
         Navigator.push(
           context,
@@ -85,10 +138,63 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _handleDoubleScan(int id, {required bool isScreenMode}) async {
+    if (_scannedIds.contains(id)) {
+      _showDialog("This code was already scanned. Please scan a different code.");
+      return;
+    }
+
+    setState(() {
+      _scannedIds.add(id);
+    });
+
+    if (_scannedIds.length < 2) {
+      // Prompt user to scan next barcode
+      _showDialog("Scanned ID: $id\nPlease scan the second barcode.");
+      return;
+    }
+
+    // After scanning two barcodes:
+    _hasDetected = true;
+    _scanningEnabled = false;
+
+    // Navigate to the appropriate page with scanned IDs:
+    if (isScreenMode) {
+      // BIG COMMENT: ADD YOUR ScreenAccept PAGE HERE
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ScreenAccept(
+            shelfId: _scannedIds[0],
+            screenId: _scannedIds[1],
+          ),
+        ),
+      ).then((_) {
+        _resetScanner();
+        _scannedIds.clear();
+      });
+    } else {
+      // BIG COMMENT: ADD YOUR ProductAccept PAGE HERE
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProductAccept(
+            shelfId: _scannedIds[0],
+            productId: _scannedIds[1],
+          ),
+        ),
+      ).then((_) {
+        _resetScanner();
+        _scannedIds.clear();
+      });
+    }
+  }
+
   void _resetScanner() {
     setState(() {
       _hasDetected = false;
       _scanningEnabled = false;
+      _scannedIds.clear();
     });
   }
 
@@ -96,13 +202,12 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Error"),
+        title: const Text("Info"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _resetScanner();
             },
             child: const Text("OK"),
           ),
@@ -111,72 +216,62 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showSettingsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Sign Out'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  void _onModeSwitch() {
+    setState(() {
+      _modeIndex = (_modeIndex + 1) % _icons.length;
+      _resetScanner();
+
+      if (_modeIndex == 2) {
+        _scanningEnabled = true;
+      }
+    });
   }
 
-  void _showAddOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.inventory, color: Colors.blue),
-              title: const Text('Assign Product'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to Assign Product page
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.smart_screen, color: Colors.green),
-              title: const Text('Assign Screen'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Navigate to Assign Screen page
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _roundIconButton(IconData icon, VoidCallback onTap) {
+  Widget _roundIconButton(IconData icon, VoidCallback onTap, Color color) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.green[300],
+          color: color,
           shape: BoxShape.circle,
         ),
         padding: const EdgeInsets.all(12),
         child: Icon(icon, color: Colors.white, size: 28),
+      ),
+    );
+  }
+
+  Widget _buildInstructions() {
+    String instructionText = "";
+    switch (_modeIndex) {
+      case 0: // Add Product
+        if (_scannedIds.isEmpty) {
+          instructionText = "Scan shelf";
+        } else if (_scannedIds.length == 1) {
+          instructionText = "Scan product";
+        }
+        break;
+      case 1: // Add Screen
+        if (_scannedIds.isEmpty) {
+          instructionText = "Scan shelf";
+        } else if (_scannedIds.length == 1) {
+          instructionText = "Scan screen";
+        }
+        break;
+      case 2: // View Relations
+        instructionText = "Scan shelf";
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        instructionText,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: _modeColors[_modeIndex],
+        ),
       ),
     );
   }
@@ -194,24 +289,51 @@ class _HomePageState extends State<HomePage> {
           SafeArea(
             child: Column(
               children: [
+                const SizedBox(height: 20),
+                Text(
+                  _modeLabels[_modeIndex],
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: _modeColors[_modeIndex],
+                  ),
+                ),
+                _buildInstructions(),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 30.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _roundIconButton(Icons.menu, () {
-                        _showSettingsMenu(context);
-                      }),
-                      _roundIconButton(Icons.camera_alt, () {
-                        setState(() {
-                          _scanningEnabled = true;
-                          _hasDetected = false;
-                        });
-                      }),
-                      _roundIconButton(Icons.add_circle_sharp, () {
-                        _showAddOptions(context);
-                      }),
+                      _roundIconButton(
+                        _icons[_modeIndex],
+                        _onModeSwitch,
+                        _modeColors[_modeIndex],
+                      ),
+                      _roundIconButton(
+                        Icons.camera_alt,
+                        () {
+                          if (_modeIndex == 2 || _modeIndex == 0 || _modeIndex == 1) {
+                            setState(() {
+                              _scanningEnabled = true;
+                              _hasDetected = false;
+                              _scannedIds.clear();
+                            });
+                          }
+                        },
+                        Colors.grey,
+                      ),
+                      _roundIconButton(
+                        Icons.logout,
+                        () {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        Colors.red,
+                      ),
                     ],
                   ),
                 ),
@@ -223,3 +345,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+// ===
+// You need to create the ScreenAccept and ProductAccept pages, for example:
+//
+// class ScreenAccept extends StatelessWidget {
+//   final int shelfId;
+//   final int screenId;
+//
+//   const ScreenAccept({required this.shelfId, required this.screenId, Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     // Your UI + API calls to handle assignment
+//   }
+// }
+//
+// class ProductAccept extends StatelessWidget {
+//   final int shelfId;
+//   final int productId;
+//
+//   const ProductAccept({required this.shelfId, required this.productId, Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     // Your UI + API calls to handle assignment
+//   }
+// }

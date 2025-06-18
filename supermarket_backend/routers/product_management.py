@@ -205,6 +205,62 @@ def get_products(
 
     return GetResponse(Products=products)
 
+# @router.get("/get/{product_id}", response_model=GetResponse)
+# def get_product_by_id(
+#     product_id: int,
+#     session: Session = Depends(get_session),
+#     current_user=Depends(get_current_active_user),
+# ):
+#     # Fetch local product by ID
+#     local_product = session.get(Products, product_id)
+#     if not local_product:
+#         raise HTTPException(status_code=404, detail="Product not found locally")
+
+#     # Get local price where EndDate is None
+#     local_price_obj = session.exec(
+#         select(PriceHistory)
+#         .where(PriceHistory.ProductID == product_id)
+#         .where(PriceHistory.EndDate == None)  # noqa: E711
+#     ).first()
+#     local_price = local_price_obj.Price if local_price_obj else 0
+
+#     # Get active local promotion (EndDate > now)
+#     local_promo_obj = session.exec(
+#         select(Promotions)
+#         .where(Promotions.ProductID == product_id)
+#         .where(Promotions.EndDate > datetime.now())
+#     ).first()
+#     discount = local_promo_obj.Discount if local_promo_obj else 0
+#     discount_end = local_promo_obj.EndDate if local_promo_obj else None
+
+#     # Fetch government product data for this product ID
+#     try:
+#         gov_response = requests.get(f"http://localhost:8001/product/get/{product_id}")
+#         gov_response.raise_for_status()
+#         gov_product_data = gov_response.json()
+#     except Exception:
+#         raise HTTPException(
+#             status_code=500, detail="Error fetching government product data"
+#         )
+
+#     # gov_product_data assumed to be a dict with keys "Product", "Category", "Price"
+#     product_info = gov_product_data.get("Product", gov_product_data)
+#     category_info = gov_product_data.get("Category", {})
+#     price_info = gov_product_data.get("Price", {})
+
+#     product = OrganizedProducts(
+#         ProductID=product_info.get("ProductID", product_id),
+#         ProductName=product_info.get("ProductName", local_product.ProductName),
+#         CategoryID=product_info.get("CategoryID", None),
+#         CategoryName=category_info.get("CategoryName", ""),
+#         Price=float(local_price),
+#         SuggestedPrice=price_info.get("SuggestedPrice", 0),
+#         Threshold=price_info.get("Threshold", 0),
+#         Discount=discount if discount is not None else 0,
+#         DiscountEndDate=discount_end,
+#     )
+
+#     return GetResponse(Products=[product])
 
 @router.put("/update_price/{product_id}", response_model=ProductResponse)
 def update_product(

@@ -294,6 +294,17 @@ def get_shelves(
     ).all()
     return shelves
 
+@router.get("/get/{shelf_id}", response_model=Shelfs)
+def get_shelf_by_id(
+    shelf_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"])),
+):
+    shelf = session.get(Shelfs, shelf_id)
+    if not shelf:
+        raise HTTPException(status_code=404, detail="Shelf not found")
+    return shelf
+
 
 @router.delete("/delete_relation/{ProductScreenID}/")
 def delete_relation(
