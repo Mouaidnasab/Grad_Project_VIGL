@@ -25,6 +25,7 @@ from .screen_management import (
 )
 
 SUPERMARKET_ID = os.getenv("SUPERMARKET_ID")
+GOV_HOST = os.getenv("GOV_HOST")
 
 
 router = APIRouter(
@@ -175,7 +176,7 @@ def get_products(
     }
 
     try:
-        gov_response = requests.get("http://localhost:8001/product/get")
+        gov_response = requests.get(f"http://{GOV_HOST}/product/get")
         gov_response.raise_for_status()
         gov_products_data = gov_response.json()
     except Exception:
@@ -445,7 +446,7 @@ def get_penalties(
 
     try:
         gov_response = requests.get(
-            "http://localhost:8001/penalty/get/" + (SupermarketID or "")
+            f"http://{GOV_HOST}/penalty/get/{SupermarketID or ''}"
         )
         gov_response.raise_for_status()
         gov_penalties_data = gov_response.json()

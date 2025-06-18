@@ -42,7 +42,7 @@ services:
 
 
   customer-frontend:
-    container_name: CustomerFrontend
+    container_name: Customer-Frontend
     build:
       context: ./customer_frontend_mobile
       dockerfile: Dockerfile
