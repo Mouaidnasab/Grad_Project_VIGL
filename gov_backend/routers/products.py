@@ -164,7 +164,7 @@ def update_product(
     }
 
 
-@router.get("/get/", response_model=List[GetResponse])
+@router.get("/get", response_model=List[GetResponse])
 def get_products(
     session: Session = Depends(get_session),
 ):
