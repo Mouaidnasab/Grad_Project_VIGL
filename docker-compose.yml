@@ -18,8 +18,7 @@ services:
     ports:
       - "3604:3000"
     restart: always
-    volumes:
-      - ./gov_frontend_web:/app:ro
+
 
   supermarket-backend:
     container_name: Supermarket-Backend
@@ -40,16 +39,14 @@ services:
     ports:
       - "3602:3000"
     restart: always
-    volumes:
-      - ./supermarket_frontend_web:/app:ro
+
 
   customer-frontend:
-    container_name: Customer-Frontend
+    container_name: CustomerFrontend
     build:
       context: ./customer_frontend_mobile
       dockerfile: Dockerfile
     ports:
       - "3605:3000"
     restart: always
-    volumes:
-      - ./customer_frontend_mobile:/app:ro
+
