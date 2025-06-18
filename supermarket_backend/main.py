@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from routers import (
     current_user,
     user_managament,
@@ -7,7 +7,6 @@ from routers import (
     shelf_management,
 )
 from fastapi.middleware.cors import CORSMiddleware
-import pdfkit
 
 
 ###For removing passlib warning
@@ -34,27 +33,6 @@ app.include_router(user_managament.router)
 app.include_router(screen_management.router)
 app.include_router(product_management.router)
 app.include_router(shelf_management.router)
-
-
-@app.get(
-    "/docs/pdf",
-    include_in_schema=False,
-    response_class=Response,
-    responses={200: {"content": {"application/pdf": {}}}},
-)
-async def swagger_pdf(request: Request) -> Response:
-    """
-    Fetch the live Swagger‐UI page and convert it to PDF on the fly.
-    """
-    # construct full URL to /docs
-    docs_url = str(request.base_url) + "docs"
-    # generate PDF (requires wkhtmltopdf on your PATH)
-    pdf_bytes = pdfkit.from_url(docs_url, False)
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=api_docs.pdf"},
-    )
 
 
 # if __name__ == "__main__":

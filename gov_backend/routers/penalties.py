@@ -23,7 +23,6 @@ def get_session():
 @router.get("/get", response_model=List[Penalties])
 def get_penalties(
     session: Session = Depends(get_session),
-    current_user: User = Depends(require_Role(["staff"])),
 ):
     return session.scalars(select(Penalties)).all()
 
@@ -34,12 +33,14 @@ def get_penalty(
     session: Session = Depends(get_session),
 ):
     penalties = session.scalars(
-        select(Penalties).where(Penalties.SupermarketID.is_(supermarket_id))  # type: ignore
+        select(Penalties).where(Penalties.SupermarketID == supermarket_id)
     ).all()
+
     if not penalties:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Penalty not found."
         )
+
     return penalties
 
 
@@ -79,11 +80,11 @@ def update_penalty(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Penalty not found."
         )
-    if new_status not in ["paid", "unpaid", "late"]:
+    if new_status.lower() not in ["paid", "unpaid", "late"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status."
         )
-    penalty.Status = PenaltyStatusEnum(new_status)
+    penalty.Status = PenaltyStatusEnum(new_status.lower())
     session.add(penalty)
     session.commit()
     session.refresh(penalty)

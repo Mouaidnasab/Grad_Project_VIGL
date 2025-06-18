@@ -222,6 +222,7 @@ def get_relations(
 
 
 class GetResponse(BaseModel):
+    scanned: str
     shelf: Shelfs
     screen: Screens
     product: GovProducts
@@ -230,30 +231,25 @@ class GetResponse(BaseModel):
 
 @router.get("/get_relations_by_unkown/{id}", response_model=GetResponse)
 def get_relations_by_unkown(
+
     id: int,
     session: Session = Depends(get_session),
     gov_session: Session = Depends(get_gov_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
-    is_shelf = session.exec(select(Shelfs).where(Shelfs.ShelfID == id)).first()
-    is_screen = session.exec(select(Screens).where(Screens.ScreenID == id)).first()
-    is_product = session.exec(select(Products).where(Products.ProductID == id)).first()
-
-    if is_shelf:
-        relation = session.exec(
-            select(ProductScreen).where(ProductScreen.ShelfID == id)
-        ).first()
-    elif is_screen:
-        relation = session.exec(
-            select(ProductScreen).where(ProductScreen.ScreenID == id)
-        ).first()
-    elif is_product:
-        relation = session.exec(
-            select(ProductScreen).where(ProductScreen.ProductID == id)
-        ).first()
+    if session.exec(select(Shelfs).where(Shelfs.ShelfID == id)).first():
+        scanned = "shelf"
+        stmt = select(ProductScreen).where(ProductScreen.ShelfID == id)
+    elif session.exec(select(Screens).where(Screens.ScreenID == id)).first():
+        scanned = "screen"
+        stmt = select(ProductScreen).where(ProductScreen.ScreenID == id)
+    elif session.exec(select(Products).where(Products.ProductID == id)).first():
+        scanned = "product"
+        stmt = select(ProductScreen).where(ProductScreen.ProductID == id)
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Relation not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No relations found for given ID.",
         )
 
     product = gov_session.exec(
@@ -282,6 +278,7 @@ def get_relations_by_unkown(
             )
         ),
     )
+
 
 @router.get("/get", response_model=List[Shelfs])
 def get_shelves(
