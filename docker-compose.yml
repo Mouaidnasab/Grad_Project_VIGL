@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  gov-backend:
+    container_name: "Gov-Backend"
+    build:
+      context: ./gov_backend
+      dockerfile: Dockerfile
+    ports:
+      - "3603:8000"
+    restart: always
+    volumes:
+      - ./gov_backend:/app:ro
+
+  gov-frontend:
+    container_name: "Gov-Frontend"
+    build:
+      context: ./gov_frontend_web
+      dockerfile: Dockerfile
+    ports:
+      - "3604:3000"
+    restart: always
+    volumes:
+      - ./gov_frontend_web:/app:ro
+
+  supermarket-backend:
+    container_name: "Supermarket-Backend"
+    build:
+      context: ./supermarket_backend
+      dockerfile: Dockerfile
+    ports:
+      - "3601:8000"
+    restart: always
+    volumes:
+      - ./supermarket_backend:/app:ro
+
+  supermarket-frontend:
+    container_name: "Supermarket-Frontend"
+    build:
+      context: ./supermarket_frontend_web
+      dockerfile: Dockerfile
+    ports:
+      - "3602:3000"
+    restart: always
+    volumes:
+      - ./supermarket_frontend_web:/app:ro
+
+  customer-frontend:
+    container_name: "Customer-Frontend"
+    build:
+      context: ./customer_frontend_mobile
+      dockerfile: Dockerfile
+    ports:
+      - "3605:3000"
+    restart: always
+    volumes:
+      - ./customer_frontend_mobile:/app:ro
+  
