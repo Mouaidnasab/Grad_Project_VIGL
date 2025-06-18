@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vigil/pages/home_page.dart';
-
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,62 +12,146 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  
-    bool loggedIn = false;
-    String username = '';
-    String password = '';
+  bool loggedIn = false;
+  String username = '';
+  String password = '';
+  String baseIp = '';
 
-  void login() 
-{
-  if (username == 'admin' && password == '1234') {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomePage()),
-      
-    );
-    loggedIn=true;
-  } else {
-    // Show an error message (optional)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Invalid username or password')),
+  final storage = const FlutterSecureStorage();
+  final TextEditingController ipController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredIp();
+  }
+
+  Future<void> _loadStoredIp() async {
+    String? storedIp = await storage.read(key: 'base_ip');
+    setState(() {
+      baseIp = storedIp ?? "0";
+    });
+    }
+
+  Future<void> login() async {
+    print('Login initiated for user: $username');
+
+    if (baseIp.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please set the IP address first.')),
+      );
+      return;
+    }
+
+    final url = Uri.parse('http://$baseIp:8000/user_auth/token');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'username': username,
+          'password': password,
+        },
+      );
+
+      print('Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        String accessToken = data['access_token'];
+        String refreshToken = data['refresh_token'];
+        String tokenType = data['token_type'];
+
+        await storage.write(key: 'access_token', value: accessToken);
+        await storage.write(key: 'refresh_token', value: refreshToken);
+        await storage.write(key: 'token_type', value: tokenType);
+        await storage.write(key: 'username', value: username);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful! Redirecting...')),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+
+        setState(() {
+          loggedIn = true;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Login error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  void _showIpDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Set IP Address"),
+        content: TextField(
+          controller: ipController,
+          decoration: const InputDecoration(hintText: "e.g. 192.168.1.10"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              if (ipController.text.isNotEmpty) {
+                await storage.write(key: 'base_ip', value: ipController.text);
+                setState(() {
+                  baseIp = ipController.text;
+                });
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
     );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Optional AppBar with menu icon (skip for now if needed)
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // Space around the edges
+          padding: const EdgeInsets.all(16.0),
           child: Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center everything vertically
-              crossAxisAlignment: CrossAxisAlignment.center, // Align text to the start (left)
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Menu Icon (top-left) - optional, can be part of an AppBar if needed
                 Align(
                   alignment: Alignment.topLeft,
-                  child: Icon(Icons.menu, color: Colors.green),
+                  child: IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.green),
+                    onPressed: _showIpDialog,
+                  ),
                 ),
-                SizedBox(height: 40), // Space below menu icon
-            
-                // Logo Text
-                Text(
+                const SizedBox(height: 40),
+                const Text(
                   'VIGIL',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 12, 16, 12),
+                    color: Color.fromARGB(255, 12, 16, 12),
                   ),
                 ),
-            
-                SizedBox(height: 20),
-            
-                // Subtitle
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'Staff Login',
                   style: TextStyle(
                     fontSize: 24,
@@ -75,18 +159,15 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.black,
                   ),
                 ),
-            
-                SizedBox(height: 40),
-            
-                // Username TextField
-                Text('Username'),
-                SizedBox(height: 8),
+                const SizedBox(height: 40),
+                const Text('Username'),
+                const SizedBox(height: 8),
                 SizedBox(
                   width: 300,
                   child: TextField(
                     onChanged: (value) {
-                      setState((){
-                          username=value;
+                      setState(() {
+                        username = value;
                       });
                     },
                     decoration: InputDecoration(
@@ -100,20 +181,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-            
-                SizedBox(height: 20),
-            
-                // Password TextField
-                Text('Password'),
-                SizedBox(height: 8),
+                const SizedBox(height: 20),
+                const Text('Password'),
+                const SizedBox(height: 8),
                 SizedBox(
                   width: 300,
                   child: TextField(
                     onChanged: (value) {
-                        setState(() {
+                      setState(() {
                         password = value;
-                        });
-                        },
+                      });
+                    },
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Enter your password',
@@ -126,20 +204,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-            
-                SizedBox(height: 30),
-            
-                // Login Button
+                const SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: login ,
+                  onPressed: login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Button color
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Login',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -148,10 +223,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-            
-                Spacer(), // Pushes the bottom bar to the bottom
-            
-                // Bottom Green Bar
+                const Spacer(),
                 Container(
                   height: 20,
                   width: double.infinity,
@@ -164,5 +236,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
 }

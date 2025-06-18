@@ -229,12 +229,9 @@ class GetResponse(BaseModel):
     category: Categories
     price: PriceHistory
 
+@router.get("/get_relations_by_unkown/{id}", response_model=GetResponse)
+def get_relations_by_unkown(
 
-@router.get(
-    "/get_relations_by_unknown/{id}",
-    response_model=List[GetResponse],
-)
-def get_relations_by_unknown(
     id: int,
     session: Session = Depends(get_session),
     gov_session: Session = Depends(get_gov_session),
@@ -255,40 +252,32 @@ def get_relations_by_unknown(
             detail="No relations found for given ID.",
         )
 
-    relations = session.exec(stmt).all()
-    if not relations:
+    product = gov_session.exec(
+        select(GovProducts).where(GovProducts.ProductID == relation.ProductID)  # type: ignore
+    ).first()
+
+    if not product:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="No relations found."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found."
         )
 
-    results: List[GetResponse] = []
-    for rel in relations:
-        gov_prod = gov_session.get(GovProducts, rel.ProductID)
-        if not gov_prod:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"GovProduct {rel.ProductID} not found.",
-            )
+    if not relation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Relation not found."
+        )
 
-        current_price = session.scalar(
+    return GetResponse(
+        shelf=session.get(Shelfs, relation.ShelfID),  # type: ignore
+        screen=session.get(Screens, relation.ScreenID),  # type: ignore
+        product=gov_session.get(GovProducts, relation.ProductID),  # type: ignore
+        category=gov_session.get(Categories, product.CategoryID),  # type: ignore
+        price=session.scalar(
             select(PriceHistory).where(
-                PriceHistory.ProductID == gov_prod.ProductID,
+                PriceHistory.ProductID == product.ProductID,
                 PriceHistory.EndDate.is_(None),  # type: ignore
             )
-        )
-
-        results.append(
-            GetResponse(
-                scanned=scanned,
-                shelf=session.get(Shelfs, rel.ShelfID),  # type: ignore
-                screen=session.get(Screens, rel.ScreenID),  # type: ignore
-                product=gov_prod,  # type: ignore
-                category=gov_session.get(Categories, gov_prod.CategoryID),  # type: ignore
-                price=current_price,  # type: ignore
-            )
-        )
-
-    return results
+        ),
+    )
 
 
 @router.get("/get", response_model=List[Shelfs])
@@ -301,6 +290,17 @@ def get_shelves(
         select(Shelfs).where(Shelfs.ShelfID.not_in(linked_shelf_ids))  # type: ignore
     ).all()
     return shelves
+
+@router.get("/get/{shelf_id}", response_model=Shelfs)
+def get_shelf_by_id(
+    shelf_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"])),
+):
+    shelf = session.get(Shelfs, shelf_id)
+    if not shelf:
+        raise HTTPException(status_code=404, detail="Shelf not found")
+    return shelf
 
 
 @router.delete("/delete_relation/{ProductScreenID}/")

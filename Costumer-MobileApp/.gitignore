@@ -1,0 +1,40 @@
+#lib is ignored in gloabal didnt wana mess with it
+!lib/
+
+# OS junk
+*.log
+*.pyc
+*.swp
+.DS_Store
+
+# IDE junk
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.atom/
+.svn/
+
+# Build outputs
+/build/
+.dart_tool/
+.pub/
+.pub-cache/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# Android artifacts
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+
+# Misc
+migrate_working_dir/
+.history
+.build/
+.buildlog/
+app.*.symbols
+app.*.map.json

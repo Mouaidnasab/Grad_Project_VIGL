@@ -482,6 +482,18 @@ def get_screens(
     ).all()
     return screens
 
+@router.get("/get/{screen_id}", response_model=Screens)
+def get_screen_by_id(
+    screen_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["owner", "manager"])),
+):
+    screen = session.get(Screens, screen_id)
+    if not screen:
+        raise HTTPException(status_code=404, detail="Screen not found")
+    return screen
+
+
 
 @router.get("/active_screens")
 def active_screens(
