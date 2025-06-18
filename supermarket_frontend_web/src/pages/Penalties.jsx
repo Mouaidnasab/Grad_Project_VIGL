@@ -13,10 +13,9 @@ const Penalties = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch penalties from the backend
   const fetchPenalties = async () => {
     try {
-      const response = await api.get("/product/get_penalties");
+      const response = await api.get("/product/get_penalties/");
       const fetched = response.data || [];
       setPenalties(fetched);
       setFilteredPenalties(fetched);
@@ -31,7 +30,6 @@ const Penalties = () => {
     fetchPenalties();
   }, []);
 
-  // Filter by PenaltyID, Reason, or Status
   useEffect(() => {
     if (!searchTerm) {
       setFilteredPenalties(penalties);
@@ -52,14 +50,12 @@ const Penalties = () => {
     setCurrentPage(1);
   }, [searchTerm, penalties]);
 
-  // Pagination calculations
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentItems = filteredPenalties.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(filteredPenalties.length / itemsPerPage);
 
-  const goToPrev = () =>
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const goToPrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const goToNext = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
@@ -70,7 +66,8 @@ const Penalties = () => {
       <div className="manage-container">
         <header className="manage-header">
           <h1 className="borderh1">
-            <i className="fas fa-exclamation-circle header-icon"></i> Manage Penalties
+            <i className="fas fa-exclamation-circle header-icon"></i> Manage
+            Penalties
           </h1>
         </header>
 
@@ -103,10 +100,14 @@ const Penalties = () => {
                   {currentItems.length > 0 ? (
                     currentItems.map((penalty) => {
                       const issuedDate = penalty.IssuedDate
-                        ? new Date(penalty.IssuedDate).toLocaleDateString("en-GB")
+                        ? new Date(penalty.IssuedDate).toLocaleDateString(
+                            "en-GB"
+                          )
                         : "N/A";
                       const lastPayment = penalty.LastPaymentDate
-                        ? new Date(penalty.LastPaymentDate).toLocaleDateString("en-GB")
+                        ? new Date(penalty.LastPaymentDate).toLocaleDateString(
+                            "en-GB"
+                          )
                         : "N/A";
 
                       return (
@@ -121,7 +122,9 @@ const Penalties = () => {
                               : penalty.Amount}
                           </td>
                           <td data-label="Reason">{penalty.Reason || "N/A"}</td>
-                          <td data-label="Product ID">{penalty.ProductID || "N/A"}</td>
+                          <td data-label="Product ID">
+                            {penalty.ProductID || "N/A"}
+                          </td>
 
                           <td data-label="Status">{penalty.Status || "N/A"}</td>
                         </tr>
@@ -155,17 +158,18 @@ const Penalties = () => {
             </div>
           )}
         </div>
-          <div className="section4 m-5">
-            <div className="alert alert-warning d-flex align-items-center shadow-sm rounded">
-              <i className="fas fa-info-circle fa-2x me-3"></i>
-              <div>
-                <p className="mb-0 fw-medium">
-                  Please contact responsible government staff to pay the penalties.
-                </p>
-              </div>
+        <div className="section4 m-5">
+          <div className="alert alert-warning d-flex align-items-center shadow-sm rounded">
+            <i className="fas fa-info-circle fa-2x me-3"></i>
+            <div>
+              <p className="mb-0 fw-medium">
+                Please contact responsible government staff to pay the
+                penalties.
+              </p>
             </div>
           </div>
         </div>
+      </div>
 
       <Footer />
     </>

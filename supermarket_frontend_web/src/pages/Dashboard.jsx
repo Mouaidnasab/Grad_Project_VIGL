@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Line } from 'react-chartjs-2';
+import React, { useState, useEffect, useRef } from "react";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   LineElement,
@@ -9,15 +9,15 @@ import {
   Tooltip,
   Legend,
   CategoryScale,
-} from 'chart.js';
-import '../Css/Dashboard.css';
-import { Link } from 'react-router-dom';
-import BootstrapNavbar from '../component/BootstrapNavbar';
-import certified from '../images/certified.png';
-import squareImage from '../images/preview.webp';
-import iso from '../images/iso-certification-gold-stamp-luxury-free-vector-removebg-preview (1).png';
-import seaWaveSticker from '../images/sea-wave-sticker.png';
-import api from '../Api.js'; // for backend calls
+} from "chart.js";
+import "../Css/Dashboard.css";
+import { Link } from "react-router-dom";
+import BootstrapNavbar from "../component/BootstrapNavbar";
+import certified from "../images/certified.png";
+import squareImage from "../images/preview.webp";
+import iso from "../images/iso-certification-gold-stamp-luxury-free-vector-removebg-preview (1).png";
+import seaWaveSticker from "../images/sea-wave-sticker.png";
+import api from "../Api.js"; // for backend calls
 
 ChartJS.register(
   LineElement,
@@ -31,21 +31,21 @@ ChartJS.register(
 
 // Sample graph data moved outside of the component scope
 const graphSampleData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   datasets: [
     {
-      label: 'This Month',
+      label: "This Month",
       data: [5000, 15000, 10000, 20000, 15000, 25000],
-      borderColor: '#3B82F6',
+      borderColor: "#3B82F6",
       borderWidth: 2,
       fill: true,
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      backgroundColor: "rgba(59, 130, 246, 0.1)",
       tension: 0.4,
     },
     {
-      label: 'Last Month',
+      label: "Last Month",
       data: [7000, 12000, 8000, 18000, 14000, 22000],
-      borderColor: '#EF4444',
+      borderColor: "#EF4444",
       borderWidth: 2,
       borderDash: [5, 5],
       fill: false,
@@ -136,10 +136,10 @@ const PenaltiesAndSales = ({ penalties }) => {
     plugins: {
       legend: {
         display: true,
-        position: 'bottom',
+        position: "bottom",
         labels: {
           usePointStyle: true,
-          pointStyle: 'circle',
+          pointStyle: "circle",
         },
       },
       tooltip: {
@@ -211,7 +211,7 @@ const PenaltiesAndSales = ({ penalties }) => {
           </div>
         </div>
         <p className="sales-amount">$4,509</p>
-        <div className="sales-chart" style={{ height: '250px' }}>
+        <div className="sales-chart" style={{ height: "250px" }}>
           <Line data={graphSampleData} options={chartOptions} />
         </div>
       </div>
@@ -234,11 +234,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
-        const response = await api.get('/product/get_penalties');
-        console.log('Fetched Penalties:', response.data);
+        const response = await api.get("/product/get_penalties/");
+        console.log("Fetched Penalties:", response.data);
         setPenalties(response.data);
       } catch (error) {
-        console.error('Error fetching penalties:', error);
+        console.error("Error fetching penalties:", error);
       }
     };
     fetchPenalties();
@@ -248,13 +248,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchScreens = async () => {
       try {
-        const response = await api.get('/screen/active_screens');
+        const response = await api.get("/screen/active_screens/");
         // Assuming response.data has the shape: { active: [...], available: [...] }
         const { active, available } = response.data;
         setActiveCount(Array.isArray(active) ? active.length : 0);
         setAvailableCount(Array.isArray(available) ? available.length : 0);
       } catch (error) {
-        console.error('Error fetching screens:', error);
+        console.error("Error fetching screens:", error);
       }
     };
     fetchScreens();
@@ -277,17 +277,17 @@ const Dashboard = () => {
     };
 
     checkOverlap();
-    window.addEventListener('resize', checkOverlap);
-    window.addEventListener('scroll', checkOverlap);
+    window.addEventListener("resize", checkOverlap);
+    window.addEventListener("scroll", checkOverlap);
     return () => {
-      window.removeEventListener('resize', checkOverlap);
-      window.removeEventListener('scroll', checkOverlap);
+      window.removeEventListener("resize", checkOverlap);
+      window.removeEventListener("scroll", checkOverlap);
     };
   }, []);
 
   useEffect(() => {
     if (dashboardRef.current) {
-      dashboardRef.current.style.position = 'relative';
+      dashboardRef.current.style.position = "relative";
     }
   }, []);
 
@@ -301,7 +301,10 @@ const Dashboard = () => {
           <img src={squareImage} alt="Preview" className="square-image" />
         </div>
         <div className="right-column" ref={statsRef} style={{ zIndex: 2 }}>
-          <ScreenStats activeCount={activeCount} availableCount={availableCount} />
+          <ScreenStats
+            activeCount={activeCount}
+            availableCount={availableCount}
+          />
           <PenaltiesAndSales penalties={penalties} />
         </div>
       </div>
@@ -312,13 +315,14 @@ const Dashboard = () => {
         style={{
           zIndex: 1,
           ...(window.innerWidth < 768 && {
-            width: '300px',
+            width: "300px",
             opacity: 0.4,
           }),
-          ...(window.innerWidth >= 768 && window.innerWidth < 992 && {
-            width: '400px',
-            opacity: 0.5,
-          }),
+          ...(window.innerWidth >= 768 &&
+            window.innerWidth < 992 && {
+              width: "400px",
+              opacity: 0.5,
+            }),
         }}
       >
         <img

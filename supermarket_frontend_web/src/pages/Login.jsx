@@ -1,20 +1,20 @@
 // src/pages/LoginPage.jsx
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../Api.js';
-import '../Css/Admintry.css';
-import welcomeImage from '../images/welcome.png';
-import VIGLLogo from '../images/VIGL.png';
-import seaWaveSticker from '../images/sea-wave-sticker.png';
-import Footer from '../component/footerInit.jsx';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../Api.js";
+import "../Css/Admintry.css";
+import welcomeImage from "../images/welcome.png";
+import VIGLLogo from "../images/VIGL.png";
+import seaWaveSticker from "../images/sea-wave-sticker.png";
+import Footer from "../component/footerInit.jsx";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [firstLogin, setFirstLogin] = useState(true);
@@ -22,46 +22,46 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const stickerRef = useRef(null);
   const [stickerDimensions, setStickerDimensions] = useState({
-    width: '700px',
+    width: "700px",
     opacity: 1,
   });
 
-  // Adjust sticker size/opactiy on resize
   useEffect(() => {
     const handleResize = () => {
       const windowWidth = window.innerWidth;
       if (windowWidth < 768) {
-        setStickerDimensions({ width: '300px', opacity: 0.4 });
+        setStickerDimensions({ width: "300px", opacity: 0.4 });
       } else if (windowWidth >= 768 && windowWidth < 992) {
-        setStickerDimensions({ width: '500px', opacity: 0.5 });
+        setStickerDimensions({ width: "500px", opacity: 0.5 });
       } else {
-        setStickerDimensions({ width: '700px', opacity: 1 });
+        setStickerDimensions({ width: "700px", opacity: 1 });
       }
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Redirect to registration if no owner exists
   useEffect(() => {
     const checkFirstLogin = async () => {
       try {
-        const response = await api.get('/users/is_first_login');
+        const response = await api.get("/users/is_first_login/");
         if (response.data) {
           setFirstLogin(true);
-          console.log('First login:', response.data);
-          console.log('Redirecting to registration...', firstLogin);
-          }
+        } else {
+          setFirstLogin(false);
+          console.log("Fiddsrst login:", response.data);
+          console.log("Redirecting to dashboard...", firstLogin);
+        }
       } catch (err) {
         // If server unreachable or other error, display generic message
         if (!err.response) {
-          console.error('Server unreachable:', err);
-          setError('The server is currently down. Please try again later.');
+          console.error("Server unreachable:", err);
+          setError("The server is currently down. Please try again later.");
         } else {
-          console.error('Error checking owner status:', err);
-          setError('An unexpected error occurred while checking owner status.');
+          console.error("Error checking owner status:", err);
+          setError("An unexpected error occurred while checking owner status.");
         }
       }
     };
@@ -69,13 +69,13 @@ const LoginPage = () => {
   }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setStatus('submitting');
+    setError("");
+    setStatus("submitting");
     setIsLoading(true);
 
     const loginPayload = new URLSearchParams({
@@ -84,30 +84,32 @@ const LoginPage = () => {
     });
 
     try {
-      const response = await api.post('/user_auth/token', loginPayload, {
+      const response = await api.post("/user_auth/token/", loginPayload, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       });
 
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
 
-      setStatus('success');
+      setStatus("success");
       if (firstLogin) {
-        console.log('Redirecting to registration...');
-        navigate('/add-staff');
+        console.log("Redirecting to registration...");
+        navigate("/add-staff");
       } else {
-        console.log('Redirecting to dashboard...');
-        navigate('/');
+        console.log("Redirecting to dashboard...");
+        navigate("/");
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setStatus('error');
+      console.error("Login error:", err);
+      setStatus("error");
       if (err.response && err.response.data && err.response.data.detail) {
         setError(err.response.data.detail);
       } else {
-        setError(err.message || 'An unexpected error occurred. Please try again.');
+        setError(
+          err.message || "An unexpected error occurred. Please try again."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -117,13 +119,8 @@ const LoginPage = () => {
   return (
     <div className="login-page admin-registration-page">
       <div className="split-container">
-        {/* Left: Logo + Sticker */}
         <div className="image-side">
-          <img
-            src={VIGLLogo}
-            alt="VIGL Logo"
-            className="login-side-image"
-          />
+          <img src={VIGLLogo} alt="VIGL Logo" className="login-side-image" />
           <div
             className="sea-wave-sticker-container"
             ref={stickerRef}
@@ -141,14 +138,9 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Right: Login Form */}
         <div className="form-container">
           <div className="image-container">
-            <img
-              src={welcomeImage}
-              alt="Welcome"
-              className="header-image"
-            />
+            <img src={welcomeImage} alt="Welcome" className="header-image" />
           </div>
           <h1>Login</h1>
 
@@ -180,19 +172,15 @@ const LoginPage = () => {
             </div>
 
             {error && <div className="error-message">{error}</div>}
-            {status === 'success' && (
+            {status === "success" && (
               <div className="success-message">
                 Login successful! Redirecting...
               </div>
             )}
 
             <div className="button-wrapper">
-              <button
-                type="submit"
-                className="submit-btn"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Logging in...' : 'Login'}
+              <button type="submit" className="submit-btn" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Login"}
               </button>
             </div>
           </form>

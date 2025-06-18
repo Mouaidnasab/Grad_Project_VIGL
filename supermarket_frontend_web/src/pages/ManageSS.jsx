@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "../Css/ManageProducts.css";
-import BootstrapNavbar from '../component/BootstrapNavbar';
-import Footer from '../component/footerInit.jsx';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import api from '../Api.js';
+import BootstrapNavbar from "../component/BootstrapNavbar";
+import Footer from "../component/footerInit.jsx";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import api from "../Api.js";
 import { Link } from "react-router-dom";
 
 const Manage = () => {
@@ -15,7 +15,8 @@ const Manage = () => {
   const [relations, setRelations] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [screens, setScreens] = useState([]);
-  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
+  const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] =
+    useState(false);
   const [relationToDelete, setRelationToDelete] = useState(null);
   const [editingRelationId, setEditingRelationId] = useState(null);
   const [editedScreenId, setEditedScreenId] = useState("");
@@ -28,28 +29,28 @@ const Manage = () => {
 
   const fetchShelves = async () => {
     try {
-      const response = await api.get('/shelf/get');
+      const response = await api.get("/shelf/get/");
       setShelves(response.data);
     } catch (error) {
-      console.error('Error fetching shelves:', error);
+      console.error("Error fetching shelves:", error);
     }
   };
 
   const fetchScreens = async () => {
     try {
-      const response = await api.get('/screen/get');
+      const response = await api.get("/screen/get/");
       setScreens(response.data);
     } catch (error) {
-      console.error('Error fetching screens:', error);
+      console.error("Error fetching screens:", error);
     }
   };
 
   const fetchRelations = async () => {
     try {
-      const response = await api.get('/shelf/get_relations');
+      const response = await api.get("/shelf/get_relations/");
       setRelations(response.data);
     } catch (error) {
-      console.error('Error fetching relations:', error);
+      console.error("Error fetching relations:", error);
     }
   };
 
@@ -66,24 +67,24 @@ const Manage = () => {
       alert("Shelf Barcode must be a valid number.");
       return;
     }
-    if (shelves.some(s => s.ShelfID === barcode)) {
+    if (shelves.some((s) => s.ShelfID === barcode)) {
       alert(`Shelf with Barcode ${barcode} already exists.`);
       return;
     }
 
     try {
-      await api.post('/shelf/add', {
+      await api.post("/shelf/add/", {
         ShelfID: barcode,
         Isle: isle,
         Floor: floor,
         Section: section,
-        Description: description
+        Description: description,
       });
       await fetchShelves();
       form.reset();
       alert("Shelf added successfully!");
     } catch (error) {
-      console.error('Error adding shelf:', error);
+      console.error("Error adding shelf:", error);
       alert("Failed to add shelf.");
     }
   };
@@ -99,26 +100,30 @@ const Manage = () => {
       alert("Screen Barcode must be a valid number.");
       return;
     }
-    if (screens.some(s => s.ScreenID === barcode)) {
+    if (screens.some((s) => s.ScreenID === barcode)) {
       alert(`Screen with Barcode ${barcode} already exists.`);
       return;
     }
-    if (!/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
+    if (
+      !/^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+        ip
+      )
+    ) {
       alert("Please enter a valid IP address.");
       return;
     }
 
     try {
-      await api.post('/screen/add', {
+      await api.post("/screen/add/", {
         ScreenID: barcode,
         IP: ip,
-        Description: description
+        Description: description,
       });
       await fetchScreens();
       form.reset();
       alert("Screen added successfully!");
     } catch (error) {
-      console.error('Error adding screen:', error);
+      console.error("Error adding screen:", error);
       alert("Failed to add screen.");
     }
   };
@@ -138,22 +143,26 @@ const Manage = () => {
     const shelfIdInt = parseInt(selectedShelf);
     const screenIdInt = parseInt(selectedScreen);
 
-    if (relations.some(rel => rel.ShelfID === shelfIdInt && rel.ScreenID === screenIdInt)) {
+    if (
+      relations.some(
+        (rel) => rel.ShelfID === shelfIdInt && rel.ScreenID === screenIdInt
+      )
+    ) {
       alert("This shelf is already related to this screen status.");
       return;
     }
 
     try {
-      await api.post('/shelf/create_relation_screen', {
+      await api.post("/shelf/create_relation_screen/", {
         shelf_id: shelfIdInt,
-        screen_id: screenIdInt
+        screen_id: screenIdInt,
       });
       await fetchRelations();
       setSelectedShelf("");
       setSelectedScreen("");
       alert("Relation created successfully!");
     } catch (error) {
-      console.error('Error creating relation:', error);
+      console.error("Error creating relation:", error);
       alert("Failed to create relation.");
     }
   };
@@ -164,40 +173,59 @@ const Manage = () => {
   };
 
   const handleUpdateRelation = async (id) => {
-    const relationToUpdate = relations.find(rel => rel.ProductScreenID === id);
+    const relationToUpdate = relations.find(
+      (rel) => rel.ProductScreenID === id
+    );
     if (!relationToUpdate) return;
 
-    if (editedScreenId === null || editedScreenId === undefined || editedScreenId === "") {
-      alert("A screen selection (including 'Unassigned') is required to update the relation.");
+    if (
+      editedScreenId === null ||
+      editedScreenId === undefined ||
+      editedScreenId === ""
+    ) {
+      alert(
+        "A screen selection (including 'Unassigned') is required to update the relation."
+      );
       return;
     }
 
     const newScreenIdInt = parseInt(editedScreenId);
     if (isNaN(newScreenIdInt)) {
-      alert("Invalid Screen ID format. Please select a valid screen or 'Unassigned'.");
+      alert(
+        "Invalid Screen ID format. Please select a valid screen or 'Unassigned'."
+      );
       return;
     }
 
-    if (relations.some(rel =>
-      rel.ShelfID === relationToUpdate.ShelfID &&
-      rel.ScreenID === newScreenIdInt &&
-      rel.ProductScreenID !== id
-    )) {
-      alert(`Shelf ${relationToUpdate.ShelfID} is already actively related to Screen ${newScreenIdInt === 0 ? 'Unassigned' : newScreenIdInt} via a different record.`);
+    if (
+      relations.some(
+        (rel) =>
+          rel.ShelfID === relationToUpdate.ShelfID &&
+          rel.ScreenID === newScreenIdInt &&
+          rel.ProductScreenID !== id
+      )
+    ) {
+      alert(
+        `Shelf ${
+          relationToUpdate.ShelfID
+        } is already actively related to Screen ${
+          newScreenIdInt === 0 ? "Unassigned" : newScreenIdInt
+        } via a different record.`
+      );
       return;
     }
 
     try {
-      await api.put('/shelf/update_relation_screen', {
+      await api.put("/shelf/update_relation_screen/", {
         shelf_id: relationToUpdate.ShelfID,
-        screen_id: newScreenIdInt
+        screen_id: newScreenIdInt,
       });
       await fetchRelations();
       setEditingRelationId(null);
       setEditedScreenId("");
       alert("Relation updated successfully!");
     } catch (error) {
-      console.error('Error updating relation:', error);
+      console.error("Error updating relation:", error);
       alert("Failed to update relation.");
     }
   };
@@ -211,12 +239,14 @@ const Manage = () => {
     if (!relationToDelete) return;
     try {
       await api.delete(`/shelf/delete_relation/${relationToDelete}/`);
-      setRelations(prev => prev.filter(rel => rel.ProductScreenID !== relationToDelete));
+      setRelations((prev) =>
+        prev.filter((rel) => rel.ProductScreenID !== relationToDelete)
+      );
       setIsDeleteConfirmationVisible(false);
       setRelationToDelete(null);
       alert("Relation deleted successfully!");
     } catch (error) {
-      console.error('Error deleting relation:', error);
+      console.error("Error deleting relation:", error);
       alert("Failed to delete relation.");
     }
   };
@@ -237,11 +267,11 @@ const Manage = () => {
   };
 
   const toggleShelfDropdown = () => {
-    setIsShelfDropdownOpen(prev => !prev);
+    setIsShelfDropdownOpen((prev) => !prev);
   };
 
   const toggleScreenDropdown = () => {
-    setIsScreenDropdownOpen(prev => !prev);
+    setIsScreenDropdownOpen((prev) => !prev);
   };
 
   const handleTabClick = (tab) => {
@@ -282,14 +312,39 @@ const Manage = () => {
             <>
               <div className="section1">
                 <h2>
-                  <i className="fas fa-boxes-stacked header-icon"></i> Add New Shelf
+                  <i className="fas fa-boxes-stacked header-icon"></i> Add New
+                  Shelf
                 </h2>
                 <form onSubmit={handleAddShelf}>
-                  <input type="text" name="barcode" placeholder="Enter Shelf Barcode" required />
-                  <input type="text" name="isle" placeholder="Enter Shelf Isle" required />
-                  <input type="text" name="floor" placeholder="Enter Shelf Floor" required />
-                  <input type="text" name="section" placeholder="Enter Shelf Section" required />
-                  <textarea className="custom-textarea1" name="description" placeholder="Enter Description"></textarea>
+                  <input
+                    type="text"
+                    name="barcode"
+                    placeholder="Enter Shelf Barcode"
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="isle"
+                    placeholder="Enter Shelf Isle"
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="floor"
+                    placeholder="Enter Shelf Floor"
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="section"
+                    placeholder="Enter Shelf Section"
+                    required
+                  />
+                  <textarea
+                    className="custom-textarea1"
+                    name="description"
+                    placeholder="Enter Description"
+                  ></textarea>
                   <button type="submit">Add Shelf</button>
                 </form>
               </div>
@@ -299,15 +354,40 @@ const Manage = () => {
                   <i className="fas fa-display header-icon"></i> Add New Screen
                 </h2>
                 <form onSubmit={handleAddScreen}>
-                  <input type="text" name="barcode" placeholder="Enter Screen Barcode" required />
-                  <input type="text" name="ip" placeholder="Enter Screen IP" required />
-                  <textarea className="custom-textarea-screen" name="description" placeholder="Enter Description"></textarea>
+                  <input
+                    type="text"
+                    name="barcode"
+                    placeholder="Enter Screen Barcode"
+                    required
+                  />
+                  <input
+                    type="text"
+                    name="ip"
+                    placeholder="Enter Screen IP"
+                    required
+                  />
+                  <textarea
+                    className="custom-textarea-screen"
+                    name="description"
+                    placeholder="Enter Description"
+                  ></textarea>
                   <button type="submit">Add Screen</button>
-                  <Link to="/screen-template" style={{ textDecoration: 'none'}} ><button  style={{ width: '100%', color: 'black', backgroundColor: 'white' }}>Create Screen Template</button></Link>
-
+                  <Link
+                    to="/screen-template"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <button
+                      style={{
+                        width: "100%",
+                        color: "black",
+                        backgroundColor: "white",
+                      }}
+                    >
+                      Create Screen Template
+                    </button>
+                  </Link>
                 </form>
               </div>
-
             </>
           )}
 
@@ -319,10 +399,20 @@ const Manage = () => {
               <form onSubmit={handleCreateRelation}>
                 <div className="dropdown-container2">
                   <label htmlFor="shelf-select">Select Shelf</label>
-                  <div className={`custom-dropdown2 ${isShelfDropdownOpen ? 'open2' : ''}`} id="shelf-select">
-                    <div className="dropdown-selected2" onClick={toggleShelfDropdown}>
+                  <div
+                    className={`custom-dropdown2 ${
+                      isShelfDropdownOpen ? "open2" : ""
+                    }`}
+                    id="shelf-select"
+                  >
+                    <div
+                      className="dropdown-selected2"
+                      onClick={toggleShelfDropdown}
+                    >
                       {selectedShelf
-                        ? (shelves.find(s => s.ShelfID === parseInt(selectedShelf))?.Description || selectedShelf)
+                        ? shelves.find(
+                            (s) => s.ShelfID === parseInt(selectedShelf)
+                          )?.Description || selectedShelf
                         : "Select Shelf"}
                     </div>
                     {isShelfDropdownOpen && (
@@ -343,17 +433,30 @@ const Manage = () => {
 
                 <div className="dropdown-container2">
                   <label htmlFor="screen-select">Select Screen</label>
-                  <div className={`custom-dropdown2 ${isScreenDropdownOpen ? 'open2' : ''}`} id="screen-select">
-                    <div className="dropdown-selected2" onClick={toggleScreenDropdown}>
+                  <div
+                    className={`custom-dropdown2 ${
+                      isScreenDropdownOpen ? "open2" : ""
+                    }`}
+                    id="screen-select"
+                  >
+                    <div
+                      className="dropdown-selected2"
+                      onClick={toggleScreenDropdown}
+                    >
                       {selectedScreen
-                        ? (selectedScreen === "0"
-                            ? "Unassigned"
-                            : (screens.find(s => s.ScreenID === parseInt(selectedScreen))?.IP || selectedScreen))
+                        ? selectedScreen === "0"
+                          ? "Unassigned"
+                          : screens.find(
+                              (s) => s.ScreenID === parseInt(selectedScreen)
+                            )?.IP || selectedScreen
                         : "Select Screen"}
                     </div>
                     {isScreenDropdownOpen && (
                       <div className="dropdown-options2">
-                        <div className="dropdown-option2" onClick={() => handleSelectScreen("0")}>
+                        <div
+                          className="dropdown-option2"
+                          onClick={() => handleSelectScreen("0")}
+                        >
                           Unassigned
                         </div>
                         {screens.map((screen) => (
@@ -370,7 +473,9 @@ const Manage = () => {
                   </div>
                 </div>
 
-                <button type="submit" className="create-relation-button2">Create Relation</button>
+                <button type="submit" className="create-relation-button2">
+                  Create Relation
+                </button>
               </form>
             </div>
           )}
@@ -394,29 +499,34 @@ const Manage = () => {
                   <tbody>
                     {relations.map((relation) => (
                       <tr key={relation.ProductScreenID}>
-                        <td data-label="Relation ID">{relation.ProductScreenID}</td>
-                        <td data-label="Shelf ID">
-                          {relation.ShelfID}
+                        <td data-label="Relation ID">
+                          {relation.ProductScreenID}
                         </td>
+                        <td data-label="Shelf ID">{relation.ShelfID}</td>
                         <td data-label="Screen ID">
                           {editingRelationId === relation.ProductScreenID ? (
                             <div className="dropdown-container3">
                               <select
                                 value={editedScreenId}
-                                onChange={(e) => setEditedScreenId(e.target.value)}
+                                onChange={(e) =>
+                                  setEditedScreenId(e.target.value)
+                                }
                               >
                                 <option value="0">Unassigned</option>
                                 {screens.map((screen) => (
-                                  <option key={screen.ScreenID} value={String(screen.ScreenID)}>
+                                  <option
+                                    key={screen.ScreenID}
+                                    value={String(screen.ScreenID)}
+                                  >
                                     {screen.ScreenID} - {screen.IP}
                                   </option>
                                 ))}
                               </select>
                             </div>
+                          ) : relation.ScreenID === 0 ? (
+                            "Unassigned"
                           ) : (
-                            relation.ScreenID === 0
-                              ? "Unassigned"
-                              : `${relation.ScreenID}`
+                            `${relation.ScreenID}`
                           )}
                         </td>
                         <td data-label="Last Updated">
@@ -427,14 +537,21 @@ const Manage = () => {
                             <>
                               <button
                                 className="save-button3"
-                                onClick={() => handleUpdateRelation(relation.ProductScreenID)}
-                                disabled={editedScreenId === String(relation.ScreenID)}
+                                onClick={() =>
+                                  handleUpdateRelation(relation.ProductScreenID)
+                                }
+                                disabled={
+                                  editedScreenId === String(relation.ScreenID)
+                                }
                               >
                                 <i className="fas fa-save"></i> Save
                               </button>
                               <button
                                 className="delete-button"
-                                onClick={() => { setEditingRelationId(null); setEditedScreenId(""); }}
+                                onClick={() => {
+                                  setEditingRelationId(null);
+                                  setEditedScreenId("");
+                                }}
                               >
                                 <i className="fas fa-times"></i> Cancel
                               </button>
@@ -443,13 +560,22 @@ const Manage = () => {
                             <>
                               <button
                                 className="edit-button3"
-                                onClick={() => handleEditRelation(relation.ProductScreenID, relation.ScreenID)}
+                                onClick={() =>
+                                  handleEditRelation(
+                                    relation.ProductScreenID,
+                                    relation.ScreenID
+                                  )
+                                }
                               >
                                 <i className="fas fa-pen"></i> Edit
                               </button>
                               <button
                                 className="delete-button"
-                                onClick={() => handleShowDeleteConfirmation(relation.ProductScreenID)}
+                                onClick={() =>
+                                  handleShowDeleteConfirmation(
+                                    relation.ProductScreenID
+                                  )
+                                }
                               >
                                 <i className="fas fa-trash"></i> Delete
                               </button>
@@ -464,8 +590,6 @@ const Manage = () => {
             </div>
           )}
         </div>
-
-
 
         {isDeleteConfirmationVisible && (
           <div className="delete-confirmation-modal modal-overlay">

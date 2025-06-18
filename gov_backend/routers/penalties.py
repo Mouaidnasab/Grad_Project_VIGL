@@ -20,14 +20,14 @@ def get_session():
         yield session
 
 
-@router.get("/get", response_model=List[Penalties])
+@router.get("/get/", response_model=List[Penalties])
 def get_penalties(
     session: Session = Depends(get_session),
 ):
     return session.scalars(select(Penalties)).all()
 
 
-@router.get("/get/{supermarket_id}", response_model=List[Penalties])
+@router.get("/get/{supermarket_id}/", response_model=List[Penalties])
 def get_penalty(
     supermarket_id: int,
     session: Session = Depends(get_session),
@@ -44,7 +44,7 @@ def get_penalty(
     return penalties
 
 
-@router.post("/add")
+@router.post("/add/")
 def add_manual_penalty(
     penalty: Penalties,
     session: Session = Depends(get_session),
@@ -68,7 +68,7 @@ def add_manual_penalty(
     )
 
 
-@router.put("/update_status/{penalty_id}/{new_status}")
+@router.put("/update_status/{penalty_id}/{new_status}/")
 def update_penalty(
     penalty_id: int,
     new_status: str,

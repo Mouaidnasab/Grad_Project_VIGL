@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import api from "../Api.js";
-import "../Css/AddStaff.css"; 
-import BootstrapNavbar from '../component/BootstrapNavbar';
-import Footer from '../component/footerInit.jsx';
+import "../Css/AddStaff.css";
+import BootstrapNavbar from "../component/BootstrapNavbar";
+import Footer from "../component/footerInit.jsx";
 import { useNavigate } from "react-router-dom";
-import seaWaveSticker from '../images/sea-wave-sticker.png';
-import portraitImage from '../images/addstaff.png';
+import seaWaveSticker from "../images/sea-wave-sticker.png";
+import portraitImage from "../images/addstaff.png";
 
 const StaffAddPage = () => {
   const navigate = useNavigate();
@@ -22,15 +22,15 @@ const StaffAddPage = () => {
 
   useEffect(() => {
     fetchStaffList();
-    document.body.classList.add('add-staff-body-styling');
+    document.body.classList.add("add-staff-body-styling");
     return () => {
-      document.body.classList.remove('add-staff-body-styling'); 
+      document.body.classList.remove("add-staff-body-styling");
     };
   }, []);
 
   const fetchStaffList = async () => {
     try {
-      const response = await api.get("/users/list");
+      const response = await api.get("/users/list/");
       setStaffList(response.data);
     } catch (error) {
       console.error("Error fetching staff list:", error);
@@ -47,7 +47,7 @@ const StaffAddPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post("/users/create", {
+      const response = await api.post("/users/create/", {
         Username: formData.Username,
         Email: formData.Email,
         FirstName: formData.FirstName,
@@ -75,20 +75,26 @@ const StaffAddPage = () => {
     navigate("/");
   };
 
-  const portraitImageSrc = portraitImage || 'https://placehold.co/320x700/EFEFEF/333?text=Portrait';
-  const seaWaveStickerSrc = seaWaveSticker || 'https://placehold.co/600x150/007bff/FFFFFF?text=Wave';
+  const portraitImageSrc =
+    portraitImage || "https://placehold.co/320x700/EFEFEF/333?text=Portrait";
+  const seaWaveStickerSrc =
+    seaWaveSticker || "https://placehold.co/600x150/007bff/FFFFFF?text=Wave";
 
   return (
     <>
       <BootstrapNavbar />
 
-      <div className="add-staff-page-main-wrapper"> 
-        <div className="add-staff-content-area"> 
+      <div className="add-staff-page-main-wrapper">
+        <div className="add-staff-content-area">
           <div className="portrait-image-container">
             <img
               src={portraitImageSrc}
               alt="Staff Portrait"
-              onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/320x700/EFEFEF/333?text=Img+Error'; }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src =
+                  "https://placehold.co/320x700/EFEFEF/333?text=Img+Error";
+              }}
             />
           </div>
           <div className="form-container2">
@@ -101,7 +107,7 @@ const StaffAddPage = () => {
                   <input
                     type="text"
                     name="FirstName"
-                    id="FirstName" 
+                    id="FirstName"
                     value={formData.FirstName}
                     onChange={handleChange}
                     placeholder="First Name"
@@ -128,7 +134,7 @@ const StaffAddPage = () => {
                 <input
                   type="text"
                   name="Username"
-                  id="Username" 
+                  id="Username"
                   value={formData.Username}
                   onChange={handleChange}
                   placeholder="Username"
@@ -142,7 +148,7 @@ const StaffAddPage = () => {
                 <input
                   type="email"
                   name="Email"
-                  id="Email" 
+                  id="Email"
                   value={formData.Email}
                   onChange={handleChange}
                   placeholder="Email"
@@ -156,7 +162,7 @@ const StaffAddPage = () => {
                 <input
                   type="password"
                   name="Password"
-                  id="Password" 
+                  id="Password"
                   value={formData.Password}
                   onChange={handleChange}
                   placeholder="Password"
@@ -193,9 +199,7 @@ const StaffAddPage = () => {
 
           <div className="table-container1">
             <h2>Staff List</h2>
-            <div
-              className="table-wrapper"
-            >
+            <div className="table-wrapper">
               <table>
                 <thead>
                   <tr>
@@ -236,14 +240,18 @@ const StaffAddPage = () => {
               </button>
             </div>
           </div>
-        </div> 
+        </div>
 
         <div className="sea-wave-sticker-container">
           <img
             src={seaWaveStickerSrc}
             alt="Sea Wave Sticker"
             className="sea-wave-sticker"
-            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x150/007bff/FFFFFF?text=Wave+Error'; }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src =
+                "https://placehold.co/600x150/007bff/FFFFFF?text=Wave+Error";
+            }}
           />
         </div>
       </div>

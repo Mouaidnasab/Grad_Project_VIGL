@@ -10,7 +10,8 @@ class ProductAccept extends StatefulWidget {
   final int shelfId;
   final int productId;
 
-  const ProductAccept({super.key, required this.shelfId, required this.productId});
+  const ProductAccept(
+      {super.key, required this.shelfId, required this.productId});
 
   @override
   State<ProductAccept> createState() => _ProductAcceptState();
@@ -38,7 +39,8 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/product/get/${widget.productId}');
+      final uri =
+          Uri.parse('http://$baseIp:8000/product/get/${widget.productId}/');
       final headers = await getHeaders(widget.productId);
 
       final response = await http.get(uri, headers: headers);
@@ -47,8 +49,7 @@ class _ProductAcceptState extends State<ProductAccept> {
         if (data['Products'] != null && data['Products'].isNotEmpty) {
           final product = data['Products'][0];
           setState(() {
-            productInfo =
-                'Name: ${product['ProductName'] ?? 'Unknown'}, '
+            productInfo = 'Name: ${product['ProductName'] ?? 'Unknown'}, '
                 'Category: ${product['CategoryName'] ?? 'Unknown'}, '
                 'Price: ${product['Price'] ?? 'N/A'}';
           });
@@ -76,14 +77,15 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
+      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}/');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          shelfInfo = 'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
+          shelfInfo =
+              'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
         });
       } else {
         setState(() {
@@ -104,7 +106,8 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/update_relation_product');
+      final uri =
+          Uri.parse('http://$baseIp:8000/shelf/update_relation_product/');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 
@@ -200,7 +203,10 @@ class _ProductAcceptState extends State<ProductAccept> {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withAlpha((0.3 * 255).toInt()),
+            color: Theme.of(context)
+                .colorScheme
+                .secondary
+                .withAlpha((0.3 * 255).toInt()),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Center(

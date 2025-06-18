@@ -32,7 +32,7 @@ export const DetailPage = () => {
     const fetchDetailAndImage = async () => {
       try {
         // 1) fetch the product detail
-        const res = await api.get(`/product/prices/full/${id}`);
+        const res = await api.get(`/product/prices/full/${id}/`);
         const d = res.data;
         const name = d.Product.ProductName;
         const description = d.Product.Description;

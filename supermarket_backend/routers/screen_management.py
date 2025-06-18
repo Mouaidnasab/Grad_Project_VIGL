@@ -311,7 +311,7 @@ def upload_to_esp32(
         print("[upload_to_esp32] ERROR:", e)
 
 
-@router.post("/preview_png")
+@router.post("/preview_png/")
 def preview_png(
     screen_template: ScreenTemplate,
     current_user: User = Depends(get_current_active_user),
@@ -325,7 +325,7 @@ def preview_png(
 
 
 @router.post(
-    "/add_screen_template",
+    "/add_screen_template/",
     response_model=ScreenTemplate,
 )
 def add_screen_template(
@@ -360,7 +360,7 @@ def add_screen_template(
     return screen_template
 
 
-@router.get("/get_screen_templates")
+@router.get("/get_screen_templates/")
 def get_screen_templates():
     json_path = os.path.join(src_directory, "screen_templates.json")
 
@@ -373,7 +373,7 @@ def get_screen_templates():
     return data
 
 
-@router.post("/update_display", response_model=UpdateResponse)
+@router.post("/update_display/", response_model=UpdateResponse)
 def update_screen_display(
     update_request: ScreenUpdateRequest,
     session: Session = Depends(get_session),
@@ -458,7 +458,7 @@ def update_screen_display(
     return UpdateResponse(message="Screen updated successfully.")
 
 
-@router.post("/add", response_model=Screens)
+@router.post("/add/", response_model=Screens)
 def add_screen(
     screen_add: Screens,
     session: Session = Depends(get_session),
@@ -471,7 +471,7 @@ def add_screen(
     return new_screen
 
 
-@router.get("/get", response_model=List[Screens])
+@router.get("/get/", response_model=List[Screens])
 def get_screens(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
@@ -481,6 +481,7 @@ def get_screens(
         select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))  # type: ignore
     ).all()
     return screens
+
 
 @router.get("/get/{screen_id}", response_model=Screens)
 def get_screen_by_id(
@@ -494,8 +495,7 @@ def get_screen_by_id(
     return screen
 
 
-
-@router.get("/active_screens")
+@router.get("/active_screens/")
 def active_screens(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),

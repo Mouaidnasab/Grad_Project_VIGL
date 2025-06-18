@@ -10,7 +10,8 @@ class ScreenAccept extends StatefulWidget {
   final int shelfId;
   final int screenId;
 
-  const ScreenAccept({super.key, required this.shelfId, required this.screenId});
+  const ScreenAccept(
+      {super.key, required this.shelfId, required this.screenId});
 
   @override
   State<ScreenAccept> createState() => _ScreenAcceptState();
@@ -38,7 +39,8 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/screen/get/${widget.screenId}');
+      final uri =
+          Uri.parse('http://$baseIp:8000/screen/get/${widget.screenId}/');
       final headers = await getHeaders(widget.screenId);
 
       final response = await http.get(uri, headers: headers);
@@ -67,14 +69,15 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
+      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}/');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          shelfInfo =   'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
+          shelfInfo =
+              'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
         });
       } else {
         setState(() {
@@ -95,7 +98,8 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/create_relation_screen');
+      final uri =
+          Uri.parse('http://$baseIp:8000/shelf/create_relation_screen/');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 
@@ -191,7 +195,10 @@ class _ScreenAcceptState extends State<ScreenAccept> {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary.withAlpha((0.3 * 255).toInt()),
+            color: Theme.of(context)
+                .colorScheme
+                .secondary
+                .withAlpha((0.3 * 255).toInt()),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Center(

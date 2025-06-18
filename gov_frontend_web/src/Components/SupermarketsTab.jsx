@@ -145,7 +145,7 @@ export default function SupermarketsTab() {
 
   const refreshTable = () => {
     api
-      .get("/supermarket/get")
+      .get("/supermarket/get/")
       .then((res) => {
         setSupermarkets(res.data);
         setCurrentPage(1); // reset to first page on reload
@@ -187,7 +187,7 @@ export default function SupermarketsTab() {
           Password: data.ownerPassword,
         },
       };
-      await api.post("/supermarket/create", payload);
+      await api.post("/supermarket/create/", payload);
       refreshTable();
     } catch (err) {
       console.error(err);
@@ -206,7 +206,7 @@ export default function SupermarketsTab() {
   const handleSubmitEdit = async (upd) => {
     setModalLoading(true);
     try {
-      await api.put("/supermarket/edit", upd);
+      await api.put("/supermarket/edit/", upd);
       setSupermarkets((list) =>
         list.map((s) =>
           s.SupermarketID === upd.SupermarketID ? { ...s, ...upd } : s
@@ -226,7 +226,7 @@ export default function SupermarketsTab() {
   const handleViewProducts = (sm) => {
     setModalLoading(true);
     api
-      .get(`/product/get_from_supermarket/${sm.SupermarketID}`)
+      .get(`/product/get_from_supermarket/${sm.SupermarketID}/`)
       .then((res) => {
         const flat = res.data.Products.map((item) => ({
           id: item.Product.ProductID,
@@ -249,7 +249,7 @@ export default function SupermarketsTab() {
   const handleViewPenalties = (sm) => {
     setModalLoading(true);
     api
-      .get(`/penalty/get/${sm.SupermarketID}`)
+      .get(`/penalty/get/${sm.SupermarketID}/`)
       .then((res) => {
         const flat = res.data.map((item) => ({
           id: item.PenaltyID,

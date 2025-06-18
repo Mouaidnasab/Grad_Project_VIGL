@@ -82,7 +82,7 @@ class GetResponse(BaseModel):
     Products: list[OrganizedProducts]
 
 
-@router.post("/add", response_model=ProductResponse)
+@router.post("/add/", response_model=ProductResponse)
 def add_product(
     product_add: AddRequest,
     session: Session = Depends(get_session),
@@ -148,7 +148,7 @@ def add_product(
     )
 
 
-@router.get("/get", response_model=GetResponse)
+@router.get("/get/", response_model=GetResponse)
 def get_products(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_active_user),
@@ -212,7 +212,7 @@ def get_products(
     return GetResponse(Products=products)
 
 
-@router.get("/get/{product_id}", response_model=GetResponse)
+@router.get("/get/{product_id}/", response_model=GetResponse)
 def get_product_by_id(
     product_id: int,
     session: Session = Depends(get_session),
@@ -266,7 +266,7 @@ def get_product_by_id(
     return GetResponse(Products=[organized])
 
 
-@router.put("/update_price/{product_id}", response_model=ProductResponse)
+@router.put("/update_price/{product_id}/", response_model=ProductResponse)
 def update_product(
     product_id: int,
     new_price: float,
@@ -338,7 +338,7 @@ def update_product(
     )
 
 
-@router.put("/update_discount/{product_id}", response_model=DiscountResponse)
+@router.put("/update_discount/{product_id}/", response_model=DiscountResponse)
 def update_discount(
     product_id: int,
     new_discount: DiscountRequest,
@@ -395,7 +395,7 @@ def update_discount(
     )
 
 
-@router.delete("/delete/{product_id}")
+@router.delete("/delete/{product_id}/")
 def delete_product(
     product_id: int,
     session: Session = Depends(get_session),
@@ -436,7 +436,7 @@ def delete_product(
     }
 
 
-@router.get("/get_penalties", response_model=List[Penalties])
+@router.get("/get_penalties/", response_model=List[Penalties])
 def get_penalties(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),

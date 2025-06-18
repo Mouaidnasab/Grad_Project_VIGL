@@ -193,7 +193,7 @@ export default function ProductsTab() {
   // Handlers for CRUD operations
   const handleAddProduct = async (payload) => {
     try {
-      await api.post("/product/create", {
+      await api.post("/product/create/", {
         Barcode: payload.barcode,
         SuggestedPrice: payload.price,
         Threshold: payload.threshold,
@@ -211,7 +211,7 @@ export default function ProductsTab() {
 
   const handleUpdateProduct = async (upd) => {
     try {
-      await api.put(`/product/update/${upd.id}`, {
+      await api.put(`/product/update/${upd.id}/`, {
         ProductName: upd.name,
         Description: upd.description,
         SuggestedPrice: upd.price,
@@ -240,7 +240,7 @@ export default function ProductsTab() {
     }
     try {
       // create product
-      await api.post("/product/create", {
+      await api.post("/product/create/", {
         Barcode: s.barcode,
         SuggestedPrice: s.price,
         Threshold: s.threshold,

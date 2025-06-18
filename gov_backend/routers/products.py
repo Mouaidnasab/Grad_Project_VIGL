@@ -108,7 +108,7 @@ def create_product(
     }
 
 
-@router.put("/update/{product_id}")
+@router.put("/update/{product_id}/")
 def update_product(
     product_id: int,
     product: UpdateRequest,

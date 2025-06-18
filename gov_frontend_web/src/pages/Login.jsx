@@ -1,47 +1,48 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../Api.js';
-import '../css/Login.css';
-import sideImage from '../images/KKTC2.png';
-import headerLogo from '../images/Govlogo.png';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../Api.js";
+import "../css/Login.css";
+import sideImage from "../images/KKTC2.png";
+import headerLogo from "../images/Govlogo.png";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const stickerRef = useRef(null);
-  const [stickerDimensions, setStickerDimensions] = useState({ width: '700px', opacity: 1 });
+  const [stickerDimensions, setStickerDimensions] = useState({
+    width: "700px",
+    opacity: 1,
+  });
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 768) {
-        setStickerDimensions({ width: '300px', opacity: 0.4 });
+        setStickerDimensions({ width: "300px", opacity: 0.4 });
       } else if (width < 992) {
-        setStickerDimensions({ width: '500px', opacity: 0.5 });
+        setStickerDimensions({ width: "500px", opacity: 0.5 });
       } else {
-        setStickerDimensions({ width: '700px', opacity: 1 });
+        setStickerDimensions({ width: "700px", opacity: 1 });
       }
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  
-
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setStatus('submitting');
+    setError("");
+    setStatus("submitting");
     setIsLoading(true);
 
     const payload = new URLSearchParams({
@@ -50,24 +51,23 @@ const LoginPage = () => {
     });
 
     try {
-      const response = await api.post('/user_auth/token', payload, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      const response = await api.post("/user_auth/token/", payload, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('refresh_token', response.data.refresh_token);
+      localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
 
-      setStatus('success');
+      setStatus("success");
 
-      navigate('/');
-      
+      navigate("/");
     } catch (err) {
-      console.error('Login error:', err);
-      setStatus('error');
+      console.error("Login error:", err);
+      setStatus("error");
       setError(
         err.response?.data?.detail ||
           err.message ||
-          'An unexpected error occurred. Please try again.'
+          "An unexpected error occurred. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -83,7 +83,10 @@ const LoginPage = () => {
             src={sideImage}
             alt="Login Visual"
             className="login-side-image"
-            style={{ width: stickerDimensions.width, opacity: stickerDimensions.opacity }}
+            style={{
+              width: stickerDimensions.width,
+              opacity: stickerDimensions.opacity,
+            }}
           />
         </div>
 
@@ -121,13 +124,15 @@ const LoginPage = () => {
             </div>
 
             {error && <div className="error-message">{error}</div>}
-            {status === 'success' && (
-              <div className="success-message">Login successful! Redirecting...</div>
+            {status === "success" && (
+              <div className="success-message">
+                Login successful! Redirecting...
+              </div>
             )}
 
             <div className="button-wrapper">
               <button type="submit" className="submit-btn" disabled={isLoading}>
-                {isLoading ? 'Logging in...' : 'Login'}
+                {isLoading ? "Logging in..." : "Login"}
               </button>
             </div>
           </form>

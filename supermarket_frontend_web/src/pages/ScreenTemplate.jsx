@@ -150,7 +150,7 @@ const TemplateDesigner = () => {
 
     async function loadTemplatesList() {
       try {
-        const response = await api.get("/screen/get_screen_templates");
+        const response = await api.get("/screen/get_screen_templates/");
         const data = response.data;
 
         templatesCache = data;
@@ -236,7 +236,7 @@ const TemplateDesigner = () => {
       );
 
       api
-        .post("/screen/add_screen_template", {
+        .post("/screen/add_screen_template/", {
           template_name: templateNameInput.value,
           elements,
         })
@@ -449,7 +449,7 @@ const TemplateDesigner = () => {
       };
 
       api
-        .post("/screen/preview_png", payload, { responseType: "blob" })
+        .post("/screen/preview_png/", payload, { responseType: "blob" })
         .then((response) => {
           const blob = response.data;
           previewImg.src = URL.createObjectURL(blob);

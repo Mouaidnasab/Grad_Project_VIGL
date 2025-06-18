@@ -106,7 +106,7 @@ export default function StaffTab() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get("/users/list");
+      const res = await api.get("/users/list/");
       const mapped = res.data.map((u) => ({
         id: u.UserID,
         name: `${u.FirstName} ${u.LastName}`,
@@ -135,7 +135,7 @@ export default function StaffTab() {
     Password,
   }) => {
     try {
-      await api.post("/users/create", {
+      await api.post("/users/create/", {
         Username,
         Email,
         FirstName,
@@ -157,7 +157,7 @@ export default function StaffTab() {
         FirstName,
         LastName,
       };
-      await api.put(`/users/edit/${encodeURIComponent(UserID)}`, payload);
+      await api.put(`/users/edit/${encodeURIComponent(UserID)}/`, payload);
       fetchStaff();
     } catch (e) {
       console.error("Update failed", e);

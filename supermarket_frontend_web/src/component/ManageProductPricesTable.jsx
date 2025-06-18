@@ -1,6 +1,6 @@
 // src/components/ManageProductPricesTable.jsx
 import React, { useState, useEffect } from "react";
-import api from "../Api.js"; 
+import api from "../Api.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "@fortawesome/fontawesome-free/css/all.min.css"; // For icons
@@ -29,7 +29,7 @@ const ManageProductPricesTable = () => {
 
   const fetchProductList = async () => {
     try {
-      const response = await api.get("/product/get");
+      const response = await api.get("/product/get/");
       const fetchedProducts = response.data.Products || [];
       setProductList(fetchedProducts);
       initializeFormData(fetchedProducts);
@@ -49,7 +49,9 @@ const ManageProductPricesTable = () => {
     if (searchTerm) {
       current = productList.filter((product) => {
         return (
-          product.ProductName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.ProductName.toLowerCase().includes(
+            searchTerm.toLowerCase()
+          ) ||
           String(product.ProductID).includes(searchTerm) ||
           (product.CategoryName || "")
             .toLowerCase()
@@ -87,7 +89,7 @@ const ManageProductPricesTable = () => {
 
     try {
       await api.put(
-        `/product/update_price/${parseInt(productId)}?new_price=${newPrice}`
+        `/product/update_price/${parseInt(productId)}?new_price=${newPrice}/`
       );
       await fetchProductList();
       alert("Price updated successfully!");
@@ -123,7 +125,7 @@ const ManageProductPricesTable = () => {
     }
 
     try {
-      await api.put(`/product/update_discount/${productId}`, {
+      await api.put(`/product/update_discount/${productId}/`, {
         Discount: newDiscount,
         EndDate: discountEndDate.toISOString().split("T")[0],
       });
@@ -140,9 +142,7 @@ const ManageProductPricesTable = () => {
       return;
     }
     try {
-      // If your backend supports a dedicated endpoint, replace this accordingly.
-      // Otherwise, setting Discount = 0 and EndDate = null achieves the same.
-      await api.put(`/product/update_discount/${productId}`, {
+      await api.put(`/product/update_discount/${productId}/`, {
         Discount: 0,
         EndDate: null,
       });
@@ -206,9 +206,7 @@ const ManageProductPricesTable = () => {
                     <td>{product.CategoryName || "N/A"}</td>
                     <td>
                       <span
-                        className={
-                          overThreshold ? "price-over-threshold" : ""
-                        }
+                        className={overThreshold ? "price-over-threshold" : ""}
                       >
                         ₺
                         {product.Price !== undefined
@@ -312,12 +310,12 @@ const ManageProductPricesTable = () => {
                       </button>
                       <button
                         className="update-button"
-                        onClick={() =>
-                          handleUpdatePromotion(product.ProductID)
-                        }
+                        onClick={() => handleUpdatePromotion(product.ProductID)}
                         disabled={
-                          !(formData[product.ProductID]?.newDiscount !== "" &&
-                          formData[product.ProductID]?.discountEndDate)
+                          !(
+                            formData[product.ProductID]?.newDiscount !== "" &&
+                            formData[product.ProductID]?.discountEndDate
+                          )
                         }
                       >
                         Set Promo
@@ -351,10 +349,7 @@ const ManageProductPricesTable = () => {
 
       {filteredProducts.length > itemsPerPage && (
         <div className="pagination-controls">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-          >
+          <button onClick={handlePreviousPage} disabled={currentPage === 1}>
             Previous
           </button>
           <span>
@@ -364,8 +359,7 @@ const ManageProductPricesTable = () => {
           <button
             onClick={handleNextPage}
             disabled={
-              currentPage ===
-              Math.ceil(filteredProducts.length / itemsPerPage)
+              currentPage === Math.ceil(filteredProducts.length / itemsPerPage)
             }
           >
             Next

@@ -42,13 +42,12 @@ class _HomePageState extends State<HomePage> {
 
   int _modeIndex = 0;
 
-  // For double scan in Add Screen and Add Product modes:
   List<int> _scannedIds = [];
 
   final List<IconData> _icons = [
-    Icons.inventory, // Add Product
-    Icons.smart_screen, // Add Screen
-    Icons.qr_code_scanner, // View Relations
+    Icons.inventory,
+    Icons.smart_screen,
+    Icons.qr_code_scanner,
   ];
 
   final List<String> _modeLabels = [
@@ -91,14 +90,11 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (_modeIndex == 2) {
-      // View Relations mode - single scan behavior
       _hasDetected = true;
       await _handleViewRelations(id);
     } else if (_modeIndex == 1) {
-      // Add Screen mode - double scan
       await _handleDoubleScan(id, isScreenMode: true);
     } else if (_modeIndex == 0) {
-      // Add Product mode - double scan
       await _handleDoubleScan(id, isScreenMode: false);
     }
   }
@@ -112,7 +108,8 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id');
+      final uri =
+          Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id/');
       final headers = await getAuthHeaders(extraHeaders: {"id": id.toString()});
 
       final response = await http.get(uri, headers: headers);
@@ -140,7 +137,8 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleDoubleScan(int id, {required bool isScreenMode}) async {
     if (_scannedIds.contains(id)) {
-      _showDialog("This code was already scanned. Please scan a different code.");
+      _showDialog(
+          "This code was already scanned. Please scan a different code.");
       return;
     }
 
@@ -149,18 +147,14 @@ class _HomePageState extends State<HomePage> {
     });
 
     if (_scannedIds.length < 2) {
-      // Prompt user to scan next barcode
       _showDialog("Scanned ID: $id\nPlease scan the second barcode.");
       return;
     }
 
-    // After scanning two barcodes:
     _hasDetected = true;
     _scanningEnabled = false;
 
-    // Navigate to the appropriate page with scanned IDs:
     if (isScreenMode) {
-      // BIG COMMENT: ADD YOUR ScreenAccept PAGE HERE
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -174,7 +168,6 @@ class _HomePageState extends State<HomePage> {
         _scannedIds.clear();
       });
     } else {
-      // BIG COMMENT: ADD YOUR ProductAccept PAGE HERE
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -313,7 +306,9 @@ class _HomePageState extends State<HomePage> {
                       _roundIconButton(
                         Icons.camera_alt,
                         () {
-                          if (_modeIndex == 2 || _modeIndex == 0 || _modeIndex == 1) {
+                          if (_modeIndex == 2 ||
+                              _modeIndex == 0 ||
+                              _modeIndex == 1) {
                             setState(() {
                               _scanningEnabled = true;
                               _hasDetected = false;
@@ -328,7 +323,8 @@ class _HomePageState extends State<HomePage> {
                         () {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage()),
                             (Route<dynamic> route) => false,
                           );
                         },

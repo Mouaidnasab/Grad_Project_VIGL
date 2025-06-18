@@ -16,7 +16,7 @@ class _CameraPage extends State<CameraPage> {
   bool _isScanned = false;
 
   void _onDetect(BarcodeCapture capture) {
-    if (_isScanned) return; // prevent multiple triggers
+    if (_isScanned) return;
     final barcode = capture.barcodes.first;
     final String? code = barcode.rawValue;
     if (code != null) {
@@ -40,8 +40,7 @@ class _CameraPage extends State<CameraPage> {
                 onTap: () async {
                   final launched = await launchUrl(
                     url,
-                    mode: LaunchMode
-                        .externalApplication, // ✅ use external browser
+                    mode: LaunchMode.externalApplication,
                   );
                   if (!launched) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +81,6 @@ class _CameraPage extends State<CameraPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // MobileScanner automatically initializes and shows the camera
           MobileScanner(
             controller: _scannerController,
             onDetect: _onDetect,
@@ -94,7 +92,6 @@ class _CameraPage extends State<CameraPage> {
             child: Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  // Request permission
                   final status = await Permission.photos.request();
                   if (!status.isGranted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -103,7 +100,6 @@ class _CameraPage extends State<CameraPage> {
                     return;
                   }
 
-                  // Pick image
                   final picker = ImagePicker();
                   final XFile? image =
                       await picker.pickImage(source: ImageSource.gallery);
@@ -118,8 +114,7 @@ class _CameraPage extends State<CameraPage> {
                     }
                   }
                 },
-                child: const Text(
-                    'Gallery Scan'), // ✅ make sure there's a comma here
+                child: const Text('Gallery Scan'),
               ),
             ),
           ),

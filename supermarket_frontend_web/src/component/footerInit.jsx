@@ -1,12 +1,11 @@
 // src/component/footerInit.jsx
-import React from 'react';
-import '../Css/Admintry.css'; // Ensure your CSS is imported here or globally
+import React from "react";
+import "../Css/Admintry.css";
 
 const Footer = () => {
   return (
-    <div className="fixed-footer"> {/* Apply the new fixed-footer class */}
+    <div className="fixed-footer">
       <p>&copy; {new Date().getFullYear()} VIGL. All rights reserved.</p>
-      {/* Add any other footer content here */}
     </div>
   );
 };

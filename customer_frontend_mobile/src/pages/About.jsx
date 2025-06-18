@@ -85,6 +85,11 @@ const AboutPage = () => {
       title: "Role-Based UI",
       desc: "Custom interfaces for inspectors, managers, and staff.",
     },
+    {
+      icon: <Monitor size={20} className="text-success me-2" />,
+      title: "Real-Time Analytics",
+      desc: "Gain actionable insights with live dashboards and reports.",
+    },
   ];
 
   const tools = [

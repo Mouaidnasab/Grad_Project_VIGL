@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       baseIp = storedIp ?? "0";
     });
-    }
+  }
 
   Future<void> login() async {
     print('Login initiated for user: $username');
@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final url = Uri.parse('http://$baseIp:8000/user_auth/token');
+    final url = Uri.parse('http://$baseIp:8000/user_auth/token/');
 
     try {
       final response = await http.post(
@@ -212,7 +212,8 @@ class _LoginPageState extends State<LoginPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 12),
                   ),
                   child: const Text(
                     'Login',
