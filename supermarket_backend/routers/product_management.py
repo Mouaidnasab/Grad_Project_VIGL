@@ -5,7 +5,13 @@ from sqlmodel import Session, select
 from pydantic import BaseModel
 from db.database import engine
 from db.models import ProductScreen, Products, PriceHistory, Promotions
-from db.gov_models import GovProducts, Penalties, GovPriceHistory, PenaltyStatusEnum
+from db.gov_models import (
+    Categories,
+    GovProducts,
+    Penalties,
+    GovPriceHistory,
+    PenaltyStatusEnum,
+)
 from db.gov_database import gov_engine
 from dependencies.auth import get_current_active_user, User
 from datetime import datetime, date, timedelta
@@ -205,62 +211,60 @@ def get_products(
 
     return GetResponse(Products=products)
 
-# @router.get("/get/{product_id}", response_model=GetResponse)
-# def get_product_by_id(
-#     product_id: int,
-#     session: Session = Depends(get_session),
-#     current_user=Depends(get_current_active_user),
-# ):
-#     # Fetch local product by ID
-#     local_product = session.get(Products, product_id)
-#     if not local_product:
-#         raise HTTPException(status_code=404, detail="Product not found locally")
 
-#     # Get local price where EndDate is None
-#     local_price_obj = session.exec(
-#         select(PriceHistory)
-#         .where(PriceHistory.ProductID == product_id)
-#         .where(PriceHistory.EndDate == None)  # noqa: E711
-#     ).first()
-#     local_price = local_price_obj.Price if local_price_obj else 0
+@router.get("/get/{product_id}", response_model=GetResponse)
+def get_product_by_id(
+    product_id: int,
+    session: Session = Depends(get_session),
+    gov_session: Session = Depends(get_gov_session),
+    current_user=Depends(get_current_active_user),
+):
+    local_product = session.get(Products, product_id)
+    if not local_product:
+        raise HTTPException(status_code=404, detail="Product not found locally")
 
-#     # Get active local promotion (EndDate > now)
-#     local_promo_obj = session.exec(
-#         select(Promotions)
-#         .where(Promotions.ProductID == product_id)
-#         .where(Promotions.EndDate > datetime.now())
-#     ).first()
-#     discount = local_promo_obj.Discount if local_promo_obj else 0
-#     discount_end = local_promo_obj.EndDate if local_promo_obj else None
+    local_price_obj = session.exec(
+        select(PriceHistory)
+        .where(PriceHistory.ProductID == product_id)
+        .where(PriceHistory.EndDate.is_(None))
+    ).first()
+    local_price = local_price_obj.Price if local_price_obj else 0
 
-#     # Fetch government product data for this product ID
-#     try:
-#         gov_response = requests.get(f"http://localhost:8001/product/get/{product_id}")
-#         gov_response.raise_for_status()
-#         gov_product_data = gov_response.json()
-#     except Exception:
-#         raise HTTPException(
-#             status_code=500, detail="Error fetching government product data"
-#         )
+    promo_obj = session.exec(
+        select(Promotions)
+        .where(Promotions.ProductID == product_id)
+        .where(Promotions.EndDate > datetime.now())
+    ).first()
+    discount = promo_obj.Discount if promo_obj else 0
+    discount_end = promo_obj.EndDate if promo_obj else None
 
-#     # gov_product_data assumed to be a dict with keys "Product", "Category", "Price"
-#     product_info = gov_product_data.get("Product", gov_product_data)
-#     category_info = gov_product_data.get("Category", {})
-#     price_info = gov_product_data.get("Price", {})
+    gov_product = gov_session.get(GovProducts, product_id)
+    if not gov_product:
+        raise HTTPException(
+            status_code=404, detail="Product not found in government DB"
+        )
 
-#     product = OrganizedProducts(
-#         ProductID=product_info.get("ProductID", product_id),
-#         ProductName=product_info.get("ProductName", local_product.ProductName),
-#         CategoryID=product_info.get("CategoryID", None),
-#         CategoryName=category_info.get("CategoryName", ""),
-#         Price=float(local_price),
-#         SuggestedPrice=price_info.get("SuggestedPrice", 0),
-#         Threshold=price_info.get("Threshold", 0),
-#         Discount=discount if discount is not None else 0,
-#         DiscountEndDate=discount_end,
-#     )
+    gov_price = gov_session.exec(
+        select(GovPriceHistory)
+        .where(GovPriceHistory.ProductID == product_id)
+        .where(GovPriceHistory.EndDate.is_(None))
+    ).first()
 
-#     return GetResponse(Products=[product])
+    gov_category = gov_session.get(Categories, gov_product.CategoryID)
+
+    organized = OrganizedProducts(
+        ProductID=product_id,
+        ProductName=gov_product.ProductName,
+        CategoryName=gov_category.CategoryName if gov_category else None,
+        Price=float(local_price),
+        SuggestedPrice=gov_price.SuggestedPrice if gov_price else None,
+        Threshold=gov_price.Threshold if gov_price else None,
+        Discount=discount,
+        DiscountEndDate=discount_end,
+    )
+
+    return GetResponse(Products=[organized])
+
 
 @router.put("/update_price/{product_id}", response_model=ProductResponse)
 def update_product(

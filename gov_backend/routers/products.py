@@ -384,7 +384,6 @@ def get_product_prices(
     for sm in supermarkets:
         db_name = f"s{sm.SupermarketID}"
         engine = create_engine(f"{BASE_MYSQL_URL}{db_name}")
-        print(f"Creating database `{db_name}` (if not exists)...")
 
         with Session(engine) as sm_session:
             price_rec = sm_session.scalar(
