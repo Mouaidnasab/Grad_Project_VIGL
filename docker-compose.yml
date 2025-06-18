@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   gov-backend:
-    container_name: "Gov-Backend"
+    container_name: Gov-Backend
     build:
       context: ./gov_backend
       dockerfile: Dockerfile
@@ -13,7 +11,7 @@ services:
       - ./gov_backend:/app:ro
 
   gov-frontend:
-    container_name: "Gov-Frontend"
+    container_name: Gov-Frontend
     build:
       context: ./gov_frontend_web
       dockerfile: Dockerfile
@@ -24,7 +22,7 @@ services:
       - ./gov_frontend_web:/app:ro
 
   supermarket-backend:
-    container_name: "Supermarket-Backend"
+    container_name: Supermarket-Backend
     build:
       context: ./supermarket_backend
       dockerfile: Dockerfile
@@ -35,7 +33,7 @@ services:
       - ./supermarket_backend:/app:ro
 
   supermarket-frontend:
-    container_name: "Supermarket-Frontend"
+    container_name: Supermarket-Frontend
     build:
       context: ./supermarket_frontend_web
       dockerfile: Dockerfile
@@ -46,7 +44,7 @@ services:
       - ./supermarket_frontend_web:/app:ro
 
   customer-frontend:
-    container_name: "Customer-Frontend"
+    container_name: Customer-Frontend
     build:
       context: ./customer_frontend_mobile
       dockerfile: Dockerfile
@@ -55,4 +53,3 @@ services:
     restart: always
     volumes:
       - ./customer_frontend_mobile:/app:ro
-  
