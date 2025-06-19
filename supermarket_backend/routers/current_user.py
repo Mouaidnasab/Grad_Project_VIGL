@@ -38,7 +38,7 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
 
-@router.post("/user_auth/token", response_model=Token, tags=["User Authentication"])
+@router.post("/user_auth/token/", response_model=Token, tags=["User Authentication"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:

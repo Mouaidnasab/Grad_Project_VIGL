@@ -31,7 +31,6 @@ export const DetailPage = () => {
 
     const fetchDetailAndImage = async () => {
       try {
-        // 1) fetch the product detail
         const res = await api.get(`/product/prices/full/${id}`);
         const d = res.data;
         const name = d.Product.ProductName;
@@ -44,7 +43,6 @@ export const DetailPage = () => {
           address: sp.SupermarketAddress,
         }));
 
-        // 2) search Unsplash for a produce image
         let imageUrl = "";
         const tag = encodeURIComponent(name.toLowerCase());
         try {
@@ -55,7 +53,6 @@ export const DetailPage = () => {
           if (unsplashJson.results?.length) {
             imageUrl = unsplashJson.results[0].urls.small;
           } else {
-            // fallback to generic fruit/vegetable
             const fbRes = await fetch(
               `https://api.unsplash.com/search/photos?query=fruit,vegetable&per_page=1&client_id=${UNSPLASH_ACCESS_KEY}`
             );
@@ -67,12 +64,10 @@ export const DetailPage = () => {
         } catch (e) {
           console.warn("Unsplash lookup failed:", e);
         }
-        // 3) fallback to local logo if still empty
         if (!imageUrl) {
           imageUrl = "/logo.png";
         }
 
-        // 4) update state
         setDetail({
           name,
           description,
@@ -122,7 +117,6 @@ export const DetailPage = () => {
   return (
     <>
       <div className="d-flex flex-column bg-light" style={{ height: "100svh" }}>
-        {/* Nav */}
         <nav className="navbar navbar-light bg-light">
           <div className="container-fluid justify-content-center pb-2 shadow-sm">
             <a className="navbar-brand" href="#">
@@ -131,7 +125,6 @@ export const DetailPage = () => {
           </div>
         </nav>
 
-        {/* Header + Thumbnail */}
         <div className="px-3 pt-3  text-center">
           <h1 className="h1 text-dark fw-bold mb-2">{detail.name}</h1>
           <img
@@ -150,7 +143,6 @@ export const DetailPage = () => {
           />
         </div>
 
-        {/* Body */}
         <div className="flex-grow-1 overflow-auto px-3 pt-3">
           <div className="card mb-4 shadow-sm rounded-3 border-0">
             <div className="card-body">
@@ -169,7 +161,7 @@ export const DetailPage = () => {
               {formattedDate && (
                 <div className="d-flex align-items-center text-muted small">
                   <Calendar size={14} className="me-1" />
-                  <span>Updated: {formattedDate}</span>
+                  <span>Last Price Change: {formattedDate}</span>
                 </div>
               )}
             </div>
@@ -206,7 +198,6 @@ export const DetailPage = () => {
           </div>
         </div>
 
-        {/* Back */}
         <div className="px-3 pb-4">
           <button
             className="btn btn-success w-100 rounded-pill"
@@ -218,7 +209,6 @@ export const DetailPage = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && selectedRetailer && (
         <>
           <div className="modal-backdrop fade show" />

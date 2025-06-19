@@ -242,7 +242,7 @@ def list_users(
         ]
 
 
-@router.get("/is_first_login", response_model=bool)
+@router.get("/is_first_login/", response_model=bool)
 def is_first_login():
     with Session(engine) as session:
         owner = session.exec(select(Users).where(Users.Role == "owner")).first()

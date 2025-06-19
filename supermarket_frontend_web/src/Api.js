@@ -89,7 +89,7 @@ api.interceptors.response.use(
 
       try {
         const validateResponse = await axios.post(
-          `${BACKEND_URL}/user_auth/validate-token/`,
+          `${BACKEND_URL}/user_auth/validate-token`,
           {
             token: accessToken,
           }
@@ -104,7 +104,7 @@ api.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         axios
-          .post(`${BACKEND_URL}/user_auth/refresh-token/`, {
+          .post(`${BACKEND_URL}/user_auth/refresh-token`, {
             refresh_token: refreshToken,
           })
           .then(({ data }) => {
