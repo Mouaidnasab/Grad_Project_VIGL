@@ -55,7 +55,7 @@ class UserResponse(BaseModel):
 
 
 @router.post(
-    "/create/", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
 def create_user(
     user: UserCreate,
@@ -97,7 +97,7 @@ def create_user(
         )
 
 
-@router.put("/edit/{UserID}/", response_model=UserResponse)
+@router.put("/edit/{UserID}", response_model=UserResponse)
 def update_user(
     UserID: int,
     user_update: UserUpdate,
@@ -149,7 +149,7 @@ def update_user(
         )
 
 
-@router.delete("/delete/{UserID}/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/delete/{UserID}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     UserID: int,
     current_user: User = Depends(get_current_active_user),
@@ -173,7 +173,7 @@ def delete_user(
         return
 
 
-@router.get("/list/", response_model=List[UserResponse])
+@router.get("/list", response_model=List[UserResponse])
 def list_users(
     current_user: User = Depends(require_Role(["staff"])),
 ):

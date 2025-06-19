@@ -129,7 +129,7 @@ export default function ProductsTab() {
   // Load products
   const RefreshTable = async () => {
     try {
-      const { data } = await api.get("/product/get/");
+      const { data } = await api.get("/product/get");
       const mapped = data.map((item) => ({
         id: item.Product.ProductID,
         name: item.Product.ProductName,
@@ -147,7 +147,7 @@ export default function ProductsTab() {
   // Load suggestions
   const fetchSuggestions = async () => {
     try {
-      const { data } = await api.get("/product/get_suggested_products/");
+      const { data } = await api.get("/product/get_suggested_products");
       const raw = data.suggested_products;
       const arr = Array.isArray(raw)
         ? raw.map((entry, i) => ({ id: i + 1, ...entry }))
@@ -193,7 +193,7 @@ export default function ProductsTab() {
   // Handlers for CRUD operations
   const handleAddProduct = async (payload) => {
     try {
-      await api.post("/product/create/", {
+      await api.post("/product/create", {
         Barcode: payload.barcode,
         SuggestedPrice: payload.price,
         Threshold: payload.threshold,
@@ -211,7 +211,7 @@ export default function ProductsTab() {
 
   const handleUpdateProduct = async (upd) => {
     try {
-      await api.put(`/product/update/${upd.id}/`, {
+      await api.put(`/product/update/${upd.id}`, {
         ProductName: upd.name,
         Description: upd.description,
         SuggestedPrice: upd.price,
@@ -240,7 +240,7 @@ export default function ProductsTab() {
     }
     try {
       // create product
-      await api.post("/product/create/", {
+      await api.post("/product/create", {
         Barcode: s.barcode,
         SuggestedPrice: s.price,
         Threshold: s.threshold,
@@ -249,7 +249,7 @@ export default function ProductsTab() {
         Description: s.Description,
       });
       // delete suggestion
-      await api.delete(`/product/delete_suggested_product/${id}/`);
+      await api.delete(`/product/delete_suggested_product/${id}`);
       setSuggestions((prev) => prev.filter((x) => x.id !== id));
       RefreshTable();
     } catch (e) {
@@ -259,7 +259,7 @@ export default function ProductsTab() {
 
   const handleReject = async (id) => {
     try {
-      await api.delete(`/product/delete_suggested_product/${id}/`);
+      await api.delete(`/product/delete_suggested_product/${id}`);
       setSuggestions((prev) => prev.filter((x) => x.id !== id));
     } catch (e) {
       console.error("Reject failed", e);

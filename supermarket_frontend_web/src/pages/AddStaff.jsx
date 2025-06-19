@@ -30,7 +30,7 @@ const StaffAddPage = () => {
 
   const fetchStaffList = async () => {
     try {
-      const response = await api.get("/users/list/");
+      const response = await api.get("/users/list");
       setStaffList(response.data);
     } catch (error) {
       console.error("Error fetching staff list:", error);
@@ -47,7 +47,7 @@ const StaffAddPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post("/users/create/", {
+      const response = await api.post("/users/create", {
         Username: formData.Username,
         Email: formData.Email,
         FirstName: formData.FirstName,

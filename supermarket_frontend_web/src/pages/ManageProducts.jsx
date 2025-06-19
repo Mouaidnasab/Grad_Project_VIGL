@@ -77,7 +77,7 @@ const ManageProducts = () => {
       return;
     }
     try {
-      await fetch(`${GOV_BACKEND_URL}/product/upload_suggested_product/`, {
+      await fetch(`${GOV_BACKEND_URL}/product/upload_suggested_product`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +95,7 @@ const ManageProducts = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get("/product/get/");
+      const response = await api.get("/product/get");
       if (response.data && Array.isArray(response.data.Products)) {
         setProducts(response.data.Products);
       } else {
@@ -109,7 +109,7 @@ const ManageProducts = () => {
 
   const fetchRelations = async () => {
     try {
-      const response = await api.get("/shelf/get_relations/");
+      const response = await api.get("/shelf/get_relations");
       if (response.data && Array.isArray(response.data)) {
         setRelations(response.data);
       } else {
@@ -131,7 +131,7 @@ const ManageProducts = () => {
       return;
     }
     try {
-      const res = await fetch(`${GOV_BACKEND_URL}/product/get/`);
+      const res = await fetch(`${GOV_BACKEND_URL}/product/get`);
       if (!res.ok) throw new Error("Failed to fetch GOV products");
       const data = await res.json();
       setGovProducts(data);
@@ -230,7 +230,7 @@ const ManageProducts = () => {
             govProductDetails.Category?.CategoryName ||
             categoryNameMap[categoryId] ||
             "Uncategorized";
-          await api.post("/product/add/", {
+          await api.post("/product/add", {
             Barcode: String(productId, 10),
             Price: parseFloat(selectedPrices[productId]),
           });
@@ -259,7 +259,7 @@ const ManageProducts = () => {
       return;
     }
     try {
-      await api.delete(`/product/delete/${productId}/`);
+      await api.delete(`/product/delete/${productId}`);
       await fetchProducts();
       alert("Product deleted successfully.");
     } catch (error) {
@@ -292,7 +292,7 @@ const ManageProducts = () => {
       return;
     }
     try {
-      await api.put("/shelf/update_relation_product/", {
+      await api.put("/shelf/update_relation_product", {
         shelf_id: shelfId,
         product_id: matchedProduct.ProductID,
       });
@@ -313,7 +313,7 @@ const ManageProducts = () => {
       return;
     }
     try {
-      await api.put("/shelf/update_relation_product/", {
+      await api.put("/shelf/update_relation_product", {
         shelf_id: shelfId,
         product_id: 0,
       });

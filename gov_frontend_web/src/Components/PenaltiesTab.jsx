@@ -105,7 +105,7 @@ export default function PenaltiesTab() {
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
-        const { data } = await api.get("/penalty/get/");
+        const { data } = await api.get("/penalty/get");
         const mapped = data.map((p) => ({
           id: p.PenaltyID,
           supermarketId: p.SupermarketID,
@@ -135,7 +135,7 @@ export default function PenaltiesTab() {
   // Update status both server-side and in local state
   const handleUpdateStatus = async (penaltyId, newStatus) => {
     try {
-      await api.put(`/penalty/update_status/${penaltyId}/${newStatus}/`);
+      await api.put(`/penalty/update_status/${penaltyId}/${newStatus}`);
       setPenalties((p) =>
         p.map((x) => (x.id === penaltyId ? { ...x, status: newStatus } : x))
       );

@@ -40,7 +40,7 @@ class _ProductAcceptState extends State<ProductAccept> {
     }
     try {
       final uri =
-          Uri.parse('http://$baseIp:8000/product/get/${widget.productId}/');
+          Uri.parse('http://$baseIp:8000/product/get/${widget.productId}');
       final headers = await getHeaders(widget.productId);
 
       final response = await http.get(uri, headers: headers);
@@ -77,7 +77,7 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}/');
+      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
@@ -107,7 +107,7 @@ class _ProductAcceptState extends State<ProductAccept> {
     }
     try {
       final uri =
-          Uri.parse('http://$baseIp:8000/shelf/update_relation_product/');
+          Uri.parse('http://$baseIp:8000/shelf/update_relation_product');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 

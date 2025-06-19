@@ -40,7 +40,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
     }
     try {
       final uri =
-          Uri.parse('http://$baseIp:8000/screen/get/${widget.screenId}/');
+          Uri.parse('http://$baseIp:8000/screen/get/${widget.screenId}');
       final headers = await getHeaders(widget.screenId);
 
       final response = await http.get(uri, headers: headers);
@@ -69,7 +69,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}/');
+      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
@@ -98,8 +98,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri =
-          Uri.parse('http://$baseIp:8000/shelf/create_relation_screen/');
+      final uri = Uri.parse('http://$baseIp:8000/shelf/create_relation_screen');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 

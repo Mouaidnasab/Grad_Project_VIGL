@@ -57,7 +57,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 @router.post(
-    "/user_auth/refresh-token/", response_model=Token, tags=["User Authentication"]
+    "/user_auth/refresh-token", response_model=Token, tags=["User Authentication"]
 )
 async def refresh_access_token(request: RefreshTokenRequest):
     refresh_token = request.refresh_token
@@ -90,7 +90,7 @@ async def refresh_access_token(request: RefreshTokenRequest):
     return Token(access_token=new_access_token, refresh_token=new_refresh_token)
 
 
-@router.get("/current_user/me/", response_model=UserProfile, tags=["Current User"])
+@router.get("/current_user/me", response_model=UserProfile, tags=["Current User"])
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)],
     detail_level: int = 1,
@@ -116,7 +116,7 @@ async def read_users_me(
         )
 
 
-@router.post("/user_auth/validate-token/", tags=["User Authentication"])
+@router.post("/user_auth/validate-token", tags=["User Authentication"])
 async def validate_token(token_request: ValidateTokenRequest):
     token = token_request.token
 

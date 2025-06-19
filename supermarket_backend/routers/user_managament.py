@@ -54,7 +54,7 @@ class UserResponse(BaseModel):
 
 
 @router.post(
-    "/create/", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/create", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
 def create_user(
     user: UserCreate,
@@ -112,7 +112,7 @@ def create_user(
         )
 
 
-@router.put("/edit/{UserID}/", response_model=UserResponse)
+@router.put("/edit/{UserID}", response_model=UserResponse)
 def update_user(
     UserID: int,
     user_update: UserUpdate,
@@ -185,7 +185,7 @@ def update_user(
         )
 
 
-@router.delete("/delete/{UserID}/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/delete/{UserID}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(
     UserID: int,
     current_user: User = Depends(require_Role(["owner", "manager"])),
@@ -221,7 +221,7 @@ def delete_user(
         return
 
 
-@router.get("/list/", response_model=List[UserResponse])
+@router.get("/list", response_model=List[UserResponse])
 def list_users(
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
@@ -242,7 +242,7 @@ def list_users(
         ]
 
 
-@router.get("/is_first_login/", response_model=bool)
+@router.get("/is_first_login", response_model=bool)
 def is_first_login():
     with Session(engine) as session:
         owner = session.exec(select(Users).where(Users.Role == "owner")).first()

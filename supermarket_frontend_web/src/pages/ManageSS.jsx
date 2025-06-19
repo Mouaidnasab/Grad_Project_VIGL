@@ -29,7 +29,7 @@ const Manage = () => {
 
   const fetchShelves = async () => {
     try {
-      const response = await api.get("/shelf/get/");
+      const response = await api.get("/shelf/get");
       setShelves(response.data);
     } catch (error) {
       console.error("Error fetching shelves:", error);
@@ -38,7 +38,7 @@ const Manage = () => {
 
   const fetchScreens = async () => {
     try {
-      const response = await api.get("/screen/get/");
+      const response = await api.get("/screen/get");
       setScreens(response.data);
     } catch (error) {
       console.error("Error fetching screens:", error);
@@ -47,7 +47,7 @@ const Manage = () => {
 
   const fetchRelations = async () => {
     try {
-      const response = await api.get("/shelf/get_relations/");
+      const response = await api.get("/shelf/get_relations");
       setRelations(response.data);
     } catch (error) {
       console.error("Error fetching relations:", error);
@@ -73,7 +73,7 @@ const Manage = () => {
     }
 
     try {
-      await api.post("/shelf/add/", {
+      await api.post("/shelf/add", {
         ShelfID: barcode,
         Isle: isle,
         Floor: floor,
@@ -114,7 +114,7 @@ const Manage = () => {
     }
 
     try {
-      await api.post("/screen/add/", {
+      await api.post("/screen/add", {
         ScreenID: barcode,
         IP: ip,
         Description: description,
@@ -153,7 +153,7 @@ const Manage = () => {
     }
 
     try {
-      await api.post("/shelf/create_relation_screen/", {
+      await api.post("/shelf/create_relation_screen", {
         shelf_id: shelfIdInt,
         screen_id: screenIdInt,
       });
@@ -216,7 +216,7 @@ const Manage = () => {
     }
 
     try {
-      await api.put("/shelf/update_relation_screen/", {
+      await api.put("/shelf/update_relation_screen", {
         shelf_id: relationToUpdate.ShelfID,
         screen_id: newScreenIdInt,
       });
@@ -238,7 +238,7 @@ const Manage = () => {
   const handleConfirmDelete = async () => {
     if (!relationToDelete) return;
     try {
-      await api.delete(`/shelf/delete_relation/${relationToDelete}/`);
+      await api.delete(`/shelf/delete_relation/${relationToDelete}`);
       setRelations((prev) =>
         prev.filter((rel) => rel.ProductScreenID !== relationToDelete)
       );

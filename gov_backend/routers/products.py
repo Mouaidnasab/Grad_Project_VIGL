@@ -66,7 +66,7 @@ class UpdateRequest(BaseModel):
     Description: Optional[str] = None
 
 
-@router.post("/create/")
+@router.post("/create")
 def create_product(
     product: AddRequest,
     session: Session = Depends(get_session),
@@ -108,7 +108,7 @@ def create_product(
     }
 
 
-@router.put("/update/{product_id}/")
+@router.put("/update/{product_id}")
 def update_product(
     product_id: int,
     product: UpdateRequest,
@@ -164,7 +164,7 @@ def update_product(
     }
 
 
-@router.get("/get/", response_model=List[GetResponse])
+@router.get("/get", response_model=List[GetResponse])
 def get_products(
     session: Session = Depends(get_session),
 ):
@@ -192,7 +192,7 @@ def get_products(
     return organized_products
 
 
-@router.get("/get/{product_id}/", response_model=GetResponse)
+@router.get("/get/{product_id}", response_model=GetResponse)
 def get_specific_product(
     product_id: int,
     session: Session = Depends(get_session),
@@ -212,7 +212,7 @@ def get_specific_product(
 
 
 @router.get(
-    "/get_from_all_supermarkets/",
+    "/get_from_all_supermarkets",
     response_model=List[GetProductsFromSupermarketResponse],
 )
 def get_products_from_all_supermarkets(
@@ -284,7 +284,7 @@ def get_products_from_all_supermarkets(
 
 
 @router.get(
-    "/get_from_supermarket/{supermarket_id}/",
+    "/get_from_supermarket/{supermarket_id}",
     response_model=GetProductsFromSupermarketResponse,
 )
 def get_products_from_specific_supermarket(
@@ -360,7 +360,7 @@ class GetProductPricesResponse(BaseModel):
 
 
 @router.get(
-    "/prices/full/{product_id}/",
+    "/prices/full/{product_id}",
     response_model=GetProductPricesResponse,
 )
 def get_product_prices(
@@ -421,7 +421,7 @@ class SuggestedProduct(BaseModel):
     Suppermarket: str
 
 
-@router.post("/upload_suggested_product/")
+@router.post("/upload_suggested_product")
 async def upload_suggested_product(data: SuggestedProduct):
     file_path = Path("src/suggested_products.json")
 
@@ -460,7 +460,7 @@ async def upload_suggested_product(data: SuggestedProduct):
     return {"message": "Suggested product saved successfully", "id": next_id}
 
 
-@router.get("/get_suggested_products/")
+@router.get("/get_suggested_products")
 async def get_suggested_products():
     file_path = Path("src/suggested_products.json")
 
@@ -473,7 +473,7 @@ async def get_suggested_products():
     return {"suggested_products": products}
 
 
-@router.delete("/delete_suggested_product/{id}/")
+@router.delete("/delete_suggested_product/{id}")
 async def delete_suggested_product(id: int):
     file_path = Path("src/suggested_products.json")
 

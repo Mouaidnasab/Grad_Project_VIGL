@@ -234,7 +234,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
-        const response = await api.get("/product/get_penalties/");
+        const response = await api.get("/product/get_penalties");
         console.log("Fetched Penalties:", response.data);
         setPenalties(response.data);
       } catch (error) {
@@ -248,7 +248,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchScreens = async () => {
       try {
-        const response = await api.get("/screen/active_screens/");
+        const response = await api.get("/screen/active_screens");
         // Assuming response.data has the shape: { active: [...], available: [...] }
         const { active, available } = response.data;
         setActiveCount(Array.isArray(active) ? active.length : 0);

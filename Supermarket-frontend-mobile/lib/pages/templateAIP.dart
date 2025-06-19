@@ -24,7 +24,7 @@ Future<void> yourFunctionName(BuildContext context, int id) async {
 
   try {
     // ID HERE IS JUST AN EXAMPLE
-    final uri = Uri.parse('http://$baseIp:8000/your/api/path/$id/');
+    final uri = Uri.parse('http://$baseIp:8000/your/api/path/$id');
     // 🖊️ write your link here only rename this part of the link "your/api/path/$id"
 
     final headers = await getAuthHeaders(extraHeaders: {

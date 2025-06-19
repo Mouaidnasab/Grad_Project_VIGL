@@ -18,7 +18,7 @@ export const HomePage = () => {
     const fetchProductsWithImages = async () => {
       setLoading(true);
       try {
-        const res = await api.get("product/get/");
+        const res = await api.get("/product/get");
         const data = Array.isArray(res.data) ? res.data : [];
 
         const products = data.map((item) => ({

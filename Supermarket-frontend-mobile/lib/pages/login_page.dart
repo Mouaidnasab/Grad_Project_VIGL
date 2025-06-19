@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final url = Uri.parse('http://$baseIp:8000/user_auth/token/');
+    final url = Uri.parse('http://$baseIp:8000/user_auth/token');
 
     try {
       final response = await http.post(

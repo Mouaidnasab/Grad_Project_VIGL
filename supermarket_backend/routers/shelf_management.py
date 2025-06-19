@@ -47,7 +47,7 @@ class RelationResponse(BaseModel):
     message: str
 
 
-@router.post("/add/", response_model=Shelfs)
+@router.post("/add", response_model=Shelfs)
 def add_shelf(
     shelf_add: Shelfs,
     session: Session = Depends(get_session),
@@ -60,7 +60,7 @@ def add_shelf(
     return new_shelf
 
 
-@router.post("/create_relation_screen/", response_model=RelationResponse)
+@router.post("/create_relation_screen", response_model=RelationResponse)
 def create_relation_screen(
     request: RelationScreenRequest,
     session: Session = Depends(get_session),
@@ -118,7 +118,7 @@ def create_relation_screen(
     return RelationResponse(message="Relation created successfully")
 
 
-@router.put("/update_relation_screen/", response_model=RelationResponse)
+@router.put("/update_relation_screen", response_model=RelationResponse)
 def update_relation_screen(
     request: RelationScreenRequest,
     session: Session = Depends(get_session),
@@ -160,7 +160,7 @@ def update_relation_screen(
     return RelationResponse(message="Relation updated successfully")
 
 
-@router.put("/update_relation_product/", response_model=RelationResponse)
+@router.put("/update_relation_product", response_model=RelationResponse)
 def update_relation_product(
     request: RelationProductRequest,
     session: Session = Depends(get_session),
@@ -213,7 +213,7 @@ def update_relation_product(
     return RelationResponse(message="Relation updated successfully")
 
 
-@router.get("/get_relations/", response_model=List[ProductScreen])
+@router.get("/get_relations", response_model=List[ProductScreen])
 def get_relations(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
@@ -230,7 +230,7 @@ class GetResponse(BaseModel):
     price: PriceHistory
 
 
-@router.get("/get_relations_by_unkown/{id}/", response_model=GetResponse)
+@router.get("/get_relations_by_unkown/{id}", response_model=GetResponse)
 def get_relations_by_unkown(
     id: int,
     session: Session = Depends(get_session),
@@ -251,6 +251,8 @@ def get_relations_by_unkown(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No relations found for given ID.",
         )
+
+    relation = session.exec(stmt).first()
 
     product = gov_session.exec(
         select(GovProducts).where(GovProducts.ProductID == relation.ProductID)  # type: ignore
@@ -277,10 +279,11 @@ def get_relations_by_unkown(
                 PriceHistory.EndDate.is_(None),  # type: ignore
             )
         ),
+        scanned=scanned,
     )
 
 
-@router.get("/get/", response_model=List[Shelfs])
+@router.get("/get", response_model=List[Shelfs])
 def get_shelves(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
@@ -292,7 +295,7 @@ def get_shelves(
     return shelves
 
 
-@router.get("/get/{shelf_id}/", response_model=Shelfs)
+@router.get("/get/{shelf_id}", response_model=Shelfs)
 def get_shelf_by_id(
     shelf_id: int,
     session: Session = Depends(get_session),
@@ -304,7 +307,7 @@ def get_shelf_by_id(
     return shelf
 
 
-@router.delete("/delete_relation/{ProductScreenID}/")
+@router.delete("/delete_relation/{ProductScreenID}")
 def delete_relation(
     ProductScreenID: int,
     session: Session = Depends(get_session),

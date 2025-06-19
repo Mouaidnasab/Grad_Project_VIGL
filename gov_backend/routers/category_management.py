@@ -18,7 +18,7 @@ def get_session():
         yield session
 
 
-@router.get("/get/", response_model=List[Categories])
+@router.get("/get", response_model=List[Categories])
 def get_categories(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["staff"])),

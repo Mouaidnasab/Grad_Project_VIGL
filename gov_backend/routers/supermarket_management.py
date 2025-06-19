@@ -28,7 +28,7 @@ class OwnerResquest(BaseModel):
     Password: str
 
 
-@router.post("/create/", status_code=status.HTTP_201_CREATED)
+@router.post("/create", status_code=status.HTTP_201_CREATED)
 def create_supermarket(
     supermarket: Supermarkets,
     OwnerReq: OwnerResquest,
@@ -83,7 +83,7 @@ def create_supermarket(
     return {"message": "Supermarket created successfully."}
 
 
-@router.put("/edit/", response_model=Supermarkets)
+@router.put("/edit", response_model=Supermarkets)
 def update_supermarket(
     supermarket_update: Supermarkets,
     session: Session = Depends(get_session),
@@ -111,7 +111,7 @@ def update_supermarket(
     return supermarket
 
 
-@router.get("/get/", response_model=List[Supermarkets])
+@router.get("/get", response_model=List[Supermarkets])
 def get_supermarkets(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["staff", "customer"])),

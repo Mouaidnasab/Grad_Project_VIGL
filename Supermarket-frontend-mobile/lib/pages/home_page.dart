@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final uri =
-          Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id/');
+          Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id');
       final headers = await getAuthHeaders(extraHeaders: {"id": id.toString()});
 
       final response = await http.get(uri, headers: headers);

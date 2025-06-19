@@ -15,7 +15,7 @@ const Penalties = () => {
 
   const fetchPenalties = async () => {
     try {
-      const response = await api.get("/product/get_penalties/");
+      const response = await api.get("/product/get_penalties");
       const fetched = response.data || [];
       setPenalties(fetched);
       setFilteredPenalties(fetched);

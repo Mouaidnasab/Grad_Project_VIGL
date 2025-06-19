@@ -29,7 +29,7 @@ const ManageProductPricesTable = () => {
 
   const fetchProductList = async () => {
     try {
-      const response = await api.get("/product/get/");
+      const response = await api.get("/product/get");
       const fetchedProducts = response.data.Products || [];
       setProductList(fetchedProducts);
       initializeFormData(fetchedProducts);
@@ -89,7 +89,7 @@ const ManageProductPricesTable = () => {
 
     try {
       await api.put(
-        `/product/update_price/${parseInt(productId)}?new_price=${newPrice}/`
+        `/product/update_price/${parseInt(productId)}?new_price=${newPrice}`
       );
       await fetchProductList();
       alert("Price updated successfully!");
@@ -125,7 +125,7 @@ const ManageProductPricesTable = () => {
     }
 
     try {
-      await api.put(`/product/update_discount/${productId}/`, {
+      await api.put(`/product/update_discount/${productId}`, {
         Discount: newDiscount,
         EndDate: discountEndDate.toISOString().split("T")[0],
       });
@@ -142,7 +142,7 @@ const ManageProductPricesTable = () => {
       return;
     }
     try {
-      await api.put(`/product/update_discount/${productId}/`, {
+      await api.put(`/product/update_discount/${productId}`, {
         Discount: 0,
         EndDate: null,
       });

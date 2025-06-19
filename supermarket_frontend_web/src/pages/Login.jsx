@@ -46,7 +46,7 @@ const LoginPage = () => {
   useEffect(() => {
     const checkFirstLogin = async () => {
       try {
-        const response = await api.get("/users/is_first_login/");
+        const response = await api.get("/users/is_first_login");
         if (response.data) {
           setFirstLogin(true);
         } else {
@@ -84,7 +84,7 @@ const LoginPage = () => {
     });
 
     try {
-      const response = await api.post("/user_auth/token/", loginPayload, {
+      const response = await api.post("/user_auth/token", loginPayload, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
