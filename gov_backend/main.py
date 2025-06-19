@@ -16,7 +16,9 @@ logging.getLogger("passlib").setLevel(logging.ERROR)
 ###
 
 
-app = FastAPI()
+app = FastAPI(
+    redirect_slashes=False,
+)
 
 
 app.add_middleware(
