@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vigil/pages/camera_page.dart';
+import 'package:vigl/pages/camera_page.dart';
 
 class CameraButton extends StatelessWidget {
   const CameraButton({super.key});
@@ -13,7 +13,7 @@ class CameraButton extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const CameraPage()),
         );
       },
-      icon: Icon(Icons.camera_outlined ),
+      icon: Icon(Icons.camera_outlined),
       label: Text('Scan'),
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:vigil/pages/home_page.dart';
+import 'package:vigl/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _loadStoredIp() async {
     String? storedIp = await storage.read(key: 'base_ip');
     setState(() {
-      baseIp = storedIp ?? "0";
+      baseIp = storedIp ?? "https://market_back.vigl.store";
     });
   }
 
@@ -43,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final url = Uri.parse('http://$baseIp:8000/user_auth/token');
+    final url = Uri.parse('$baseIp/user_auth/token');
 
     try {
       final response = await http.post(
@@ -103,7 +103,8 @@ class _LoginPageState extends State<LoginPage> {
         title: const Text("Set IP Address"),
         content: TextField(
           controller: ipController,
-          decoration: const InputDecoration(hintText: "e.g. 192.168.1.10"),
+          decoration:
+              const InputDecoration(hintText: "e.g. http://192.168.1.10"),
         ),
         actions: [
           TextButton(
@@ -143,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 40),
                 const Text(
-                  'VIGIL',
+                  'VIGL',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,

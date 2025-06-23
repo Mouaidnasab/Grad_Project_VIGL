@@ -1,6 +1,6 @@
 // ==================== 🔁 Imports ====================
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:vigil/utils/api_helper.dart'; // make sure this has getAuthHeaders()
+import 'package:vigl/utils/api_helper.dart'; // make sure this has getAuthHeaders()
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -24,7 +24,7 @@ Future<void> yourFunctionName(BuildContext context, int id) async {
 
   try {
     // ID HERE IS JUST AN EXAMPLE
-    final uri = Uri.parse('http://$baseIp:8000/your/api/path/$id');
+    final uri = Uri.parse('http://$baseIp/your/api/path/$id');
     // 🖊️ write your link here only rename this part of the link "your/api/path/$id"
 
     final headers = await getAuthHeaders(extraHeaders: {

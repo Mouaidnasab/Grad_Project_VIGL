@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:vigil/utils/api_helper.dart';
+import 'package:vigl/utils/api_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -39,8 +39,7 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri =
-          Uri.parse('http://$baseIp:8000/product/get/${widget.productId}');
+      final uri = Uri.parse('$baseIp/product/get/${widget.productId}');
       final headers = await getHeaders(widget.productId);
 
       final response = await http.get(uri, headers: headers);
@@ -77,7 +76,7 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
+      final uri = Uri.parse('$baseIp/shelf/get/${widget.shelfId}');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
@@ -106,8 +105,7 @@ class _ProductAcceptState extends State<ProductAccept> {
       return;
     }
     try {
-      final uri =
-          Uri.parse('http://$baseIp:8000/shelf/update_relation_product');
+      final uri = Uri.parse('$baseIp/shelf/update_relation_product');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 

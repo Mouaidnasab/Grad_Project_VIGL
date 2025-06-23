@@ -3,16 +3,16 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:vigil/utils/api_helper.dart';
+import 'package:vigl/utils/api_helper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:vigil/pages/login_page.dart';
-import 'package:vigil/pages/scan_result_page.dart';
-import 'package:vigil/pages/Screen_accept.dart';
-import 'package:vigil/pages/product_accept.dart';
+import 'package:vigl/pages/login_page.dart';
+import 'package:vigl/pages/scan_result_page.dart';
+import 'package:vigl/pages/Screen_accept.dart';
+import 'package:vigl/pages/product_accept.dart';
 
 // TODO: Import your ScreenAccept and ProductAccept pages
-// import 'package:vigil/pages/screen_accept.dart';
-// import 'package:vigil/pages/product_accept.dart';
+// import 'package:vigl/pages/screen_accept.dart';
+// import 'package:vigl/pages/product_accept.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -108,8 +108,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      final uri =
-          Uri.parse('http://$baseIp:8000/shelf/get_relations_by_unkown/$id');
+      final uri = Uri.parse('$baseIp/shelf/get_relations_by_unkown/$id');
       final headers = await getAuthHeaders(extraHeaders: {"id": id.toString()});
 
       final response = await http.get(uri, headers: headers);

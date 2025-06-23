@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Supermarket-frontend-mobile",
+            "cwd": "Supermarket-frontend-mobile",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "Supermarket-frontend-mobile (profile mode)",
+            "cwd": "Supermarket-frontend-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Supermarket-frontend-mobile (release mode)",
+            "cwd": "Supermarket-frontend-mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

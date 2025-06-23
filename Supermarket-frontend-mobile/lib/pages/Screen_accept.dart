@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:vigil/utils/api_helper.dart';
+import 'package:vigl/utils/api_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -39,8 +39,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri =
-          Uri.parse('http://$baseIp:8000/screen/get/${widget.screenId}');
+      final uri = Uri.parse('$baseIp/screen/get/${widget.screenId}');
       final headers = await getHeaders(widget.screenId);
 
       final response = await http.get(uri, headers: headers);
@@ -69,7 +68,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/get/${widget.shelfId}');
+      final uri = Uri.parse('$baseIp/shelf/get/${widget.shelfId}');
       final headers = await getHeaders(widget.shelfId);
 
       final response = await http.get(uri, headers: headers);
@@ -98,7 +97,7 @@ class _ScreenAcceptState extends State<ScreenAccept> {
       return;
     }
     try {
-      final uri = Uri.parse('http://$baseIp:8000/shelf/create_relation_screen');
+      final uri = Uri.parse('$baseIp/shelf/create_relation_screen');
       final headers = await getHeaders(widget.shelfId);
       headers['Content-Type'] = 'application/json';
 
