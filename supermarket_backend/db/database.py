@@ -3,6 +3,9 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 from .models import *
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 SUPERMARKET_ID = os.getenv("SUPERMARKET_ID", "s100001")

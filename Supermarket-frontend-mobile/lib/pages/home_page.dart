@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   bool _scanningEnabled = false;
   bool _hasDetected = false;
 
-  int _modeIndex = 0;
+  int _modeIndex = 2;
 
   List<int> _scannedIds = [];
 
@@ -74,30 +74,29 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
- void _onDetect(BarcodeCapture capture) async {
-  if (!_scanningEnabled) return;
-  _scanningEnabled = false; // Disable immediately after starting
+  void _onDetect(BarcodeCapture capture) async {
+    if (!_scanningEnabled) return;
+    _scanningEnabled = false; // Disable immediately after starting
 
-  if (capture.barcodes.isEmpty) return;
-  final barcode = capture.barcodes.first;
-  final String? code = barcode.rawValue;
-  if (code == null) return;
+    if (capture.barcodes.isEmpty) return;
+    final barcode = capture.barcodes.first;
+    final String? code = barcode.rawValue;
+    if (code == null) return;
 
-  final id = int.tryParse(code);
-  if (id == null) {
-    _showDialog("Invalid code scanned: $code");
-    return;
+    final id = int.tryParse(code);
+    if (id == null) {
+      _showDialog("Invalid code scanned: $code");
+      return;
+    }
+
+    if (_modeIndex == 2) {
+      await _handleViewRelations(id);
+    } else if (_modeIndex == 1) {
+      await _handleDoubleScan(id, isScreenMode: true);
+    } else if (_modeIndex == 0) {
+      await _handleDoubleScan(id, isScreenMode: false);
+    }
   }
-
-  if (_modeIndex == 2) {
-    await _handleViewRelations(id);
-  } else if (_modeIndex == 1) {
-    await _handleDoubleScan(id, isScreenMode: true);
-  } else if (_modeIndex == 0) {
-    await _handleDoubleScan(id, isScreenMode: false);
-  }
-}
-
 
   Future<void> _handleViewRelations(int id) async {
     final baseIp = await storage.read(key: 'base_ip');
@@ -233,39 +232,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildInstructions() {
-    String instructionText = "";
+  String _getInstructionText() {
     switch (_modeIndex) {
-      case 0: // Add Product
-        if (_scannedIds.isEmpty) {
-          instructionText = "Scan shelf";
-        } else if (_scannedIds.length == 1) {
-          instructionText = "Scan product";
-        }
-        break;
-      case 1: // Add Screen
-        if (_scannedIds.isEmpty) {
-          instructionText = "Scan shelf";
-        } else if (_scannedIds.length == 1) {
-          instructionText = "Scan screen";
-        }
-        break;
-      case 2: // View Relations
-        instructionText = "Scan shelf";
-        break;
+      case 0:
+        return _scannedIds.isEmpty ? "Scan shelf" : "Scan product";
+      case 1:
+        return _scannedIds.isEmpty ? "Scan shelf" : "Scan screen";
+      case 2:
+        return "Scan Anything";
+      default:
+        return "";
     }
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Text(
-        instructionText,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: _modeColors[_modeIndex],
-        ),
-      ),
-    );
   }
 
   @override
@@ -282,15 +259,44 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                Text(
-                  _modeLabels[_modeIndex],
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: _modeColors[_modeIndex],
+                // AFTER
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _modeLabels[_modeIndex],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: _modeColors[_modeIndex],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            // reuse your instruction logic here:
+                            _getInstructionText(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: _modeColors[_modeIndex],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                _buildInstructions(),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 30.0),
@@ -302,7 +308,6 @@ class _HomePageState extends State<HomePage> {
                         _onModeSwitch,
                         _modeColors[_modeIndex],
                       ),
-                      
                       _roundIconButton(
                         Icons.camera_alt,
                         () {
@@ -312,8 +317,6 @@ class _HomePageState extends State<HomePage> {
                         },
                         Colors.grey,
                       ),
-                      
-
                       _roundIconButton(
                         Icons.logout,
                         () {
@@ -337,30 +340,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-// ===
-// You need to create the ScreenAccept and ProductAccept pages, for example:
-//
-// class ScreenAccept extends StatelessWidget {
-//   final int shelfId;
-//   final int screenId;
-//
-//   const ScreenAccept({required this.shelfId, required this.screenId, Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // Your UI + API calls to handle assignment
-//   }
-// }
-//
-// class ProductAccept extends StatelessWidget {
-//   final int shelfId;
-//   final int productId;
-//
-//   const ProductAccept({required this.shelfId, required this.productId, Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // Your UI + API calls to handle assignment
-//   }
-// }

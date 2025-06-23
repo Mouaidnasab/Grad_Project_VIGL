@@ -18,11 +18,13 @@ from datetime import datetime, date, timedelta
 from typing import List, Optional
 import requests
 import os
-
+from dotenv import load_dotenv
 from .screen_management import (
     ScreenUpdateRequest,
     update_screen_display,
 )
+
+load_dotenv()
 
 SUPERMARKET_ID = os.getenv("SUPERMARKET_ID")
 GOV_HOST = os.getenv("GOV_HOST")
@@ -176,7 +178,8 @@ def get_products(
     }
 
     try:
-        gov_response = requests.get(f"http://{GOV_HOST}/product/get")
+        print(f"{GOV_HOST}/product/get")
+        gov_response = requests.get(f"{GOV_HOST}/product/get")
         gov_response.raise_for_status()
         gov_products_data = gov_response.json()
     except Exception:
@@ -445,9 +448,7 @@ def get_penalties(
     SupermarketID = SUPERMARKET_ID if SUPERMARKET_ID else None
 
     try:
-        gov_response = requests.get(
-            f"http://{GOV_HOST}/penalty/get/{SupermarketID or ''}"
-        )
+        gov_response = requests.get(f"{GOV_HOST}/penalty/get/{SupermarketID or ''}")
         gov_response.raise_for_status()
         gov_penalties_data = gov_response.json()
     except Exception:

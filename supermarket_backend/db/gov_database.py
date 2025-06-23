@@ -3,6 +3,9 @@ from sqlmodel import SQLModel, create_engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 from .models import *
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 GOV_DB = os.getenv("GOV_DB", "gov")

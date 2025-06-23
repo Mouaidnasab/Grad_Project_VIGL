@@ -16,3 +16,4 @@ sqlalchemy
 cryptography
 python-barcode  
 qrcode   
+dotenv
