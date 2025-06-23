@@ -303,22 +303,17 @@ class _HomePageState extends State<HomePage> {
                         _onModeSwitch,
                         _modeColors[_modeIndex],
                       ),
+                      
                       _roundIconButton(
                         Icons.camera_alt,
                         () {
                           setState(() {
                             _scanningEnabled = true;
                           });
-<<<<<<< Updated upstream
                         },
                         Colors.grey,
                       ),
-
-=======
->>>>>>> Stashed changes
-                        },
-                        Colors.grey,
-                      ),
+                      
 
                       _roundIconButton(
                         Icons.logout,
