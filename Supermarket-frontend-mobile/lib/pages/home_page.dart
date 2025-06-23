@@ -309,13 +309,17 @@ class _HomePageState extends State<HomePage> {
                           setState(() {
                             _scanningEnabled = true;
                           });
+<<<<<<< Updated upstream
                         },
                         Colors.grey,
                       ),
 
+=======
+>>>>>>> Stashed changes
                         },
                         Colors.grey,
                       ),
+
                       _roundIconButton(
                         Icons.logout,
                         () {
