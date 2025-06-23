@@ -74,30 +74,30 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) async {
-    if (!_scanningEnabled || _hasDetected) return;
+ void _onDetect(BarcodeCapture capture) async {
+  if (!_scanningEnabled) return;
+  _scanningEnabled = false; // Disable immediately after starting
 
-    if (capture.barcodes.isEmpty) return;
-    final barcode = capture.barcodes.first;
-    final String? code = barcode.rawValue;
-    if (code == null) return;
+  if (capture.barcodes.isEmpty) return;
+  final barcode = capture.barcodes.first;
+  final String? code = barcode.rawValue;
+  if (code == null) return;
 
-    final id = int.tryParse(code);
-    if (id == null) {
-      _showDialog("Invalid code scanned: $code");
-      _resetScanner();
-      return;
-    }
-
-    if (_modeIndex == 2) {
-      _hasDetected = true;
-      await _handleViewRelations(id);
-    } else if (_modeIndex == 1) {
-      await _handleDoubleScan(id, isScreenMode: true);
-    } else if (_modeIndex == 0) {
-      await _handleDoubleScan(id, isScreenMode: false);
-    }
+  final id = int.tryParse(code);
+  if (id == null) {
+    _showDialog("Invalid code scanned: $code");
+    return;
   }
+
+  if (_modeIndex == 2) {
+    await _handleViewRelations(id);
+  } else if (_modeIndex == 1) {
+    await _handleDoubleScan(id, isScreenMode: true);
+  } else if (_modeIndex == 0) {
+    await _handleDoubleScan(id, isScreenMode: false);
+  }
+}
+
 
   Future<void> _handleViewRelations(int id) async {
     final baseIp = await storage.read(key: 'base_ip');
@@ -306,15 +306,13 @@ class _HomePageState extends State<HomePage> {
                       _roundIconButton(
                         Icons.camera_alt,
                         () {
-                          if (_modeIndex == 2 ||
-                              _modeIndex == 0 ||
-                              _modeIndex == 1) {
-                            setState(() {
-                              _scanningEnabled = true;
-                              _hasDetected = false;
-                              _scannedIds.clear();
-                            });
-                          }
+                          setState(() {
+                            _scanningEnabled = true;
+                          });
+                        },
+                        Colors.grey,
+                      ),
+
                         },
                         Colors.grey,
                       ),
