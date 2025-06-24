@@ -10,67 +10,85 @@ import seaWaveSticker from "../images/sea-wave-sticker.png";
 import Footer from "../component/footerInit.jsx";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+  const navigate = useNavigate();
+  const GOV_BACKEND_URL = process.env.REACT_APP_GOV_BACKEND_URL;
+
+  // existing state
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [firstLogin, setFirstLogin] = useState(true);
-
-  const navigate = useNavigate();
   const stickerRef = useRef(null);
   const [stickerDimensions, setStickerDimensions] = useState({
     width: "700px",
     opacity: 1,
   });
 
+  // new state for modal
+  const [showSupermarketModal, setShowSupermarketModal] = useState(false);
+  const [supermarkets, setSupermarkets] = useState([]);
+  const [selectedSupermarketID, setSelectedSupermarketID] = useState("");
+
+  // handle responsive sticker
   useEffect(() => {
     const handleResize = () => {
-      const windowWidth = window.innerWidth;
-      if (windowWidth < 768) {
-        setStickerDimensions({ width: "300px", opacity: 0.4 });
-      } else if (windowWidth >= 768 && windowWidth < 992) {
-        setStickerDimensions({ width: "500px", opacity: 0.5 });
-      } else {
-        setStickerDimensions({ width: "700px", opacity: 1 });
-      }
+      const w = window.innerWidth;
+      if (w < 768) setStickerDimensions({ width: "300px", opacity: 0.4 });
+      else if (w < 992) setStickerDimensions({ width: "500px", opacity: 0.5 });
+      else setStickerDimensions({ width: "700px", opacity: 1 });
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // check first login
   useEffect(() => {
     const checkFirstLogin = async () => {
       try {
-        const response = await api.get("/users/is_first_login");
-        if (response.data) {
-          setFirstLogin(true);
-        } else {
-          setFirstLogin(false);
-          console.log("Fiddsrst login:", response.data);
-          console.log("Redirecting to dashboard...", firstLogin);
-        }
+        const res = await api.get("/users/is_first_login");
+        setFirstLogin(!!res.data);
       } catch (err) {
-        // If server unreachable or other error, display generic message
-        if (!err.response) {
-          console.error("Server unreachable:", err);
-          setError("The server is currently down. Please try again later.");
-        } else {
-          console.error("Error checking owner status:", err);
-          setError("An unexpected error occurred while checking owner status.");
-        }
+        if (!err.response) setError("The server is down. Please try later.");
+        else setError("Error checking login status.");
       }
     };
     checkFirstLogin();
   }, [navigate]);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  // fetch list of supermarkets from gov backend
+  const fetchSupermarkets = async () => {
+    try {
+      const res = await fetch(`${GOV_BACKEND_URL}/supermarket/get_only_id`);
+      const data = await res.json();
+      setSupermarkets(data);
+    } catch (err) {
+      console.error("Error fetching supermarkets:", err);
+    }
   };
+
+  // open modal and load list
+  const openSupermarketModal = () => {
+    setShowSupermarketModal(true);
+    fetchSupermarkets();
+  };
+
+  // call API to change supermarket then reload
+  const handleChangeSupermarket = async () => {
+    try {
+      await api.get("/users/change_supermarket", {
+        params: { SupermarketID: selectedSupermarketID },
+      });
+      setShowSupermarketModal(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Error changing supermarket:", err);
+    }
+  };
+
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,46 +96,52 @@ const LoginPage = () => {
     setStatus("submitting");
     setIsLoading(true);
 
-    const loginPayload = new URLSearchParams({
+    const payload = new URLSearchParams({
       username: formData.username,
       password: formData.password,
     });
 
     try {
-      const response = await api.post("/user_auth/token", loginPayload, {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+      const res = await api.post("/user_auth/token", payload, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
-
-      localStorage.setItem("access_token", response.data.access_token);
-      localStorage.setItem("refresh_token", response.data.refresh_token);
-
+      localStorage.setItem("access_token", res.data.access_token);
+      localStorage.setItem("refresh_token", res.data.refresh_token);
       setStatus("success");
-      if (firstLogin) {
-        console.log("Redirecting to registration...");
-        navigate("/add-staff");
-      } else {
-        console.log("Redirecting to dashboard...");
-        navigate("/");
-      }
+      navigate(firstLogin ? "/add-staff" : "/");
     } catch (err) {
-      console.error("Login error:", err);
       setStatus("error");
-      if (err.response && err.response.data && err.response.data.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError(
-          err.message || "An unexpected error occurred. Please try again."
-        );
-      }
+      setError(
+        err.response?.data?.detail ||
+          err.message ||
+          "An unexpected error occurred."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="login-page admin-registration-page">
+    <div
+      className="login-page admin-registration-page"
+      style={{ position: "relative" }}
+    >
+      <button
+        onClick={openSupermarketModal}
+        style={{
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          width: "24px",
+          height: "24px",
+          background: "black",
+          border: "none",
+          opacity: 0,
+          cursor: "pointer",
+          zIndex: 1000,
+        }}
+      />
+
       <div className="split-container">
         <div className="image-side">
           <img src={VIGLLogo} alt="VIGL Logo" className="login-side-image" />
@@ -186,6 +210,68 @@ const LoginPage = () => {
           </form>
         </div>
       </div>
+
+      {showSupermarketModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "8px",
+              padding: "1.5rem",
+              width: "90%",
+              maxWidth: "400px",
+            }}
+          >
+            <h2>Change Supermarket</h2>
+            <select
+              value={selectedSupermarketID}
+              onChange={(e) => setSelectedSupermarketID(e.target.value)}
+              style={{ width: "100%", padding: "0.5rem", marginTop: "1rem" }}
+            >
+              <option value="">— Select a supermarket —</option>
+              {supermarkets.map((s) => (
+                <option key={s.SupermarketID} value={s.SupermarketID}>
+                  {s.RegisteredName}
+                </option>
+              ))}
+            </select>
+            <div
+              style={{
+                marginTop: "1.5rem",
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowSupermarketModal(false)}
+                style={{ marginRight: "0.75rem" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleChangeSupermarket}
+                disabled={!selectedSupermarketID}
+              >
+                Change
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

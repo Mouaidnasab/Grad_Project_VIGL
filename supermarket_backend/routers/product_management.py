@@ -24,10 +24,13 @@ from .screen_management import (
     update_screen_display,
 )
 
-load_dotenv()
 
-SUPERMARKET_ID = os.getenv("SUPERMARKET_ID")
 GOV_HOST = os.getenv("GOV_HOST")
+
+
+def get_supermarket_id() -> str:
+    load_dotenv(override=True)
+    return os.environ["SUPERMARKET_ID"]
 
 
 router = APIRouter(
@@ -36,7 +39,6 @@ router = APIRouter(
 )
 
 
-# Dependency to get a database session
 def get_session():
     with Session(engine) as session:
         yield session
@@ -131,7 +133,9 @@ def add_product(
         StartDate=datetime.now(),
         ChangedBy=current_user.UserID,
     )
-    SupermarketID = int(SUPERMARKET_ID) if SUPERMARKET_ID else None
+
+    SupermarketID = get_supermarket_id()
+    SupermarketID = int(SupermarketID[1:])
 
     gov_price = gov_session.exec(
         select(GovPriceHistory).where(GovPriceHistory.ProductID == product_add.Barcode)
@@ -191,7 +195,6 @@ def get_products(
     }
 
     try:
-        print(f"{GOV_HOST}/product/get")
         gov_response = requests.get(f"{GOV_HOST}/product/get")
         gov_response.raise_for_status()
         gov_products_data = gov_response.json()
@@ -272,6 +275,7 @@ def get_product_by_id(
     organized = OrganizedProducts(
         ProductID=product_id,
         ProductName=gov_product.ProductName,
+        CategoryID=gov_product.CategoryID,
         CategoryName=gov_category.CategoryName if gov_category else None,
         Price=float(local_price),
         SuggestedPrice=gov_price.SuggestedPrice if gov_price else None,
@@ -318,7 +322,8 @@ def update_product(
     session.commit()
     session.refresh(price_history)
 
-    SupermarketID = int(SUPERMARKET_ID) if SUPERMARKET_ID else None
+    SupermarketID = get_supermarket_id()
+    SupermarketID = int(SupermarketID[1:])
 
     gov_price = gov_session.exec(
         select(GovPriceHistory).where(GovPriceHistory.ProductID == product.ProductID)
@@ -458,7 +463,10 @@ def get_penalties(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ):
-    SupermarketID = SUPERMARKET_ID if SUPERMARKET_ID else None
+    SupermarketID = get_supermarket_id()
+    SupermarketID = SupermarketID[1:]
+
+    print(SupermarketID)
 
     try:
         gov_response = requests.get(f"{GOV_HOST}/penalty/get/{SupermarketID or ''}")

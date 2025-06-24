@@ -4,14 +4,17 @@ import 'package:vigl/utils/api_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-final FlutterSecureStorage storage = const FlutterSecureStorage();
+final _storage = const FlutterSecureStorage();
 
 class ProductAccept extends StatefulWidget {
   final int shelfId;
   final int productId;
 
-  const ProductAccept(
-      {super.key, required this.shelfId, required this.productId});
+  const ProductAccept({
+    super.key,
+    required this.shelfId,
+    required this.productId,
+  });
 
   @override
   State<ProductAccept> createState() => _ProductAcceptState();
@@ -21,109 +24,95 @@ class _ProductAcceptState extends State<ProductAccept> {
   String productInfo = 'Loading...';
   String shelfInfo = 'Loading...';
 
-  Future<String?> getBaseIp() async {
-    final ip = await storage.read(key: 'base_ip');
-    return ip;
+  @override
+  void initState() {
+    super.initState();
+    _fetchProductInfo();
+    _fetchShelfInfo();
   }
 
-  Future<Map<String, String>> getHeaders(int id) async {
-    return await getAuthHeaders(extraHeaders: {
-      "id": id.toString(),
-    });
-  }
+  Future<String?> _getBaseIp() async => await _storage.read(key: 'base_ip');
+  Future<Map<String, String>> _getHeaders(int id) =>
+      getAuthHeaders(extraHeaders: {'id': id.toString()});
 
-  Future<void> fetchProductInfo() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<void> _fetchProductInfo() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/product/get/${widget.productId}');
-      final headers = await getHeaders(widget.productId);
-
-      final response = await http.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final uri = Uri.parse('$ip/product/get/${widget.productId}');
+      final resp =
+          await http.get(uri, headers: await _getHeaders(widget.productId));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
         if (data['Products'] != null && data['Products'].isNotEmpty) {
-          final product = data['Products'][0];
+          final p = data['Products'][0];
           setState(() {
-            productInfo = 'Name: ${product['ProductName'] ?? 'Unknown'}, '
-                'Category: ${product['CategoryName'] ?? 'Unknown'}, '
-                'Price: ${product['Price'] ?? 'N/A'}';
+            productInfo = 'Name: ${p['ProductName'] ?? '-'}\n'
+                'Category: ${p['CategoryName'] ?? '-'}\n'
+                'Price: \$${p['Price'] ?? '-'}';
           });
         } else {
-          setState(() {
-            productInfo = 'No product data found';
-          });
+          setState(() => productInfo = 'No product data found');
         }
       } else {
-        setState(() {
-          productInfo = 'Failed to load product info';
-        });
+        setState(() => productInfo = 'Failed to load product info');
       }
-    } catch (e) {
-      setState(() {
-        productInfo = 'Error loading product info';
-      });
+    } catch (_) {
+      setState(() => productInfo = 'Error loading product info');
     }
   }
 
-  Future<void> fetchShelfInfo() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<void> _fetchShelfInfo() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/shelf/get/${widget.shelfId}');
-      final headers = await getHeaders(widget.shelfId);
-
-      final response = await http.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final uri = Uri.parse('$ip/shelf/get/${widget.shelfId}');
+      final resp =
+          await http.get(uri, headers: await _getHeaders(widget.shelfId));
+      if (resp.statusCode == 200) {
+        final d = json.decode(resp.body);
         setState(() {
-          shelfInfo =
-              'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
+          shelfInfo = 'Section: ${d['Section'] ?? '-'}\n'
+              'Isle:    ${d['Isle'] ?? '-'}\n'
+              'Floor:   ${d['Floor'] ?? '-'}';
         });
       } else {
-        setState(() {
-          shelfInfo = 'Failed to load shelf info';
-        });
+        setState(() => shelfInfo = 'Failed to load shelf info');
       }
-    } catch (e) {
-      setState(() {
-        shelfInfo = 'Error loading shelf info';
-      });
+    } catch (_) {
+      setState(() => shelfInfo = 'Error loading shelf info');
     }
   }
 
-  Future<void> assignProductToShelf() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<void> _assignProductToShelf() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/shelf/update_relation_product');
-      final headers = await getHeaders(widget.shelfId);
-      headers['Content-Type'] = 'application/json';
-
+      final uri = Uri.parse('$ip/shelf/update_relation_product');
+      final headers = await _getHeaders(widget.shelfId)
+        ..['Content-Type'] = 'application/json';
       final body = json.encode({
         "shelf_id": widget.shelfId,
         "product_id": widget.productId,
       });
 
-      final response = await http.put(uri, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final message = data['message'] ?? 'Relation created successfully';
-
-        if (!mounted) return;
-        await _showDialog(message);
+      final resp = await http.put(uri, headers: headers, body: body);
+      if (resp.statusCode == 200) {
+        final msg = json.decode(resp.body)['message'] ??
+            'Relation created successfully';
+        await _showDialog(msg);
         if (mounted) Navigator.pop(context, true);
       } else {
-        _showDialog("Server error: ${response.statusCode}");
+        _showDialog("Server error: ${resp.statusCode}");
       }
     } catch (e) {
       _showDialog("Request failed: $e");
@@ -147,114 +136,129 @@ class _ProductAcceptState extends State<ProductAccept> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    fetchProductInfo();
-    fetchShelfInfo();
-  }
-
-  ThemeData get _orangeTheme => ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFFF3E0),
-        primaryColor: const Color(0xFFFF9800),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFFF9800),
-          secondary: Color(0xFFFFE0B2),
+  Widget _buildAccentCard({
+    required IconData icon,
+    required Color accentColor,
+    required String title,
+    required String content,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border(
+          left: BorderSide(color: accentColor, width: 6),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFFF9800),
-          foregroundColor: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF9800),
-            foregroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: accentColor),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: accentColor,
+                  ),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.4,
+                color: Colors.black87,
+              ),
+            ),
+          ],
         ),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFEF6C00),
-            fontFamily: 'ComicSans',
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-            fontFamily: 'ComicSans',
-          ),
-        ),
-      );
-
-  Widget _buildInfoCard(BuildContext context, String label, String content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .secondary
-                .withAlpha((0.3 * 255).toInt()),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: Text(content, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: _orangeTheme,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Confirm Add to Shelf'),
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Confirm Add to Shelf'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Column(
+          children: [
+            _buildAccentCard(
+              icon: Icons.shopping_bag_outlined,
+              accentColor: const Color(0xFF42A5F5),
+              title: 'The Following Product',
+              content: productInfo,
+            ),
+            _buildAccentCard(
+              icon: Icons.view_in_ar_outlined,
+              accentColor: const Color.fromARGB(255, 135, 151, 101),
+              title: 'Will Be Added To Shelf',
+              content: shelfInfo,
+            ),
+            const Spacer(),
+            Row(
               children: [
-                _buildInfoCard(context, 'The Following Product', productInfo),
-                _buildInfoCard(context, 'Will Be Added To Shelf', shelfInfo),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      child: const Text('Cancel'),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await assignProductToShelf();
-                      },
-                      child: const Text('Accept'),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _assignProductToShelf,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8EA362),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text(
+                      'Accept',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

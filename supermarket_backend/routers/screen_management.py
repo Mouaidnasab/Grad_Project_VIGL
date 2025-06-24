@@ -464,6 +464,7 @@ def add_screen(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
+    screen_add.Status = "Active"
     new_screen = Screens(**screen_add.model_dump())
     session.add(new_screen)
     session.commit()
@@ -477,9 +478,13 @@ def get_screens(
     current_user: User = Depends(require_Role(["owner", "manager"])),
 ):
     linked_screen_ids = session.exec(select(ProductScreen.ScreenID)).all()
+    linked_screen_ids = [
+        screen_id for screen_id in linked_screen_ids if screen_id is not None
+    ]
     screens = session.exec(
         select(Screens).where(Screens.ScreenID.not_in(linked_screen_ids))  # type: ignore
     ).all()
+    print(screens)
     return screens
 
 

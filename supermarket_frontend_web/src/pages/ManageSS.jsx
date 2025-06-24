@@ -412,7 +412,7 @@ const Manage = () => {
                       {selectedShelf
                         ? shelves.find(
                             (s) => s.ShelfID === parseInt(selectedShelf)
-                          )?.Description || selectedShelf
+                          )?.ShelfID || selectedShelf
                         : "Select Shelf"}
                     </div>
                     {isShelfDropdownOpen && (
@@ -423,7 +423,8 @@ const Manage = () => {
                             className="dropdown-option2"
                             onClick={() => handleSelectShelf(shelf.ShelfID)}
                           >
-                            {shelf.ShelfID} - {shelf.Description}
+                            {shelf.ShelfID} - Isle:{shelf.Isle} - Floor:
+                            {shelf.Floor} - Section:{shelf.Section}
                           </div>
                         ))}
                       </div>
@@ -448,7 +449,7 @@ const Manage = () => {
                           ? "Unassigned"
                           : screens.find(
                               (s) => s.ScreenID === parseInt(selectedScreen)
-                            )?.IP || selectedScreen
+                            )?.ScreenID || selectedScreen
                         : "Select Screen"}
                     </div>
                     {isScreenDropdownOpen && (
