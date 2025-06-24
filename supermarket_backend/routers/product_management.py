@@ -80,22 +80,9 @@ class DiscountRequest(BaseModel):
     Discount: float
     EndDate: Optional[date]
 
-class PriceHistoryRecord(BaseModel):
-    Price: float
-    StartDate: datetime
-    EndDate: Optional[datetime]
-    ChangedBy: Optional[int]
-
-class PriceHistoryResponse(BaseModel):
-    ProductID: int
-    ProductName: Optional[str]
-    PriceHistory: List[PriceHistoryRecord]
-
 
 class GetResponse(BaseModel):
     Products: list[OrganizedProducts]
-    
-
 
 
 @router.post("/add", response_model=ProductResponse)
@@ -470,35 +457,3 @@ def get_penalties(
         )
 
     return gov_penalties_data
-
-@router.get("/price_history/{product_id}", response_model=PriceHistoryResponse)
-def get_price_history(
-    product_id: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_active_user),
-):
-    product = session.get(Products, product_id)
-    if not product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Product not found."
-        )
-
-    history_records = session.exec(
-        select(PriceHistory)
-        .where(PriceHistory.ProductID == product_id)
-        .order_by(PriceHistory.StartDate.desc())
-    ).all()
-
-    return PriceHistoryResponse(
-        ProductID=product.ProductID,
-        ProductName=getattr(product, "ProductName", None),
-        PriceHistory=[
-            PriceHistoryRecord(
-                Price=record.Price,
-                StartDate=record.StartDate,
-                EndDate=record.EndDate,
-                ChangedBy=record.ChangedBy,
-            )
-            for record in history_records
-        ],
-    )
