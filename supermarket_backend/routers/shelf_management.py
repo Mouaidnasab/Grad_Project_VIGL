@@ -74,34 +74,37 @@ def create_relation_screen(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Shelf not found.",
         )
+    if request.screen_id:
+        screen = session.exec(
+            select(Screens).where(Screens.ScreenID == request.screen_id)
+        ).first()
+        if not screen:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Screen not found.",
+            )
 
-    screen = session.exec(
-        select(Screens).where(Screens.ScreenID == request.screen_id)
-    ).first()
-    if not screen:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Screen not found.",
-        )
-
-    conflict = session.exec(
-        select(ProductScreen).where(
-            ProductScreen.ScreenID == request.screen_id,
-            ProductScreen.ShelfID != request.shelf_id,
-        )
-    ).first()
-    if conflict:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Screen is already related to another shelf.",
-        )
+        conflict = session.exec(
+            select(ProductScreen).where(
+                ProductScreen.ScreenID == request.screen_id,
+                ProductScreen.ShelfID != request.shelf_id,
+            )
+        ).first()
+        if conflict:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Screen is already related to another shelf.",
+            )
 
     relation = session.exec(
         select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)
     ).first()
 
     if relation:
-        relation.ScreenID = request.screen_id
+        if request.screen_id:
+            relation.ScreenID = request.screen_id
+        else:
+            relation.ScreenID = None
         session.add(relation)
         session.commit()
         session.refresh(relation)
@@ -109,7 +112,7 @@ def create_relation_screen(
 
     new_relation = ProductScreen(
         ShelfID=request.shelf_id,
-        ScreenID=request.screen_id,
+        ScreenID=request.screen_id if request.screen_id else None,
         ProductID=None,
     )
     session.add(new_relation)
@@ -131,17 +134,18 @@ def update_relation_screen(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found."
         )
-    screen = session.exec(
-        select(Screens).where(Screens.ScreenID == request.screen_id)
-    ).first()
-    screen_in_relation = session.exec(
-        select(ProductScreen).where(ProductScreen.ScreenID == request.screen_id)
-    ).first()
-    if not screen and screen_in_relation.ShelfID != request.shelf_id:  # type: ignore
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Screen not found or in different relation.",
-        )
+    if request.screen_id:
+        screen = session.exec(
+            select(Screens).where(Screens.ScreenID == request.screen_id)
+        ).first()
+        screen_in_relation = session.exec(
+            select(ProductScreen).where(ProductScreen.ScreenID == request.screen_id)
+        ).first()
+        if not screen and screen_in_relation.ShelfID != request.shelf_id:  # type: ignore
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Screen not found or in different relation.",
+            )
 
     product_screen = session.exec(
         select(ProductScreen).where(ProductScreen.ShelfID == request.shelf_id)
@@ -151,8 +155,10 @@ def update_relation_screen(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Relation with the specified shelf not found.",
         )
-
-    product_screen.ScreenID = request.screen_id
+    if request.screen_id:
+        product_screen.ScreenID = request.screen_id
+    else:
+        product_screen.ScreenID = None
     session.add(product_screen)
     session.commit()
     session.refresh(product_screen)

@@ -28,14 +28,18 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loadStoredIp() async {
     String? storedIp = await storage.read(key: 'base_ip');
+    // if nothing stored yet, use and persist the default
+    if (storedIp == null || storedIp.isEmpty) {
+      storedIp = 'https://market_back.vigl.store';
+      await storage.write(key: 'base_ip', value: storedIp);
+    }
     setState(() {
-      baseIp = storedIp ?? "https://market_back.vigl.store";
+      baseIp = storedIp!;
+      ipController.text = baseIp; // prefill the dialog
     });
   }
 
   Future<void> login() async {
-    print('Login initiated for user: $username');
-
     if (baseIp.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please set the IP address first.')),
@@ -44,31 +48,21 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     final url = Uri.parse('$baseIp/user_auth/token');
-
     try {
       final response = await http.post(
         url,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'username': username,
           'password': password,
         },
       );
 
-      print('Response status: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-        String accessToken = data['access_token'];
-        String refreshToken = data['refresh_token'];
-        String tokenType = data['token_type'];
-
-        await storage.write(key: 'access_token', value: accessToken);
-        await storage.write(key: 'refresh_token', value: refreshToken);
-        await storage.write(key: 'token_type', value: tokenType);
+        await storage.write(key: 'access_token', value: data['access_token']);
+        await storage.write(key: 'refresh_token', value: data['refresh_token']);
+        await storage.write(key: 'token_type', value: data['token_type']);
         await storage.write(key: 'username', value: username);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,19 +71,14 @@ class _LoginPageState extends State<LoginPage> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (_) => const HomePage()),
         );
-
-        setState(() {
-          loggedIn = true;
-        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login failed: ${response.statusCode}')),
         );
       }
     } catch (e) {
-      print('Login error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -111,9 +100,7 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () async {
               if (ipController.text.isNotEmpty) {
                 await storage.write(key: 'base_ip', value: ipController.text);
-                setState(() {
-                  baseIp = ipController.text;
-                });
+                setState(() => baseIp = ipController.text);
                 Navigator.pop(context);
               }
             },
@@ -133,7 +120,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Align(
                   alignment: Alignment.topLeft,
@@ -166,11 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   width: 300,
                   child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        username = value;
-                      });
-                    },
+                    onChanged: (v) => setState(() => username = v),
                     decoration: InputDecoration(
                       hintText: 'Enter Username',
                       filled: true,
@@ -188,11 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   width: 300,
                   child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        password = value;
-                      });
-                    },
+                    onChanged: (v) => setState(() => password = v),
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Enter your password',

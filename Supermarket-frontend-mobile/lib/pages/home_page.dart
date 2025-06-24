@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
   List<int> _scannedIds = [];
 
   final List<IconData> _icons = [
-    Icons.inventory,
+    Icons.shopping_bag_outlined,
     Icons.smart_screen,
     Icons.qr_code_scanner,
   ];

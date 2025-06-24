@@ -1,9 +1,11 @@
 # routers/user_management.py
 
+import os
 from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
 from sqlmodel import Session, select
+from dotenv import load_dotenv, set_key
 from dependencies.auth import (
     User,
     get_password_hash,
@@ -18,7 +20,8 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-# Pydantic Schemas
+
+load_dotenv(".env")
 
 
 class UserCreate(BaseModel):
@@ -250,3 +253,11 @@ def is_first_login():
             select(RefreshToken).where(RefreshToken.UserID == owner.UserID)  # type: ignore
         ).first()  # type: ignore
         return not refresh
+
+
+@router.get("/change_supermarket", response_model=bool)
+def change_supermarket(SupermarketID: int):
+    full_supermarket_id = "s" + str(SupermarketID)
+    os.environ["SUPERMARKET_ID"] = str(full_supermarket_id)
+    set_key(".env", "SUPERMARKET_ID", str(full_supermarket_id))
+    return True

@@ -4,14 +4,17 @@ import 'package:vigl/utils/api_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-final FlutterSecureStorage storage = const FlutterSecureStorage();
+final _storage = const FlutterSecureStorage();
 
 class ScreenAccept extends StatefulWidget {
   final int shelfId;
   final int screenId;
 
-  const ScreenAccept(
-      {super.key, required this.shelfId, required this.screenId});
+  const ScreenAccept({
+    super.key,
+    required this.shelfId,
+    required this.screenId,
+  });
 
   @override
   State<ScreenAccept> createState() => _ScreenAcceptState();
@@ -21,101 +24,91 @@ class _ScreenAcceptState extends State<ScreenAccept> {
   String screenInfo = 'Loading...';
   String shelfInfo = 'Loading...';
 
-  Future<String?> getBaseIp() async {
-    final ip = await storage.read(key: 'base_ip');
-    return ip;
+  @override
+  void initState() {
+    super.initState();
+    _fetchScreenInfo();
+    _fetchShelfInfo();
   }
 
-  Future<Map<String, String>> getHeaders(int id) async {
-    return await getAuthHeaders(extraHeaders: {
-      "id": id.toString(),
-    });
-  }
+  Future<String?> _getBaseIp() async => await _storage.read(key: 'base_ip');
 
-  Future<void> fetchScreenInfo() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<Map<String, String>> _getHeaders(int id) =>
+      getAuthHeaders(extraHeaders: {'id': id.toString()});
+
+  Future<void> _fetchScreenInfo() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/screen/get/${widget.screenId}');
-      final headers = await getHeaders(widget.screenId);
-
-      final response = await http.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final uri = Uri.parse('$ip/screen/get/${widget.screenId}');
+      final resp =
+          await http.get(uri, headers: await _getHeaders(widget.screenId));
+      if (resp.statusCode == 200) {
+        final data = json.decode(resp.body);
         setState(() {
-          screenInfo =
-              'IP: ${data['IP'] ?? 'Unknown'}, Status: ${data['Status'] ?? 'Unknown'}';
+          screenInfo = 'IP: ${data['IP'] ?? '-'}\n'
+              'Status: ${data['Status'] ?? '-'}\n'
+              'Desc: ${data['Description'] ?? '-'}';
         });
       } else {
-        setState(() {
-          screenInfo = 'Failed to load screen info';
-        });
+        setState(() => screenInfo = 'Failed to load screen info');
       }
-    } catch (e) {
-      setState(() {
-        screenInfo = 'Error loading screen info';
-      });
+    } catch (_) {
+      setState(() => screenInfo = 'Error loading screen info');
     }
   }
 
-  Future<void> fetchShelfInfo() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<void> _fetchShelfInfo() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/shelf/get/${widget.shelfId}');
-      final headers = await getHeaders(widget.shelfId);
-
-      final response = await http.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      final uri = Uri.parse('$ip/shelf/get/${widget.shelfId}');
+      final resp =
+          await http.get(uri, headers: await _getHeaders(widget.shelfId));
+      if (resp.statusCode == 200) {
+        final d = json.decode(resp.body);
         setState(() {
-          shelfInfo =
-              'Section: ${data['Section']}, Isle: ${data['Isle']}, Floor: ${data['Floor']}';
+          shelfInfo = 'Section: ${d['Section'] ?? '-'}\n'
+              'Isle:    ${d['Isle'] ?? '-'}\n'
+              'Floor:   ${d['Floor'] ?? '-'}';
         });
       } else {
-        setState(() {
-          shelfInfo = 'Failed to load shelf info';
-        });
+        setState(() => shelfInfo = 'Failed to load shelf info');
       }
-    } catch (e) {
-      setState(() {
-        shelfInfo = 'Error loading shelf info';
-      });
+    } catch (_) {
+      setState(() => shelfInfo = 'Error loading shelf info');
     }
   }
 
-  Future<void> assignScreenToShelf() async {
-    final baseIp = await getBaseIp();
-    if (baseIp == null || baseIp.isEmpty) {
+  Future<void> _assignScreenToShelf() async {
+    final ip = await _getBaseIp();
+    if (ip == null || ip.isEmpty) {
       _showDialog("IP address not set. Please log in again.");
       return;
     }
     try {
-      final uri = Uri.parse('$baseIp/shelf/create_relation_screen');
-      final headers = await getHeaders(widget.shelfId);
-      headers['Content-Type'] = 'application/json';
-
+      final uri = Uri.parse('$ip/shelf/create_relation_screen');
+      final headers = await _getHeaders(widget.shelfId)
+        ..['Content-Type'] = 'application/json';
       final body = json.encode({
         "shelf_id": widget.shelfId,
         "screen_id": widget.screenId,
       });
 
-      final response = await http.post(uri, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final message = data['message'] ?? 'Relation created successfully';
-
-        if (!mounted) return;
-        await _showDialog(message);
+      final resp = await http.post(uri, headers: headers, body: body);
+      if (resp.statusCode == 200) {
+        final msg = json.decode(resp.body)['message'] ??
+            'Relation created successfully';
+        await _showDialog(msg);
         if (mounted) Navigator.pop(context, true);
       } else {
-        _showDialog("Server error: ${response.statusCode}");
+        _showDialog("Server error: ${resp.statusCode}");
       }
     } catch (e) {
       _showDialog("Request failed: $e");
@@ -139,114 +132,129 @@ class _ScreenAcceptState extends State<ScreenAccept> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    fetchScreenInfo();
-    fetchShelfInfo();
-  }
-
-  ThemeData get _blueTheme => ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFF0F6FF),
-        primaryColor: const Color(0xFF42A5F5),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFF42A5F5),
-          secondary: Color(0xFFBBDEFB),
+  Widget _buildAccentCard({
+    required IconData icon,
+    required Color accentColor,
+    required String title,
+    required String content,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border(
+          left: BorderSide(color: accentColor, width: 6),
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF42A5F5),
-          foregroundColor: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF42A5F5),
-            foregroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: accentColor, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: accentColor,
+                  ),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
+            const SizedBox(height: 8),
+            Divider(color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.4,
+                color: Colors.black87,
+              ),
+            ),
+          ],
         ),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1565C0),
-            fontFamily: 'ComicSans',
-          ),
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-            fontFamily: 'ComicSans',
-          ),
-        ),
-      );
-
-  Widget _buildInfoCard(BuildContext context, String label, String content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .secondary
-                .withAlpha((0.3 * 255).toInt()),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: Text(content, style: Theme.of(context).textTheme.bodyLarge),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: _blueTheme,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Confirm Add to Shelf'),
-        ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Confirm Add to Shelf'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Column(
+          children: [
+            _buildAccentCard(
+              icon: Icons.desktop_windows_outlined,
+              accentColor: const Color(0xFF42A5F5),
+              title: 'The Following Screen',
+              content: screenInfo,
+            ),
+            _buildAccentCard(
+              icon: Icons.view_in_ar_outlined,
+              accentColor: const Color.fromARGB(255, 135, 151, 101),
+              title: 'Will Be Added To Shelf',
+              content: shelfInfo,
+            ),
+            const Spacer(),
+            Row(
               children: [
-                _buildInfoCard(context, 'The Following Screen', screenInfo),
-                _buildInfoCard(context, 'Will Be Added To Shelf', shelfInfo),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      child: const Text('Cancel'),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        await assignScreenToShelf();
-                      },
-                      child: const Text('Accept'),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
                     ),
-                  ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _assignScreenToShelf,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8EA362),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text(
+                      'Accept',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

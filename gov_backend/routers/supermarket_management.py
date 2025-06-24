@@ -117,3 +117,24 @@ def get_supermarkets(
     current_user: User = Depends(require_Role(["staff", "customer"])),
 ):
     return session.scalars(select(Supermarkets)).all()
+
+
+class SupermarketOnlyID(BaseModel):
+    SupermarketID: int
+    RegisteredName: str
+
+
+@router.get("/get_only_id", response_model=List[SupermarketOnlyID])
+def get_supermarkets_id(session: Session = Depends(get_session)):
+    supermarkets = session.exec(select(Supermarkets)).all()
+    return supermarkets
+
+
+@router.post("/create_db", status_code=status.HTTP_201_CREATED)
+def create_db(
+    supermarket_id: int,
+    user: Users,
+    session: Session = Depends(get_session),
+):
+    create_supermarket_database(str(supermarket_id), user)
+    return {"message": "Database created successfully."}

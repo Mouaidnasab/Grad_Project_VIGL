@@ -51,7 +51,7 @@ const LoginPage = () => {
     });
 
     try {
-      const response = await api.post("/user_auth/token/", payload, {
+      const response = await api.post("/user_auth/token", payload, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
 

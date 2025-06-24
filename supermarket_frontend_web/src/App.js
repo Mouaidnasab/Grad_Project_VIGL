@@ -13,7 +13,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<ViglDashboard />} />
+        <Route
+          path="/"
+          element={
+            localStorage.getItem("access_token") ? <ViglDashboard /> : <About />
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/manage-products" element={<Manageproducts />} />
         <Route path="/manage-shelves-screens" element={<ManageSS />} />
