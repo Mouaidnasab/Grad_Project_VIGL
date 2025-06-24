@@ -20,17 +20,18 @@ services:
     restart: always
 
 
-  supermarket-backend:
-    container_name: Supermarket-Backend
-    build:
-      context: ./supermarket_backend
-      dockerfile: Dockerfile
-    ports:
-      - "3601:8000"
-    restart: always
-    volumes:
-      - ./supermarket_backend:/app:ro
-
+  # supermarket-backend:
+  #     container_name: Supermarket-Backend
+  #     build:
+  #       context: ./supermarket_backend
+  #       dockerfile: Dockerfile
+  #     ports:
+  #       - "3601:8000"
+  #     restart: always
+  #     volumes:
+  #       - ./supermarket_backend:/app   # <— no more :ro
+  #     environment:
+  #       - DOTENV_PATH=/app/.env
   supermarket-frontend:
     container_name: Supermarket-Frontend
     build:

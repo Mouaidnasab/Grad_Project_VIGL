@@ -62,11 +62,11 @@ const RatingSection = () => (
         <a href="/manage-products" className="rating-button">
           Products Details
         </a>
-        <a href="/about" className="rating-button">
-          Statistics
-        </a>
         <a href="/manage-shelves-screens" className="rating-button">
           Manage Shelves &amp; Screens
+        </a>
+        <a href="/settings" className="rating-button">
+          Settings
         </a>
       </div>
     </div>
@@ -136,7 +136,9 @@ const PenaltiesAndPriceHistory = ({ penalties }) => {
     const fetchPriceHistory = async () => {
       setLoadingPrices(true);
       try {
-        const res = await api.get(`/product/price_history/${selectedProductId}`);
+        const res = await api.get(
+          `/product/price_history/${selectedProductId}`
+        );
         setPriceHistory(res.data.PriceHistory || []);
       } catch (err) {
         console.error("Failed to fetch price history", err);
@@ -355,7 +357,10 @@ const Dashboard = () => {
           <img src={squareImage} alt="Preview" className="square-image" />
         </div>
         <div className="right-column" ref={statsRef} style={{ zIndex: 2 }}>
-          <ScreenStats activeCount={activeCount} availableCount={availableCount} />
+          <ScreenStats
+            activeCount={activeCount}
+            availableCount={availableCount}
+          />
           <PenaltiesAndPriceHistory penalties={penalties} />
         </div>
       </div>

@@ -5,7 +5,7 @@ from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, constr
 from sqlmodel import Session, select
-from dotenv import load_dotenv, set_key
+from dotenv import find_dotenv, load_dotenv, set_key
 from dependencies.auth import (
     User,
     get_password_hash,
@@ -19,9 +19,6 @@ router = APIRouter(
     tags=["User Management"],
     responses={404: {"description": "Not found"}},
 )
-
-
-load_dotenv(".env")
 
 
 class UserCreate(BaseModel):
@@ -255,9 +252,24 @@ def is_first_login():
         return not refresh
 
 
+dotenv_path = find_dotenv(filename=".env", raise_error_if_not_found=False)
+if not dotenv_path:
+    # fallback: use a default path inside your volume
+    dotenv_path = os.path.join(os.getcwd(), "config", "env", ".env")
+
+load_dotenv(dotenv_path)
+
+
 @router.get("/change_supermarket", response_model=bool)
 def change_supermarket(SupermarketID: int):
-    full_supermarket_id = "s" + str(SupermarketID)
-    os.environ["SUPERMARKET_ID"] = str(full_supermarket_id)
-    set_key(".env", "SUPERMARKET_ID", str(full_supermarket_id))
-    return True
+    full_id = f"s{SupermarketID}"
+    os.environ["SUPERMARKET_ID"] = full_id
+
+    try:
+        # write the new value back into the mounted .env
+        set_key(dotenv_path, "SUPERMARKET_ID", full_id)
+        return True
+    except Exception:
+        raise HTTPException(
+            status_code=500, detail="Could not persist supermarket ID to .env"
+        )

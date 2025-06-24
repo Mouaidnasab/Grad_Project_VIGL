@@ -169,32 +169,22 @@ def add_product(
     )
 
 
-logger = logging.getLogger(__name__)
-
-
 @router.get("/get", response_model=GetResponse)
 def get_products(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_active_user),
 ):
-    logger.info("User %s requested products list", current_user.UserID)
-
-    # Fetch local products
     supermarket_products = session.exec(select(Products)).all()
     product_ids = [p.ProductID for p in supermarket_products]
     local_product_ids_set = set(product_ids)
-    logger.debug("Fetched %d local products", len(product_ids))
 
-    # Fetch current prices
     price_query = select(PriceHistory).where(
         PriceHistory.ProductID.in_(product_ids),  # type: ignore
         PriceHistory.EndDate == None,  # noqa: E711
     )
     local_prices_result = session.exec(price_query).all()
     local_prices = {pr.ProductID: pr.Price for pr in local_prices_result}
-    logger.debug("Fetched %d active price histories", len(local_prices))
 
-    # Fetch active promotions
     promo_query = select(Promotions).where(
         Promotions.ProductID.in_(product_ids),  # type: ignore
         Promotions.EndDate > datetime.now(),  # type: ignore
@@ -204,17 +194,13 @@ def get_products(
         promo.ProductID: (promo.Discount, promo.EndDate)
         for promo in local_promos_result
     }
-    logger.debug("Fetched %d active promotions", len(local_promos))
 
     # Fetch government data
     try:
-        logger.info("Fetching government products from %s", GOV_HOST)
-        gov_resp = requests.get(f"{GOV_HOST}/product/get")
+        gov_resp = requests.get(f"{GOV_HOST}/product/get", verify=False)
         gov_resp.raise_for_status()
         gov_products_data = gov_resp.json()
-        logger.debug("Fetched %d government products", len(gov_products_data))
     except Exception as e:
-        logger.error("Error fetching government products data: %s", e)
         raise HTTPException(
             status_code=500, detail="Error fetching government products data"
         )
@@ -246,7 +232,6 @@ def get_products(
             )
         )
 
-    logger.info("Returning %d merged products", len(products))
     return GetResponse(Products=products)
 
 
@@ -481,18 +466,29 @@ def get_penalties(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_active_user),
 ):
-    SupermarketID = get_supermarket_id()
-    SupermarketID = SupermarketID[1:]
+    raw_id = get_supermarket_id()
+    supermarket_id = raw_id[1:] if raw_id else ""
 
-    print(SupermarketID)
+    url = f"{GOV_HOST}/penalty/get/{supermarket_id}"
 
     try:
-        gov_response = requests.get(f"{GOV_HOST}/penalty/get/{SupermarketID or ''}")
-        gov_response.raise_for_status()
-        gov_penalties_data = gov_response.json()
-    except Exception:
+        gov_resp = requests.get(url, verify=False)
+        # special-case “not found” as “no penalties”
+        if gov_resp.status_code == 404:
+            return []
+        gov_resp.raise_for_status()
+
+        gov_penalties_data = gov_resp.json()
+
+    except requests.exceptions.HTTPError as http_err:
+        # if it slipped through, still treat 404 as empty
+        if http_err.response is not None and http_err.response.status_code == 404:
+            return []
+
+        raise HTTPException(status_code=502, detail=f"Gov API error: {http_err}")
+    except requests.exceptions.RequestException as e:
         raise HTTPException(
-            status_code=500, detail="Error fetching government products data"
+            status_code=502, detail="Error fetching government penalties data"
         )
 
     return gov_penalties_data
