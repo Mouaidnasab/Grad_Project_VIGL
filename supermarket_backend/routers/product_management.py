@@ -177,7 +177,7 @@ def get_products(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_active_user),
 ):
-    logger.info("User %s requested products list", current_user.username)
+    logger.info("User %s requested products list", current_user.UserID)
 
     # Fetch local products
     supermarket_products = session.exec(select(Products)).all()
