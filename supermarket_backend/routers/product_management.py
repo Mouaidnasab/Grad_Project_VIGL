@@ -23,6 +23,7 @@ from .screen_management import (
     ScreenUpdateRequest,
     update_screen_display,
 )
+import logging
 
 
 GOV_HOST = os.getenv("GOV_HOST")
@@ -82,11 +83,13 @@ class DiscountRequest(BaseModel):
     Discount: float
     EndDate: Optional[date]
 
+
 class PriceHistoryRecord(BaseModel):
     Price: float
     StartDate: datetime
     EndDate: Optional[datetime]
     ChangedBy: Optional[int]
+
 
 class PriceHistoryResponse(BaseModel):
     ProductID: int
@@ -96,8 +99,6 @@ class PriceHistoryResponse(BaseModel):
 
 class GetResponse(BaseModel):
     Products: list[OrganizedProducts]
-    
-
 
 
 @router.post("/add", response_model=ProductResponse)
@@ -168,22 +169,32 @@ def add_product(
     )
 
 
+logger = logging.getLogger(__name__)
+
+
 @router.get("/get", response_model=GetResponse)
 def get_products(
     session: Session = Depends(get_session),
     current_user=Depends(get_current_active_user),
 ):
-    supermarket_products = session.exec(select(Products)).all()
-    product_ids = [product.ProductID for product in supermarket_products]
-    local_product_ids_set = set(product_ids)
+    logger.info("User %s requested products list", current_user.username)
 
+    # Fetch local products
+    supermarket_products = session.exec(select(Products)).all()
+    product_ids = [p.ProductID for p in supermarket_products]
+    local_product_ids_set = set(product_ids)
+    logger.debug("Fetched %d local products", len(product_ids))
+
+    # Fetch current prices
     price_query = select(PriceHistory).where(
         PriceHistory.ProductID.in_(product_ids),  # type: ignore
-        PriceHistory.EndDate == None,  # type: ignore  # noqa: E711
+        PriceHistory.EndDate == None,  # noqa: E711
     )
     local_prices_result = session.exec(price_query).all()
-    local_prices = {price.ProductID: price.Price for price in local_prices_result}
+    local_prices = {pr.ProductID: pr.Price for pr in local_prices_result}
+    logger.debug("Fetched %d active price histories", len(local_prices))
 
+    # Fetch active promotions
     promo_query = select(Promotions).where(
         Promotions.ProductID.in_(product_ids),  # type: ignore
         Promotions.EndDate > datetime.now(),  # type: ignore
@@ -193,42 +204,49 @@ def get_products(
         promo.ProductID: (promo.Discount, promo.EndDate)
         for promo in local_promos_result
     }
+    logger.debug("Fetched %d active promotions", len(local_promos))
 
+    # Fetch government data
     try:
-        gov_response = requests.get(f"{GOV_HOST}/product/get")
-        gov_response.raise_for_status()
-        gov_products_data = gov_response.json()
-    except Exception:
+        logger.info("Fetching government products from %s", GOV_HOST)
+        gov_resp = requests.get(f"{GOV_HOST}/product/get")
+        gov_resp.raise_for_status()
+        gov_products_data = gov_resp.json()
+        logger.debug("Fetched %d government products", len(gov_products_data))
+    except Exception as e:
+        logger.error("Error fetching government products data: %s", e)
         raise HTTPException(
             status_code=500, detail="Error fetching government products data"
         )
 
+    # Merge and build response
     products = []
     for item in gov_products_data:
-        product_info = item["Product"]
-        if product_info["ProductID"] not in local_product_ids_set:
+        prod = item["Product"]
+        pid = prod["ProductID"]
+        if pid not in local_product_ids_set:
             continue
 
-        category_info = item["Category"]
+        cat = item["Category"]
         price_info = item["Price"]
-        product_id = product_info["ProductID"]
+        local_price = local_prices.get(pid, 0)
+        discount, discount_end = local_promos.get(pid, (0, None))
 
-        local_price = local_prices.get(product_id)
-        discount, discount_end = local_promos.get(product_id, (0, None))
-
-        product = OrganizedProducts(
-            ProductID=product_info["ProductID"],
-            ProductName=product_info["ProductName"],
-            CategoryID=product_info["CategoryID"],
-            CategoryName=category_info["CategoryName"],
-            Price=float(local_price) if local_price is not None else 0,
-            SuggestedPrice=price_info["SuggestedPrice"],
-            Threshold=price_info["Threshold"],
-            Discount=discount if discount is not None else 0,
-            DiscountEndDate=discount_end,
+        products.append(
+            OrganizedProducts(
+                ProductID=pid,
+                ProductName=prod["ProductName"],
+                CategoryID=prod["CategoryID"],
+                CategoryName=cat["CategoryName"],
+                Price=float(local_price),
+                SuggestedPrice=price_info["SuggestedPrice"],
+                Threshold=price_info["Threshold"],
+                Discount=discount,
+                DiscountEndDate=discount_end,
+            )
         )
-        products.append(product)
 
+    logger.info("Returning %d merged products", len(products))
     return GetResponse(Products=products)
 
 
@@ -478,6 +496,7 @@ def get_penalties(
         )
 
     return gov_penalties_data
+
 
 @router.get("/price_history/{product_id}", response_model=PriceHistoryResponse)
 def get_price_history(
