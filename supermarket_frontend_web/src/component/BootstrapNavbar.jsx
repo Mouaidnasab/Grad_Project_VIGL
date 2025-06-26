@@ -64,7 +64,7 @@ const BootstrapNavbar = () => {
             style={{ cursor: "pointer" }}
           >
             <i
-              className="fa-solid fa-users"
+              className="fa-solid fa-arrow-right-from-bracket"
               style={{
                 fontSize: "20px",
                 color: "white",

@@ -540,7 +540,7 @@ const TemplateDesigner = () => {
         <button id="add-text">Add Text</button>
         <button id="add-barcode">Add Barcode</button>
         <button id="add-qrcode">Add QR Code</button>
-        <button id="generate">Savea</button>
+        <button id="generate">Save</button>
       </div>
 
       <main className="designer-main-content">
