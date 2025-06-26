@@ -119,6 +119,15 @@ def get_supermarkets(
     return session.scalars(select(Supermarkets)).all()
 
 
+@router.get("/count", response_model=int)
+def get_supermarkets_count(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_Role(["staff", "customer"])),
+):
+    supermarkets = session.exec(select(Supermarkets)).all()
+    return len(supermarkets)
+
+
 class SupermarketOnlyID(BaseModel):
     SupermarketID: int
     RegisteredName: str

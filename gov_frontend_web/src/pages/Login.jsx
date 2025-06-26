@@ -78,16 +78,7 @@ const LoginPage = () => {
     <div className="login-page admin-registration-page">
       <div className="split-container">
         <div className="image-side">
-          <img
-            ref={stickerRef}
-            src={sideImage}
-            alt="Login Visual"
-            className="login-side-image"
-            style={{
-              width: stickerDimensions.width,
-              opacity: stickerDimensions.opacity,
-            }}
-          />
+          <div className="image-side" />
         </div>
 
         <div className="form-container">

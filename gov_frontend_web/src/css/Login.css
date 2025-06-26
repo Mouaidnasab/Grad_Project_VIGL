@@ -32,20 +32,9 @@ body {
 }
 
 .image-side {
-  flex: 1.2;
-  position: relative;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  overflow: hidden;
-}
-
-.login-side-image {
-  width: 80%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 0;
+  flex: 1;
+  background: url("../images/KKTC2.png") no-repeat center center;
+  background-size: cover;
 }
 
 .form-container {
@@ -143,7 +132,8 @@ h1 {
   transform: translateY(-50%);
   pointer-events: none;
   opacity: 0;
-  transition: top 0.3s ease, font-size 0.3s ease, color 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+  transition: top 0.3s ease, font-size 0.3s ease, color 0.3s ease,
+    opacity 0.3s ease, background-color 0.3s ease;
   background-color: transparent;
   padding: 0 5px;
   z-index: 1;
@@ -154,7 +144,7 @@ h1 {
   top: -15px;
   opacity: 1;
   font-size: 1rem;
-  color: #A5BB77;
+  color: #a5bb77;
   background-color: #ffffff;
   transform: translateY(0);
   z-index: 2;
@@ -224,8 +214,7 @@ h1 {
   transition: width 0.3s ease, opacity 0.3s ease, bottom 0.3s ease;
 }
 
-
-.sea-wave-sticker { 
+.sea-wave-sticker {
   width: 100%;
   height: auto;
   display: block;

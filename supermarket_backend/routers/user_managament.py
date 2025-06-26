@@ -254,7 +254,6 @@ def is_first_login():
 
 dotenv_path = find_dotenv(filename=".env", raise_error_if_not_found=False)
 if not dotenv_path:
-    # fallback: use a default path inside your volume
     dotenv_path = os.path.join(os.getcwd(), "config", "env", ".env")
 
 load_dotenv(dotenv_path)
@@ -266,7 +265,6 @@ def change_supermarket(SupermarketID: int):
     os.environ["SUPERMARKET_ID"] = full_id
 
     try:
-        # write the new value back into the mounted .env
         set_key(dotenv_path, "SUPERMARKET_ID", full_id)
         return True
     except Exception:

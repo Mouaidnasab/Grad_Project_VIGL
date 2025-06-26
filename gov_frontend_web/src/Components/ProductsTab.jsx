@@ -38,7 +38,6 @@ const ProductActionMenu = ({ product, onEdit, onEditPrice }) => {
 
   useEffect(() => () => clearClose(), []);
 
-  // Recalculate position on open
   useEffect(() => {
     if (!open || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
@@ -109,24 +108,19 @@ const ProductActionMenu = ({ product, onEdit, onEditPrice }) => {
 };
 
 export default function ProductsTab() {
-  // Main products state
   const [products, setProducts] = useState([]);
   const [sel, setSel] = useState(null);
 
-  // Modal visibility state
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [priceOpen, setPriceOpen] = useState(false);
   const [suggestedOpen, setSuggestedOpen] = useState(false);
 
-  // Pagination
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Suggested-products state
   const [suggestions, setSuggestions] = useState([]);
 
-  // Load products
   const RefreshTable = async () => {
     try {
       const { data } = await api.get("/product/get");
@@ -144,7 +138,6 @@ export default function ProductsTab() {
     }
   };
 
-  // Load suggestions
   const fetchSuggestions = async () => {
     try {
       const { data } = await api.get("/product/get_suggested_products");
@@ -155,7 +148,6 @@ export default function ProductsTab() {
             id: parseInt(key, 10),
             ...entry,
           }));
-      // attach empty fields
       setSuggestions(
         arr.map((item) => ({
           ...item,
@@ -169,28 +161,23 @@ export default function ProductsTab() {
     }
   };
 
-  // Fetch on mount
   useEffect(() => {
     RefreshTable();
   }, []);
 
-  // Reset page when products change
   useEffect(() => {
     setCurrentPage(1);
   }, [products]);
 
-  // Fetch suggestions when modal opens
   useEffect(() => {
     if (suggestedOpen) fetchSuggestions();
   }, [suggestedOpen]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(products.length / itemsPerPage);
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentItems = products.slice(indexOfFirst, indexOfLast);
 
-  // Handlers for CRUD operations
   const handleAddProduct = async (payload) => {
     try {
       await api.post("/product/create", {
@@ -226,7 +213,6 @@ export default function ProductsTab() {
     }
   };
 
-  // Suggested-products handlers
   const onFieldChange = (id, field, value) => {
     setSuggestions((prev) =>
       prev.map((x) => (x.id === id ? { ...x, [field]: value } : x))
@@ -239,7 +225,6 @@ export default function ProductsTab() {
       return alert("Please fill in barcode, price and threshold");
     }
     try {
-      // create product
       await api.post("/product/create", {
         Barcode: s.barcode,
         SuggestedPrice: s.price,
@@ -248,7 +233,6 @@ export default function ProductsTab() {
         CategoryID: s.CategoryID,
         Description: s.Description,
       });
-      // delete suggestion
       await api.delete(`/product/delete_suggested_product/${id}`);
       setSuggestions((prev) => prev.filter((x) => x.id !== id));
       RefreshTable();

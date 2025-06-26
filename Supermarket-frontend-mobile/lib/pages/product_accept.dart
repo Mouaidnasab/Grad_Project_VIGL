@@ -52,7 +52,7 @@ class _ProductAcceptState extends State<ProductAccept> {
           setState(() {
             productInfo = 'Name: ${p['ProductName'] ?? '-'}\n'
                 'Category: ${p['CategoryName'] ?? '-'}\n'
-                'Price: \$${p['Price'] ?? '-'}';
+                'Price: \₺${p['Price'] ?? '-'}';
           });
         } else {
           setState(() => productInfo = 'No product data found');

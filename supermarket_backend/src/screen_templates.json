@@ -5,7 +5,7 @@
                 "type": "text",
                 "x": 0.0,
                 "y": 0.0,
-                "width": 360.0,
+                "width": 357.0,
                 "height": 75.0,
                 "text": "dynamic:ProductName",
                 "color": "white",
@@ -18,7 +18,7 @@
             {
                 "type": "text",
                 "x": 0.0,
-                "y": 48.0,
+                "y": 49.0,
                 "width": 237.0,
                 "height": 41.0,
                 "text": "dynamic:CategoryName",
@@ -41,12 +41,12 @@
                 "rotation": 0,
                 "horizontal_alignment": "center",
                 "vertical_alignment": "center",
-                "font_size": 70
+                "font_size": 49
             },
             {
                 "type": "text",
                 "x": 204.0,
-                "y": 171.0,
+                "y": 172.0,
                 "width": 113.0,
                 "height": 63.0,
                 "text": "Old Price:",
@@ -60,7 +60,7 @@
             {
                 "type": "barcode",
                 "x": 1.0,
-                "y": 184.0,
+                "y": 185.0,
                 "width": 194.0,
                 "height": 40.0,
                 "text": "dynamic:ProductID",
@@ -74,8 +74,8 @@
             {
                 "type": "text",
                 "x": 281.0,
-                "y": 189.0,
-                "width": 77.0,
+                "y": 190.0,
+                "width": 76.0,
                 "height": 30.0,
                 "text": "dynamic:Price",
                 "color": "black",
@@ -88,8 +88,8 @@
             {
                 "type": "text",
                 "x": 177.0,
-                "y": 68.0,
-                "width": 183.0,
+                "y": 69.0,
+                "width": 180.0,
                 "height": 123.0,
                 "text": "dynamic:FinalPrice",
                 "color": "black",
@@ -102,8 +102,8 @@
             {
                 "type": "text",
                 "x": 0.0,
-                "y": 70.0,
-                "width": 360.0,
+                "y": 71.0,
+                "width": 357.0,
                 "height": 15.0,
                 "text": "\n",
                 "color": "black",
@@ -117,7 +117,7 @@
                 "type": "text",
                 "x": 0.0,
                 "y": 174.0,
-                "width": 360.0,
+                "width": 357.0,
                 "height": 17.0,
                 "text": "\n",
                 "color": "black",
@@ -130,9 +130,9 @@
             {
                 "type": "text",
                 "x": 0.0,
-                "y": 218.0,
-                "width": 360.0,
-                "height": 22.0,
+                "y": 219.0,
+                "width": 357.0,
+                "height": 20.0,
                 "text": "Made By VIGL\n",
                 "color": "white",
                 "fill_color": "red",
@@ -145,7 +145,7 @@
                 "type": "text",
                 "x": 260.0,
                 "y": 132.0,
-                "width": 100.0,
+                "width": 97.0,
                 "height": 50.0,
                 "text": "Per KG",
                 "color": "black",
@@ -154,6 +154,20 @@
                 "horizontal_alignment": "center",
                 "vertical_alignment": "center",
                 "font_size": 16
+            },
+            {
+                "type": "text",
+                "x": 309.0,
+                "y": 53.0,
+                "width": 33.0,
+                "height": 16.0,
+                "text": "onder",
+                "color": "white",
+                "fill_color": "transparent",
+                "rotation": 0,
+                "horizontal_alignment": "flex-end",
+                "vertical_alignment": "center",
+                "font_size": 7
             }
         ]
     },

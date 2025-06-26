@@ -259,6 +259,8 @@ body {
 
 .dropdown-item.logout-button {
   color: #dc2626;
+  font-size: 1.4rem;
+  font-weight: 500;
 }
 
 .dropdown-item.logout-button:hover {

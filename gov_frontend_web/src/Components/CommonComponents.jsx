@@ -8,99 +8,24 @@ import {
   LogOut,
 } from "lucide-react";
 
-// Shared Top Bar Component
 export const CommonTopBar = ({ title }) => {
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const toggleProfileDropdown = () =>
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
   const handleLogout = () => {
-    console.log("Logout");
-    setIsProfileDropdownOpen(false);
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    window.location.href = "/login";
   };
-  const currentUser = {
-    name: "Admin User",
-    email: "admin@example.com",
-    avatarUrl: "https://placehold.co/40x40/E2E8F0/7F9CF5?text=U",
-    role: "Administrator",
-    profileLink: "/profile",
-    settingsLink: "/settings",
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsProfileDropdownOpen(false);
-      }
-    };
-    if (isProfileDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isProfileDropdownOpen]);
 
   return (
-    <div className="top-bar">
-      <h2 className="top-bar-title">{title}</h2>
-      <div className="top-bar-search-wrapper">
-        <div className="search-input-container">
-          <Search size={20} className="search-input-icon" />
-          <input type="text" placeholder="Search..." className="search-input" />
-        </div>
-      </div>
+    <div className="top-bar flex items-center justify-between px-4 py-2 bg-white shadow">
+      <h2 className="top-bar-title text-xl font-semibold">{title}</h2>
       <div className="top-bar-actions">
-        <button className="notification-button" aria-label="View notifications">
-          <Bell size={22} className="notification-button-icon" />
+        <button
+          className="dropdown-item logout-button flex items-center"
+          onClick={handleLogout}
+        >
+          <LogOut size={25} className="dropdown-item-icon mr-2" />
+          Logout
         </button>
-        <div className="user-profile-container" ref={dropdownRef}>
-          <button
-            className="user-profile-button"
-            onClick={toggleProfileDropdown}
-          >
-            <img
-              src={currentUser.avatarUrl}
-              alt="User Avatar"
-              className="user-avatar"
-            />
-            <div className="user-info-text-wrapper">
-              <p className="user-info-name">{currentUser.name}</p>
-              <p className="user-info-email">{currentUser.email}</p>
-            </div>
-            <ChevronDown
-              size={18}
-              className={`user-profile-chevron ${
-                isProfileDropdownOpen ? "rotate-chevron" : ""
-              }`}
-            />
-          </button>
-          {isProfileDropdownOpen && (
-            <div className="profile-dropdown">
-              <div className="dropdown-header">
-                <img
-                  src={currentUser.avatarUrl}
-                  alt=""
-                  className="dropdown-user-avatar"
-                />
-                <p className="dropdown-user-name">{currentUser.name}</p>
-                <p className="dropdown-user-role">{currentUser.role}</p>
-              </div>
-              <hr className="dropdown-divider" />
-              <a href={currentUser.profileLink} className="dropdown-item">
-                <User size={16} className="dropdown-item-icon" /> View Profile
-              </a>
-              <a href={currentUser.settingsLink} className="dropdown-item">
-                <Settings size={16} className="dropdown-item-icon" /> Settings
-              </a>
-              <hr className="dropdown-divider" />
-              <button
-                className="dropdown-item logout-button"
-                onClick={handleLogout}
-              >
-                <LogOut size={16} className="dropdown-item-icon" /> Logout
-              </button>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
@@ -120,7 +45,6 @@ export const AddSupermarketModal = ({ isOpen, onClose, onSubmit }) => {
 
   useEffect(() => {
     if (isOpen) {
-      // reset all fields when modal opens
       setName("");
       setLocation("");
       setOwnerUsername("");
@@ -136,14 +60,12 @@ export const AddSupermarketModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // simple email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (contactEmail && !emailRegex.test(contactEmail)) {
       alert("Please enter a valid email address.");
       return;
     }
 
-    // required fields check
     if (
       !name.trim() ||
       !location.trim() ||

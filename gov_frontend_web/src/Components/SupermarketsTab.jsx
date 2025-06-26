@@ -17,7 +17,6 @@ import {
   AddSupermarketModal,
 } from "./CommonComponents";
 
-// Reusable “…” menu for each row
 const SupermarketActionMenu = ({
   supermarket,
   onEdit,
@@ -124,16 +123,13 @@ const SupermarketActionMenu = ({
 };
 
 export default function SupermarketsTab() {
-  // full list + loading/error
   const [supermarkets, setSupermarkets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // pagination
   const [itemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // modals
   const [addOpen, setAddOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -148,7 +144,7 @@ export default function SupermarketsTab() {
       .get("/supermarket/get")
       .then((res) => {
         setSupermarkets(res.data);
-        setCurrentPage(1); // reset to first page on reload
+        setCurrentPage(1);
       })
       .catch((e) => {
         console.error(e);
@@ -156,21 +152,18 @@ export default function SupermarketsTab() {
       });
   };
 
-  // initial load
   useEffect(() => {
     setLoading(true);
     refreshTable();
     setLoading(false);
   }, []);
 
-  // slice for current page
   const totalPages = Math.ceil(supermarkets.length / itemsPerPage);
   const currentItems = supermarkets.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // --- Add Supermarket ---
   const handleAddSupermarket = async (data) => {
     setLoading(true);
     try {
@@ -198,7 +191,6 @@ export default function SupermarketsTab() {
     }
   };
 
-  // --- Edit Supermarket ---
   const handleEdit = (sm) => {
     setSelected(sm);
     setEditOpen(true);
@@ -222,11 +214,10 @@ export default function SupermarketsTab() {
     }
   };
 
-  // --- View Products ---
   const handleViewProducts = (sm) => {
     setModalLoading(true);
     api
-      .get(`/product/get_from_supermarket/${sm.SupermarketID}/`)
+      .get(`/product/get_from_supermarket/${sm.SupermarketID}`)
       .then((res) => {
         const flat = res.data.Products.map((item) => ({
           id: item.Product.ProductID,
@@ -245,7 +236,6 @@ export default function SupermarketsTab() {
       .finally(() => setModalLoading(false));
   };
 
-  // --- View Penalties ---
   const handleViewPenalties = (sm) => {
     setModalLoading(true);
     api
@@ -270,7 +260,6 @@ export default function SupermarketsTab() {
       .finally(() => setModalLoading(false));
   };
 
-  // close any open modal
   const closeAll = () => {
     setAddOpen(false);
     setEditOpen(false);
@@ -362,7 +351,6 @@ export default function SupermarketsTab() {
         )}
       </div>
 
-      {/* Modals */}
       <AddSupermarketModal
         isOpen={addOpen}
         onClose={closeAll}

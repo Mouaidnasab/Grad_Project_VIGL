@@ -11,7 +11,6 @@ const PenaltyActionMenu = ({ penalty, onChangeStatus }) => {
   const closeTimeout = useRef(null);
   const [menuStyle, setMenuStyle] = useState({});
 
-  // Clear any pending close
   const clearClose = () => {
     if (closeTimeout.current) {
       clearTimeout(closeTimeout.current);
@@ -19,16 +18,13 @@ const PenaltyActionMenu = ({ penalty, onChangeStatus }) => {
     }
   };
 
-  // Schedule menu close with a small delay
   const scheduleClose = () => {
     clearClose();
     closeTimeout.current = setTimeout(() => setIsOpen(false), 150);
   };
 
-  // Cleanup on unmount
   useEffect(() => () => clearClose(), []);
 
-  // Recalculate portal position when opening
   useEffect(() => {
     if (!isOpen || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
@@ -47,7 +43,6 @@ const PenaltyActionMenu = ({ penalty, onChangeStatus }) => {
 
   return (
     <>
-      {/* Trigger */}
       <div
         ref={triggerRef}
         onMouseEnter={clearClose}
@@ -65,7 +60,6 @@ const PenaltyActionMenu = ({ penalty, onChangeStatus }) => {
         </button>
       </div>
 
-      {/* Portal’d dropdown */}
       {isOpen &&
         createPortal(
           <div
@@ -97,11 +91,9 @@ export default function PenaltiesTab() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPenalty, setSelectedPenalty] = useState(null);
 
-  // Pagination state
   const [itemsPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch penalties on mount
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
@@ -132,7 +124,6 @@ export default function PenaltiesTab() {
     setSelectedPenalty(null);
   };
 
-  // Update status both server-side and in local state
   const handleUpdateStatus = async (penaltyId, newStatus) => {
     try {
       await api.put(`/penalty/update_status/${penaltyId}/${newStatus}`);
@@ -146,7 +137,6 @@ export default function PenaltiesTab() {
     }
   };
 
-  // Apply filter and pagination
   const filtered = penalties.filter(
     (p) => filter === "All" || p.status === filter
   );

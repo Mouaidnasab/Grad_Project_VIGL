@@ -84,7 +84,7 @@ class ScanResultPage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('\$${pr['Price']}',
+                  Text('\₺${pr['Price']}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,

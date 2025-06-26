@@ -500,7 +500,7 @@ def get_screen_by_id(
     return screen
 
 
-@router.get("/active_screens/")
+@router.get("/active_screens")
 def active_screens(
     session: Session = Depends(get_session),
     current_user: User = Depends(require_Role(["owner", "manager"])),
