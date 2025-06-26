@@ -194,7 +194,6 @@ const PenaltiesAndPriceHistory = ({ penalties }) => {
 
   return (
     <div className="penalties-sales">
-      {/* Penalties section */}
       <div className="penalties">
         <h3 className="section-titlea">Penalties</h3>
         {penalties.length > 0 ? (
@@ -237,7 +236,6 @@ const PenaltiesAndPriceHistory = ({ penalties }) => {
         </Link>
       </div>
 
-      {/* Price History Section styled like sales */}
       <div className="sales">
         <div className="sales-header">
           <h3 className="section-titlea">Product Price History</h3>
@@ -288,7 +286,6 @@ const Dashboard = () => {
   const statsRef = useRef(null);
   const dashboardRef = useRef(null);
 
-  // Fetch penalties on mount
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
@@ -301,7 +298,6 @@ const Dashboard = () => {
     fetchPenalties();
   }, []);
 
-  // Fetch active and available screens on mount
   useEffect(() => {
     const fetchScreens = async () => {
       try {
@@ -316,7 +312,6 @@ const Dashboard = () => {
     fetchScreens();
   }, []);
 
-  // Overlap detection logic
   useEffect(() => {
     const checkOverlap = () => {
       if (stickerRef.current && statsRef.current) {

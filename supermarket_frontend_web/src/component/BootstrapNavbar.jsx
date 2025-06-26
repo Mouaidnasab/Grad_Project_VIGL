@@ -58,14 +58,13 @@ const BootstrapNavbar = () => {
               </Link>
             </li>
           </ul>
-          {/* Logout button: clears tokens and navigates to login */}
           <div
             onClick={handleLogout}
             className="d-flex navbar-profile align-items-center"
             style={{ cursor: "pointer" }}
           >
             <i
-              className="fa-solid fa-arrow-right-from-bracket"
+              className="fa-solid fa-users"
               style={{
                 fontSize: "20px",
                 color: "white",
